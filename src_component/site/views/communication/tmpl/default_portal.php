@@ -57,7 +57,7 @@ use Joomla\CMS\Date\Date;
                         <a href="<?php echo JUri::root() . $attachment->file_path; ?>" target="_blank">
                             <?php echo $this->escape($attachment->file_name); ?>
                         </a>
-                        <span class="attachment-meta">(Uploaded by <?php echo $this->escape($attachment->uploaded_by); ?> on <?php echo (new Date($attachment->created_at))->format('d M Y'); ?>)</span>
+                        <span class="attachment-meta">(Uploaded by <?php echo $this->escape($attachment->uploaded_by); ?> on <span class="attachment-date" data-utc-date="<?php echo (new Date($attachment->created_at))->format('c'); ?>"><?php echo (new Date($attachment->created_at))->format('d M Y'); ?></span>)</span>
                     </li>
                 <?php endforeach; ?>
             </ul>
@@ -75,10 +75,10 @@ use Joomla\CMS\Date\Date;
                         <div class="timeline-content">
                             <div class="message-header">
                                 <span class="message-author"><?php echo $this->escape($message->author); ?></span>
-                                <span class="message-date"><?php echo (new Date($message->created_at))->format('d M Y, H:i'); ?></span>
+                                <span class="message-date" data-utc-date="<?php echo (new Date($message->created_at))->format('c'); ?>"><?php echo (new Date($message->created_at))->format('d M Y, H:i'); ?></span>
                             </div>
                             <div class="message-body">
-                                <?php echo strpos($message->author, '(Client)') !== false ? nl2br($this->escape($message->message)) : $message->message; ?>
+                                <?php echo strpos($message->author, '(Client)') !== false ? nl2br($this->escape(trim($message->message))) : $message->message; ?>
                             </div>
                         </div>
                     </div>
