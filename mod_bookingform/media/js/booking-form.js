@@ -191,8 +191,17 @@ document.addEventListener('DOMContentLoaded', function () {
             const seasonCost = nightlyRate * nightsInSeason;
             roomCost += seasonCost;
 
-            if (currentSeason && currentSeason.admin_commission) {
-                totalCommission += seasonCost * (parseFloat(currentSeason.admin_commission) / 100);
+            let commissionRate = 0;
+            const rateDetail = rules.rate_details ? rules.rate_details[seasonName] : null;
+
+            if (rateDetail && rateDetail.override_admin_commission) {
+                commissionRate = rateDetail.admin_commission || 0;
+            } else if (currentSeason && currentSeason.admin_commission) {
+                commissionRate = parseFloat(currentSeason.admin_commission) || 0;
+            }
+
+            if (commissionRate > 0) {
+                totalCommission += seasonCost * (commissionRate / 100);
             }
         }
 

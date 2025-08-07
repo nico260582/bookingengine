@@ -36,15 +36,20 @@ class ModBookingFormHelper
         }
 
         $query->clear()
-            ->select(['season_name', 'base_rate'])
+            ->select('*')
             ->from($db->quoteName('#__bookingmanager_rates'))
             ->where('property_id = ' . (int) $articleId);
 
         $ratesList = $db->setQuery($query)->loadObjectList('season_name');
 
         $rates = [];
+        $rateDetails = [];
         foreach ($ratesList as $seasonName => $rate) {
             $rates[$seasonName] = (float)$rate->base_rate;
+            $rateDetails[$seasonName] = [
+                'override_admin_commission' => (int)($rate->override_admin_commission ?? 0),
+                'admin_commission'          => isset($rate->admin_commission) ? (float)$rate->admin_commission : null,
+            ];
         }
 
         $cleanRules = [
@@ -58,6 +63,7 @@ class ModBookingFormHelper
             'free_with_parents_age' => (int)($rules['free_with_parents_age'] ?? 0),
             'seasons' => isset($rules['seasons']) && is_array($rules['seasons']) ? array_values($rules['seasons']) : [],
             'rates' => $rates,
+            'rate_details' => $rateDetails,
             'country_discounts' => isset($rules['country_discounts']) && is_array($rules['country_discounts']) ? array_values($rules['country_discounts']) : []
         ];
 
