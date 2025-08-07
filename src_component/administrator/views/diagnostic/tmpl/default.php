@@ -6,6 +6,32 @@ defined('_JEXEC') or die;
     <?php echo JHtmlSidebar::render(); ?>
 </div>
 <div id="j-main-container" class="span10">
+    <fieldset class="well">
+        <legend>Schema Health Check</legend>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Check Name</th>
+                    <th style="width:10%;">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($this->schemaChecks as $check) : ?>
+                    <tr>
+                        <td><?php echo $this->escape($check->name); ?></td>
+                        <td>
+                            <?php if ($check->status) : ?>
+                                <span class="badge badge-success">OK</span>
+                            <?php else : ?>
+                                <span class="badge badge-important">Missing</span>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </fieldset>
+
     <form action="<?php echo JRoute::_('index.php?option=com_bookingmanager&task=diagnostic.sendTestEmail'); ?>" method="post" name="adminForm" id="adminForm" class="form-validate">
         <fieldset>
             <legend>Email Test</legend>
