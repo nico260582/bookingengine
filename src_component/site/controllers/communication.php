@@ -42,6 +42,14 @@ class BookingmanagerControllerCommunication extends BaseController
     {
         $session = Factory::getSession();
         $session->clear('bookingmanager_request_id');
+
+        $user = Factory::getUser();
+        if (!$user->guest)
+        {
+            $app = Factory::getApplication();
+            $app->logout($user->id);
+        }
+
         Factory::getApplication()->redirect(Route::_('index.php?option=com_bookingmanager&view=communication', false));
     }
 
