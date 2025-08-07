@@ -31,6 +31,10 @@ class ModBookingFormHelper
 
         $rules = json_decode($rulesJson, true);
 
+        if (isset($rules['seasons']) && is_string($rules['seasons'])) {
+            $rules['seasons'] = json_decode($rules['seasons'], true);
+        }
+
         $query->clear()
             ->select(['season_name', 'base_rate'])
             ->from($db->quoteName('#__bookingmanager_rates'))
