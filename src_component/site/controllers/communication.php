@@ -42,6 +42,43 @@ class BookingmanagerControllerCommunication extends BaseController
     {
         $session = Factory::getSession();
         $session->clear('bookingmanager_request_id');
+        $app->redirect(Route::_('index.php?option=com_bookingmanager&view=communication', false));
+    }
+
+    public function switchBooking()
+    {
+        $app = Factory::getApplication();
+        $input = $app->input;
+        $session = Factory::getSession();
+        $user = Factory::getUser();
+
+        if (!Session::checkToken('post')) {
+            $app->enqueueMessage(JText::_('JINVALID_TOKEN'), 'error');
+            $app->redirect(Route::_('index.php?option=com_bookingmanager&view=communication', false));
+            return;
+        }
+
+        $requestId = $input->post->getInt('request_id');
+
+        // Security check: ensure the requested booking belongs to the logged-in user
+        if (!$user->guest && $requestId) {
+            $model = $this->getModel('Communication', 'BookingmanagerModel');
+            $userRequests = $model->getRequestsForUser($user->id);
+            $isAllowed = false;
+            foreach ($userRequests as $request) {
+                if ($request->id == $requestId) {
+                    $isAllowed = true;
+                    break;
+                }
+            }
+
+            if ($isAllowed) {
+                $session->set('bookingmanager_request_id', $requestId);
+            } else {
+                $app->enqueueMessage('You do not have permission to view this booking.', 'error');
+            }
+        }
+
         Factory::getApplication()->redirect(Route::_('index.php?option=com_bookingmanager&view=communication', false));
     }
     

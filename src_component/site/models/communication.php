@@ -101,4 +101,21 @@ class BookingmanagerModelCommunication extends BaseDatabaseModel
 
         return $table->save($data);
     }
+
+    public function getRequestsForUser($userId)
+    {
+        if (!$userId)
+        {
+            return [];
+        }
+
+        $db    = $this->getDbo();
+        $query = $db->getQuery(true)
+            ->select('*')
+            ->from($db->quoteName('#__booking_requests'))
+            ->where($db->quoteName('user_id') . ' = ' . (int) $userId)
+            ->order($db->quoteName('created_at') . ' DESC');
+
+        return $db->setQuery($query)->loadObjectList();
+    }
 }
