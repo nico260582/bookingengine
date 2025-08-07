@@ -8,6 +8,23 @@ use Joomla\CMS\Date\Date;
 ?>
 
 <div class="portal-container">
+    <?php if (count($this->userRequests) > 1) : ?>
+    <div class="booking-switcher">
+        <form action="<?php echo Route::_('index.php?option=com_bookingmanager&view=communication'); ?>" method="post" name="bookingSwitcherForm" id="bookingSwitcherForm">
+            <label for="booking_request_id">Your Bookings:</label>
+            <select name="request_id" id="booking_request_id" onchange="this.form.submit()">
+                <?php foreach ($this->userRequests as $userRequest) : ?>
+                    <option value="<?php echo $userRequest->id; ?>" <?php echo ($this->request->id == $userRequest->id) ? 'selected' : ''; ?>>
+                        <?php echo $this->escape($userRequest->booking_ref . ' - ' . $userRequest->property_name); ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+             <input type="hidden" name="task" value="communication.switchBooking" />
+             <?php echo HTMLHelper::_('form.token'); ?>
+        </form>
+    </div>
+    <?php endif; ?>
+
     <div class="booking-summary">
         <div class="summary-header">
             <h3><?php echo Text::sprintf('COM_BOOKINGMANAGER_PORTAL_HEADING', $this->escape($this->request->booking_ref)); ?></h3>
