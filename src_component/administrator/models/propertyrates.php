@@ -60,7 +60,7 @@ class BookingmanagerModelPropertyrates extends BaseDatabaseModel
 
         $db = $this->getDbo();
 
-        // First, get the seasons defined for this property's supplier
+        // Get the seasons defined for this property's supplier
         $subQuery = $db->getQuery(true)->select('s.rules')->from($db->quoteName('#__bookingmanager_property_map', 'm'))
             ->join('INNER', $db->quoteName('#__bookingmanager_suppliers', 's') . ' ON m.supplier_id = s.id')
             ->where('m.property_id = ' . (int)$propertyId);
@@ -76,11 +76,12 @@ class BookingmanagerModelPropertyrates extends BaseDatabaseModel
             }
         }
 
-        // Delete all existing rates for the property before inserting new ones
-        $query = $db->getQuery(true)->delete($db->quoteName('#__bookingmanager_rates'))->where('property_id = ' . $propertyId);
-        $db->setQuery($query)->execute();
+        // Get existing rates to determine if we need to UPDATE or INSERT
+        $existingRatesQuery = $db->getQuery(true)->select('season_name')->from($db->quoteName('#__bookingmanager_rates'))->where('property_id = ' . $propertyId);
+        $existingRates = $db->setQuery($existingRatesQuery)->loadColumn();
+        $existingRates = array_flip($existingRates);
 
-        // Loop through all available seasons, not just the submitted data
+        // Loop through all available seasons
         foreach ($seasons as $season) {
             $seasonName = $season->name;
             $seasonData = $ratesData[$seasonName] ?? [];
@@ -89,15 +90,12 @@ class BookingmanagerModelPropertyrates extends BaseDatabaseModel
             $rateObj->property_id = $propertyId;
             $rateObj->season_name = $seasonName;
 
-            // Sanitize and set base_rate, allowing it to be null
             $baseRateInput = $seasonData['base_rate'] ?? '';
             $sanitizedRate = preg_replace('/[^\d\.]/', '', $baseRateInput);
             $rateObj->base_rate = ($sanitizedRate !== '' && is_numeric($sanitizedRate)) ? (float)$sanitizedRate : null;
 
-            // Handle override commission checkbox
             $rateObj->override_admin_commission = (isset($seasonData['override_admin_commission']) && $seasonData['override_admin_commission'] == '1') ? 1 : 0;
 
-            // Handle admin commission value, only if override is checked
             if ($rateObj->override_admin_commission) {
                 $commissionInput = $seasonData['admin_commission'] ?? '';
                 $rateObj->admin_commission = is_numeric($commissionInput) ? (float)$commissionInput : null;
@@ -105,7 +103,17 @@ class BookingmanagerModelPropertyrates extends BaseDatabaseModel
                 $rateObj->admin_commission = null;
             }
 
-            $db->insertObject('#__bookingmanager_rates', $rateObj);
+            // Decide whether to UPDATE or INSERT
+            if (isset($existingRates[$seasonName])) {
+                $db->updateObject('#__bookingmanager_rates', $rateObj, ['property_id', 'season_name']);
+            } else {
+                // We must insert a new row only if there is data for it.
+                // The original logic was to only insert if base_rate was present.
+                // Now, we insert if any value is present.
+                if ($rateObj->base_rate !== null || $rateObj->override_admin_commission) {
+                   $db->insertObject('#__bookingmanager_rates', $rateObj);
+                }
+            }
         }
 
         return true;
