@@ -3,6 +3,22 @@ defined('_JEXEC') or die;
 use Joomla\CMS\Factory;
 class com_bookingmanagerInstallerScript
 {
+    private function columnExists($tableName, $columnName)
+    {
+        $db = Factory::getDbo();
+        $tableName = $db->replacePrefix($tableName);
+
+        $query = $db->getQuery(true)
+            ->select('COUNT(*)')
+            ->from('information_schema.COLUMNS')
+            ->where('TABLE_SCHEMA = DATABASE()')
+            ->where('TABLE_NAME = ' . $db->quote($tableName))
+            ->where('COLUMN_NAME = ' . $db->quote($columnName));
+
+        $db->setQuery($query);
+        return (bool) $db->loadResult();
+    }
+
     public function install($parent) { $this->runInstallQueries($parent); return true; }
     public function uninstall($parent) { $this->runUninstallQueries($parent); return true; }
     public function update($parent) { $this->runInstallQueries($parent); return true; }
@@ -61,13 +77,22 @@ class com_bookingmanagerInstallerScript
             try { $db->execute(); } catch (Exception $e) {}
         }
 
-        // Add columns for commission override. Use individual try-catch to avoid issues on re-install/update.
-        $db->setQuery("ALTER TABLE `#__bookingmanager_rates` ADD COLUMN `override_admin_commission` TINYINT(1) NOT NULL DEFAULT 0");
-        try { $db->execute(); } catch (Exception $e) {}
+        // Add columns for commission override if they don't exist
+        if (!$this->columnExists('#__bookingmanager_rates', 'override_admin_commission')) {
+            $db->setQuery("ALTER TABLE `#__bookingmanager_rates` ADD COLUMN `override_admin_commission` TINYINT(1) NOT NULL DEFAULT 0");
+            $db->execute();
+            JFactory::getApplication()->enqueueMessage('Table #__bookingmanager_rates updated with override_admin_commission column.', 'message');
+        }
 
-        $db->setQuery("ALTER TABLE `#__bookingmanager_rates` ADD COLUMN `admin_commission` DECIMAL(5,2) DEFAULT NULL");
-        try { $db->execute(); } catch (Exception $e) {}
+        if (!$this->columnExists('#__bookingmanager_rates', 'admin_commission')) {
+            $db->setQuery("ALTER TABLE `#__bookingmanager_rates` ADD COLUMN `admin_commission` DECIMAL(5,2) DEFAULT NULL");
+            $db->execute();
+            JFactory::getApplication()->enqueueMessage('Table #__bookingmanager_rates updated with admin_commission column.', 'message');
+        }
 
+        // Make base_rate nullable
+        // Note: We don't check if this is already nullable, as MODIFY COLUMN is idempotent for this purpose.
+        // A more complex check would be needed to inspect the column's properties if we wanted to avoid running this every time.
         $db->setQuery("ALTER TABLE `#__bookingmanager_rates` MODIFY COLUMN `base_rate` DECIMAL(10,2) NULL");
         try { $db->execute(); } catch (Exception $e) {}
         
