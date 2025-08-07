@@ -84,7 +84,7 @@ class BookingmanagerController extends BaseController
             }
 
             JLoader::register('BookingmanagerHelper', JPATH_ADMINISTRATOR . '/components/com_bookingmanager/helpers/bookingmanager.php');
-            BookingmanagerHelper::sendNotificationEmails($table->id);
+            BookingmanagerHelper::sendNotificationEmails($table->id, 'all', '', $data['new_user_password'] ?? '');
             
             echo json_encode(['success' => true, 'bookingRef' => $data['booking_ref']]);
         } catch (Exception $e) {

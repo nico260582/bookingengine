@@ -173,6 +173,12 @@ class com_bookingmanagerInstallerScript
                 'type'    => 'whatsapp_admin_reply',
                 'subject' => null,
                 'body'    => "Hello [client_name],\n\nThis is a message regarding your booking request [booking_ref] for [property_name]."
+            ],
+            [
+                'title'   => 'Client - New User Account Details',
+                'type'    => 'email_client_new_user',
+                'subject' => 'Your New Account on Book Holidays Mauritius',
+                'body'    => "<p>Hello [client_name],</p>\n                            <p>An account has been created for you on Book Holidays Mauritius. You can use these details to log in and manage your bookings.</p>\n                            <hr>\n                            <p><strong>Username:</strong> [username]<br>\n                               <strong>Password:</strong> [password]<br>\n                            </p>\n                            <p>We strongly recommend that you change your password after logging in for the first time.</p>\n                            <p><a href=\"[login_link]\">Click here to log in</a></p>\n                            <hr>\n                            <p>Warm regards,<br>The Book Holidays Mauritius Team</p>"
             ]
         ];
     

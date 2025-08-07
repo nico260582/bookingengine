@@ -147,7 +147,7 @@ abstract class BookingmanagerHelper
         ];
     }
 
-    public static function sendNotificationEmails($requestId, $type = 'all', $messageContent = '')
+    public static function sendNotificationEmails($requestId, $type = 'all', $messageContent = '', $newUserPassword = '')
     {
         $db     = Factory::getDbo();
         $config = ComponentHelper::getParams('com_bookingmanager');
@@ -161,17 +161,10 @@ abstract class BookingmanagerHelper
         if (!$request) { return false; }
         
         $emailTypes = [];
-        $newUserPassword = '';
         if ($type === 'all') {
             $emailTypes = ['email_client_confirm', 'email_admin_notify'];
-            // Check if this is a new user to send the account details email
-            $user = new JUser(JUser::getUserId($request->client_email));
-            if ($user->get('lastvisitDate') == '0000-00-00 00:00:00') {
-                 $emailTypes[] = 'email_client_new_user';
-                 // We need to generate a new temporary password to send.
-                 $newUserPassword = JUserHelper::genRandomPassword(8);
-                 $user->set('password', $newUserPassword);
-                 $user->save();
+            if (!empty($newUserPassword)) {
+                $emailTypes[] = 'email_client_new_user';
             }
         } else {
             $emailTypes[] = $type;
@@ -214,12 +207,15 @@ abstract class BookingmanagerHelper
             'pin'   => $request->pin
         ]);
         $portalLink = Uri::root() . 'index.php?option=com_bookingmanager&view=communication&' . $portalLinkParams;
+        $loginLink = Uri::root() . 'index.php?option=com_users&view=login';
 
         $placeholders = [
             '[client_name]'          => (string) ($request->client_name ?? ''),
             '[booking_ref]'          => (string) ($request->booking_ref ?? ''),
             '[pin]'                  => (string) ($request->pin ?? ''),
-            '[client_password]'      => $newUserPassword, // New placeholder
+            '[username]'             => (string) ($request->client_email ?? ''),
+            '[password]'             => $newUserPassword,
+            '[login_link]'           => '<a href="' . $loginLink . '">Click here to log in</a>',
             '[property_name]'        => (string) ($request->property_name ?? ''),
             '[start_date_formatted]' => $startDate->format('jS F Y'),
             '[end_date_formatted]'   => $endDate->format('jS F Y'),
