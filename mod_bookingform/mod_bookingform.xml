@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension type="module" version="3.1" client="site" method="upgrade">
+    <name>mod_bookingform</name>
+    <author>RT-Holidays</author>
+    <version>3.8.0</version>
+    <description>A compact booking form that integrates with com_bookingmanager.</description>
+    <files>
+        <filename module="mod_bookingform">mod_bookingform.php</filename>
+        <filename>helper.php</filename>
+        <folder>tmpl</folder>
+        <folder>media</folder>
+    </files>
+    <config>
+        <fields name="params">
+            <fieldset name="basic">
+                <field name="currency_symbol" type="text" default="€" label="Currency Symbol" />
+            </fieldset>
+        </fields>
+    </config>
+</extension>

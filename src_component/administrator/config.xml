@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<config>
+    <fieldset name="basic" label="Notification Settings">
+        <field 
+            name="recipient_email" 
+            type="email" 
+            label="Admin Notification Email" 
+            description="The email address to receive new booking request notifications." 
+            required="true" />
+        <field 
+            name="company_whatsapp" 
+            type="tel" 
+            label="Company WhatsApp Number" 
+            description="Enter the full number including country code (e.g., +23051234567). Used for generating WhatsApp links in notification emails." 
+            required="true" />
+    </fieldset>
+    <fieldset 
+        name="permissions"
+        description="JCONFIG_PERMISSIONS_DESC"
+        label="JCONFIG_PERMISSIONS_LABEL"
+    >
+        <field 
+            name="rules"
+            type="rules"
+            label="JCONFIG_PERMISSIONS_LABEL"
+            filter="rules"
+            validate="rules"
+            component="com_bookingmanager"
+            section="component"
+        />
+    </fieldset>
+</config>

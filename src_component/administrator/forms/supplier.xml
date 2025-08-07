@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<form addfieldpath="/administrator/components/com_bookingmanager/models/fields">
+    <fieldset name="details">
+        <field name="id" type="hidden" />
+        <field name="name" type="text" label="Supplier Name" required="true" />
+        <field name="alias" type="text" label="Alias" />
+        <field name="abbreviation" type="text" label="Abbreviation" required="true" size="10" />
+        <field name="contact_email" type="email" label="Contact Email" />
+        <field name="published" type="list" label="Status" default="1">
+            <option value="1">JPUBLISHED</option>
+            <option value="0">JUNPUBLISHED</option>
+        </field>
+    </fieldset>
+    <fieldset name="pricing_model_rules" label="Pricing Model">
+        <field name="pricing_model" type="list" label="Pricing Model" default="SupplementPerGuest">
+            <option value="SupplementPerGuest">Supplement per Guest</option>
+            <option value="FlatUnitRate">Flat Unit Rate</option>
+            <option value="CapacityBased">Capacity Based (Mattress-for-One)</option>
+        </field>
+        <field name="adult_supplement" type="number" label="Default Adult Supplement" step="0.01" class="bm-showon-supplement"/>
+        <field name="child_supplement" type="number" label="Default Child Supplement" step="0.01" class="bm-showon-supplement"/>
+        <field name="extra_mattress_fee" type="number" label="Default Extra Mattress Fee" step="0.01" class="bm-showon-capacity"/>
+    </fieldset>
+    <fieldset name="guest_age_rules" label="Guest Age Rules">
+        <field name="infant_max_age" type="number" label="Infant Max Age" description="Guests this age or younger are Infants for this supplier." default="5" filter="integer" />
+        <field name="child_max_age" type="number" label="Child Max Age" description="Guests older than an infant and this age or younger are Children." default="12" filter="integer" />
+        <field name="teen_max_age" type="number" label="Teen Max Age" description="Guests older than a child and this age or younger are Teens." default="17" filter="integer" />
+        <field name="free_with_parents_age" type="number" label="Free with Parents Age Limit" description="For applicable models, children this age or younger can stay free, sharing existing beds." filter="integer" />
+    </fieldset>
+    <fieldset name="seasons_rules" label="Seasons">
+        <field name="seasons" type="subform" label="Define Seasons" layout="joomla.form.field.subform.repeatable-table" multiple="true">
+            <form>
+                <field name="name" type="text" label="Season Name" size="15" required="true" />
+                <field name="start_date" type="calendar" label="Start Date" format="%Y-%m-%d" required="true" />
+                <field name="end_date" type="calendar" label="End Date" format="%Y-%m-%d" required="true" />
+                <field name="min_stay" type="number" label="Min. Stay" default="1" />
+                <field name="apply_child_supplement" type="list" label="Apply Child Supplement?" default="1" filter="integer">
+                    <option value="1">JYES</option>
+                    <option value="0">JNO</option>
+                </field>
+            </form>
+        </field>
+    </fieldset>
+    <fieldset name="discounts" label="Discount Rules">
+        <field 
+            name="country_discounts" 
+            type="subform" 
+            label="Country-Specific Discounts"
+            description="Apply a discount for clients from a specific country. This is automatically applied on the front-end form."
+            layout="joomla.form.field.subform.repeatable-table"
+            multiple="true">
+            <form>
+                <field name="country" type="bookingmanagercountry" default="" label="Country" required="true" />
+                <field name="discount_percent" type="number" label="Discount %" step="0.01" required="true" />
+                <field name="note" type="text" label="Note for User &amp; Admin" description="e.g., You've received the 5% Mauritian Resident discount!" />
+            </form>
+        </field>
+        <field 
+            name="coupon_codes" 
+            type="subform" 
+            label="Coupon Codes"
+            description="Create custom coupon codes. These are for admin use only and do not appear on the public form."
+            layout="joomla.form.field.subform.repeatable-table"
+            multiple="true">
+            <form>
+                <field name="code" type="text" label="Coupon Code" required="true" />
+                <field name="discount_percent" type="number" label="Discount %" step="0.01" required="true" />
+            </form>
+        </field>
+    </fieldset>
+    <fieldset name="assignments" label="Property Assignments">
+        <field name="properties" type="sql" label="Assign to Properties" description="Select one or more properties (Joomla Articles) that will use these pricing rules." query="SELECT id, title FROM #__content WHERE catid > 0 AND state = 1 ORDER BY title" key_field="id" value_field="title" multiple="true" size="10" />
+    </fieldset>
+</form>

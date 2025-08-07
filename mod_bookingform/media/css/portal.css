@@ -1,0 +1,159 @@
+/* --- Client Portal General Layout --- */
+.bookingmanager-client-portal {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    background-color: #f9f9f9;
+    max-width: 800px;
+    margin: 20px auto;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.bookingmanager-client-portal h1 {
+    font-size: 1.8rem;
+    margin-top: 0;
+    text-align: center;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+}
+
+/* --- Login Form --- */
+.login-form .form-group {
+    margin-bottom: 1rem;
+}
+.login-form label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: .5rem;
+}
+.login-form .form-control {
+    width: 100%;
+    padding: 10px;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+.login-form .btn-primary {
+    padding: 10px 20px;
+    font-size: 1.1rem;
+    cursor: pointer;
+}
+
+/* --- Logged-in Portal View --- */
+.booking-summary {
+    background-color: #fff;
+    padding: 15px;
+    border-radius: 5px;
+    border: 1px solid #eee;
+    margin-bottom: 20px;
+}
+.summary-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+}
+.summary-header h3 {
+    margin: 0;
+    line-height: 1.2;
+}
+.booking-summary p {
+    margin-bottom: 0;
+    line-height: 1.6;
+}
+
+.attachments-section {
+    background-color: #fff;
+    padding: 15px;
+    border-radius: 5px;
+    border: 1px solid #eee;
+    margin-bottom: 20px;
+}
+.attachments-section h4 {
+    margin-top: 0;
+}
+.attachments-section ul {
+    list-style-type: none;
+    padding-left: 0;
+    margin-bottom: 0;
+}
+.attachments-section li {
+    padding: 5px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+.attachments-section li:last-child {
+    border-bottom: none;
+}
+.attachment-meta {
+    font-size: 0.8rem;
+    color: #888;
+    margin-left: 10px;
+}
+
+.conversation-history {
+    margin-top: 20px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 15px;
+    background-color: #fff;
+    max-height: 400px;
+    overflow-y: auto;
+}
+.conversation-history h4 {
+    margin-top: 0;
+}
+
+.message {
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #eee; /* SEPARATOR LINE */
+    max-width: 100%;
+}
+.message:last-child {
+    border-bottom: none; /* Remove separator from the last message */
+    margin-bottom: 0;
+}
+.message-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+.message-author {
+    font-size: 0.9rem;
+}
+.message-body {
+    white-space: pre-wrap; /* Preserves line breaks */
+}
+.message-date {
+    font-size: 0.8rem;
+    color: #888;
+    font-weight: bold;
+}
+
+/* Admin vs Client messages */
+.message.admin .message-author {
+    color: #0056b3; /* Blue for admin */
+}
+.message.client .message-author {
+    color: #155724; /* Green for client */
+}
+
+.reply-form {
+    margin-top: 20px;
+}
+.reply-form .form-group {
+    margin-bottom: 1rem;
+}
+.reply-form .form-control-file {
+    margin-top: 10px;
+}
+.reply-form textarea {
+    width: 100%;
+    padding: 10px;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    resize: vertical;
+}

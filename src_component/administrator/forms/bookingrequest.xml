@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<form>
+    <fieldset name="details" label="Booking Details">
+        <field name="id" type="hidden" />
+        <field name="booking_ref" type="text" label="Booking Reference" readonly="true" />
+        <field name="status" type="list" label="Status" default="New">
+            <option value="New">New</option>
+            <option value="Confirmed">Confirmed</option>
+            <option value="Cancelled">Cancelled</option>
+        </field>
+        <field name="property_name" type="text" label="Property Name" readonly="true" />
+        <field name="accommodation_url" type="text" label="Property URL" readonly="true"/>
+        <field name="start_date" type="calendar" label="Start Date" format="%Y-%m-%d" />
+        <field name="end_date" type="calendar" label="End Date" format="%Y-%m-%d" />
+        <field name="adults" type="number" label="Adults" />
+        <field name="children" type="number" label="Children" />
+        <field name="child_ages" type="text" label="Child Ages" />
+    </fieldset>
+    <fieldset name="client" label="Client Details">
+        <field name="client_name" type="text" label="Client Name" />
+        <field name="client_email" type="email" label="Client Email" />
+        <field name="client_phone" type="tel" label="Client Phone" />
+        <field name="client_country" type="country" label="Client Country" />
+        <field name="client_message" type="textarea" label="Client Message" rows="5" readonly="true" />
+    </fieldset>
+    <fieldset name="pricing" label="Pricing &amp; Notes">
+        <field name="price_estimate" type="text" label="Price Estimate" />
+        <field name="unit_count" type="number" label="Units" readonly="true"/>
+        <field name="discount_note" type="text" label="Discount Note" readonly="true"/>
+        <field name="final_price" type="number" label="Final Price" step="0.01" default="0"/>
+        <field name="payment_link" type="url" label="Payment Link" filter="url"/>
+        <field name="admin_notes" type="textarea" label="Admin Notes (Private)" rows="5"/>
+        <field name="pin" type="text" label="Client PIN" readonly="true"/>
+    </fieldset>
+    <fieldset name="communication_message">
+        <field name="admin_message" type="editor" label="Message" description="The message to send to the client." filter="safehtml" />
+    </fieldset>
+</form>
