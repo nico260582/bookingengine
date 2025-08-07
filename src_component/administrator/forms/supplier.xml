@@ -38,6 +38,7 @@
                     <option value="1">JYES</option>
                     <option value="0">JNO</option>
                 </field>
+                <field name="admin_commission" type="number" label="Admin Commission %" description="Commission by percentage for each season." step="0.01" />
             </form>
         </field>
     </fieldset>

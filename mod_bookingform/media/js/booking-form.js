@@ -172,6 +172,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         let roomCost = 0;
+        let totalCommission = 0;
         for (const [seasonName, nightsInSeason] of Object.entries(seasonRateCounts)) {
             let nightlyRate = rules.rates[seasonName] || 0;
             const currentSeason = rules.seasons.find(s => s.name === seasonName);
@@ -186,10 +187,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 const extraAdults = Math.max(0, chargeableAdults - 2);
                 nightlyRate += (extraAdults * (rules.adult_supplement || 0)) + (chargeableChildren * (rules.child_supplement || 0));
             }
-            roomCost += nightlyRate * nightsInSeason;
+
+            const seasonCost = nightlyRate * nightsInSeason;
+            roomCost += seasonCost;
+
+            if (currentSeason && currentSeason.admin_commission) {
+                totalCommission += seasonCost * (parseFloat(currentSeason.admin_commission) / 100);
+            }
         }
 
-        let totalCost = (roomCost * requiredUnits) + mattressCost;
+        let totalCost = (roomCost * requiredUnits) + mattressCost + totalCommission;
 
         const selectedCountry = elements.countryResidenceSelect.value;
         let discountPercent = 0;
