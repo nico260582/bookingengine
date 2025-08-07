@@ -53,13 +53,22 @@ class BookingmanagerModelPropertyrates extends BaseDatabaseModel
         $db->setQuery($query)->execute();
 
         foreach ($ratesData as $seasonName => $seasonData) {
-            if (isset($seasonData['base_rate']) && $seasonData['base_rate'] !== '' && is_numeric($seasonData['base_rate'])) {
+            $baseRateInput = $seasonData['base_rate'] ?? '';
+            $sanitizedRate = preg_replace('/[^\d\.]/', '', $baseRateInput);
+
+            if ($sanitizedRate !== '' && is_numeric($sanitizedRate)) {
                 $rateObj = new stdClass();
                 $rateObj->property_id = $propertyId;
                 $rateObj->season_name = $seasonName;
-                $rateObj->base_rate = (float)$seasonData['base_rate'];
+                $rateObj->base_rate = (float)$sanitizedRate;
 
-                $rateObj->override_admin_commission = isset($seasonData['override_admin_commission']) ? 1 : 0;
+                // More verbose check for the override checkbox
+                $override = 0;
+                if (isset($seasonData['override_admin_commission']) && $seasonData['override_admin_commission'] == '1') {
+                    $override = 1;
+                }
+                $rateObj->override_admin_commission = $override;
+
                 if ($rateObj->override_admin_commission) {
                     $rateObj->admin_commission = isset($seasonData['admin_commission']) && is_numeric($seasonData['admin_commission']) ? (float)$seasonData['admin_commission'] : null;
                 } else {
