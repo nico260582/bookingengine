@@ -5,6 +5,7 @@ use Joomla\CMS\Date\Date;
 use Joomla\CMS\Log\Log;
 use Joomla\CMS\Session\Session;
 use Joomla\CMS\MVC\Controller\BaseController;
+use Joomla\CMS\User\UserHelper;
 
 class BookingmanagerController extends BaseController
 {
@@ -49,6 +50,28 @@ class BookingmanagerController extends BaseController
             if (empty($data['client_email']) || empty($data['property_name']) || empty($data['start_date'])) {
                 throw new Exception('Required data is missing.', 400);
             }
+
+            // User creation logic
+            $userId = (int) UserHelper::getUserId($data['client_email']);
+            if (!$userId) {
+                $user = Factory::getUser(0);
+                $password = UserHelper::genRandomPassword(10);
+                $userData = [
+                    'name'      => $data['client_name'],
+                    'username'  => $data['client_email'],
+                    'password'  => $password,
+                    'password2' => $password,
+                    'email'     => $data['client_email'],
+                    'groups'    => [2] // Registered
+                ];
+                if (!$user->bind($userData) || !$user->save()) {
+                    throw new Exception('User creation failed: ' . $user->getError());
+                }
+                $userId = $user->id;
+                $data['new_user_password'] = $password;
+            }
+            $data['user_id'] = $userId;
+
             $data['booking_ref'] = 'BHM-' . date('dmy') . '-' . strtoupper(substr(md5(uniqid(rand(), true)), 0, 4));
             $data['pin'] = substr(str_shuffle("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"), 0, 6);
             $table = JTable::getInstance('Bookingrequest', 'BookingmanagerTable');
