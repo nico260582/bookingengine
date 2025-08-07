@@ -67,6 +67,9 @@ class com_bookingmanagerInstallerScript
 
         $db->setQuery("ALTER TABLE `#__bookingmanager_rates` ADD COLUMN `admin_commission` DECIMAL(5,2) DEFAULT NULL");
         try { $db->execute(); } catch (Exception $e) {}
+
+        $db->setQuery("ALTER TABLE `#__bookingmanager_rates` MODIFY COLUMN `base_rate` DECIMAL(10,2) NULL");
+        try { $db->execute(); } catch (Exception $e) {}
         
         $this->addSampleData($db);
         $this->addDefaultTemplates($db);
