@@ -42,7 +42,12 @@ document.addEventListener('DOMContentLoaded', function () {
     function getSeasonForDate(date) {
         const rules = options.pricingRules;
         if (!rules || !Array.isArray(rules.seasons)) return null;
-        const dateStr = date.toISOString().slice(0, 10);
+
+        const year = date.getFullYear();
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const day = date.getDate().toString().padStart(2, '0');
+        const dateStr = `${year}-${month}-${day}`;
+
         for (const season of rules.seasons) {
             if (dateStr >= season.start_date && dateStr <= season.end_date) return season;
         }
