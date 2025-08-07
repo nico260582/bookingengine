@@ -46,6 +46,9 @@ class BookingmanagerViewCommunication extends BaseHtmlView
             }
         }
 
+        $doc = Factory::getDocument();
+        $doc->addScript(JUri::root(true) . '/modules/mod_bookingform/media/js/portal.js?v=' . filemtime(JPATH_SITE . '/modules/mod_bookingform/media/js/portal.js'));
+
         parent::display($tpl);
     }
 }
