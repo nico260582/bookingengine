@@ -51,12 +51,22 @@ document.addEventListener('DOMContentLoaded', function() {
                             $rateValue = ($rate && isset($rate->base_rate)) ? $rate->base_rate : '';
                             $overrideChecked = ($rate && isset($rate->override_admin_commission) && $rate->override_admin_commission) ? 'checked' : '';
                             $commissionValue = ($rate && isset($rate->admin_commission)) ? $rate->admin_commission : '';
+                            $supplierCommission = $season->admin_commission ?? 0;
                         ?>
                         <tr>
                             <td><?php echo $this->escape($season->name); ?><br/><small><?php echo $season->start_date . ' to ' . $season->end_date; ?></small></td>
                             <td><input type="number" step="0.01" name="jform[rates][<?php echo $this->escape($season->name); ?>][base_rate]" value="<?php echo $this->escape($rateValue); ?>" class="input-small" /></td>
                             <td><input type="checkbox" name="jform[rates][<?php echo $this->escape($season->name); ?>][override_admin_commission]" value="1" class="override-commission-checkbox" <?php echo $overrideChecked; ?> /></td>
-                            <td><input type="number" step="0.01" name="jform[rates][<?php echo $this->escape($season->name); ?>][admin_commission]" value="<?php echo $this->escape($commissionValue); ?>" class="input-small commission-value-input" /></td>
+                            <td>
+                                <input type="number" step="0.01" name="jform[rates][<?php echo $this->escape($season->name); ?>][admin_commission]" value="<?php echo $this->escape($commissionValue); ?>" class="input-small commission-value-input" />
+                                <div class="commission-source-info" style="font-size: 0.9em; color: #666;">
+                                    <?php if ($overrideChecked) : ?>
+                                        <span style="color: green;">Property Override</span>
+                                    <?php else : ?>
+                                        Inherited from Supplier (<?php echo $this->escape($supplierCommission); ?>%)
+                                    <?php endif; ?>
+                                </div>
+                            </td>
                         </tr>
                         <?php endforeach; ?>
                     </tbody>
