@@ -66,21 +66,25 @@ use Joomla\CMS\Date\Date;
 
     <div class="conversation-history">
         <h4><?php echo Text::_('COM_BOOKINGMANAGER_CONVERSATION_HEADING'); ?></h4>
-        <?php if (empty($this->messages)) : ?>
-            <p><?php echo Text::_('COM_BOOKINGMANAGER_NO_MESSAGES_TEXT'); ?></p>
-        <?php else : ?>
-            <?php foreach ($this->messages as $message) : ?>
-                <div class="message <?php echo strpos($message->author, '(Client)') !== false ? 'client' : 'admin'; ?>">
-                    <div class="message-header">
-                        <span class="message-author"><?php echo $this->escape($message->author); ?></span>
-                        <span class="message-date"><?php echo (new Date($message->created_at))->format('d M Y, H:i'); ?></span>
+        <div class="timeline">
+            <?php if (empty($this->messages)) : ?>
+                <p><?php echo Text::_('COM_BOOKINGMANAGER_NO_MESSAGES_TEXT'); ?></p>
+            <?php else : ?>
+                <?php foreach ($this->messages as $message) : ?>
+                    <div class="timeline-item <?php echo strpos($message->author, '(Client)') !== false ? 'client' : 'admin'; ?>">
+                        <div class="timeline-content">
+                            <div class="message-header">
+                                <span class="message-author"><?php echo $this->escape($message->author); ?></span>
+                                <span class="message-date"><?php echo (new Date($message->created_at))->format('d M Y, H:i'); ?></span>
+                            </div>
+                            <div class="message-body">
+                                <?php echo strpos($message->author, '(Client)') !== false ? nl2br($this->escape($message->message)) : $message->message; ?>
+                            </div>
+                        </div>
                     </div>
-                    <div class="message-body">
-                        <?php echo strpos($message->author, '(Client)') !== false ? nl2br($this->escape($message->message)) : $message->message; ?>
-                    </div>
-                </div>
-            <?php endforeach; ?>
-        <?php endif; ?>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </div>
     </div>
 
     <div class="reply-form">
