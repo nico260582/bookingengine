@@ -95,6 +95,13 @@ class com_bookingmanagerInstallerScript
         // A more complex check would be needed to inspect the column's properties if we wanted to avoid running this every time.
         $db->setQuery("ALTER TABLE `#__bookingmanager_rates` MODIFY COLUMN `base_rate` DECIMAL(10,2) NULL");
         try { $db->execute(); } catch (Exception $e) {}
+
+        // Add user_id to booking_requests table
+        if (!$this->columnExists('#__booking_requests', 'user_id')) {
+            $db->setQuery("ALTER TABLE `#__booking_requests` ADD COLUMN `user_id` INT(11) NULL DEFAULT NULL, ADD INDEX `idx_user_id` (`user_id`)");
+            $db->execute();
+            JFactory::getApplication()->enqueueMessage('Table #__booking_requests updated with user_id column.', 'message');
+        }
         
         $this->addSampleData($db);
         $this->addDefaultTemplates($db);
