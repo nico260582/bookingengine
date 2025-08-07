@@ -34,6 +34,26 @@
     border: 1px solid #ccc;
     border-radius: 4px;
 }
+
+.status-badge {
+    display: inline-block;
+    padding: 0.25em 0.6em;
+    font-size: 75%;
+    font-weight: 700;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: 0.25rem;
+    color: #fff;
+    margin-left: 15px;
+}
+
+.status-new { background-color: #007bff; }
+.status-confirmed { background-color: #28a745; }
+.status-cancelled { background-color: #dc3545; }
+.status-awaitingpayment { background-color: #ffc107; color: #212529;}
+.status-unknown { background-color: #6c757d; }
 .login-form .btn-primary {
     padding: 10px 20px;
     font-size: 1.1rem;

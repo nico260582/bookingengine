@@ -28,6 +28,11 @@ use Joomla\CMS\Date\Date;
     <div class="booking-summary">
         <div class="summary-header">
             <h3><?php echo Text::sprintf('COM_BOOKINGMANAGER_PORTAL_HEADING', $this->escape($this->request->booking_ref)); ?></h3>
+            <?php
+                $status = $this->request->status ?? 'Unknown';
+                $statusClass = 'status-badge status-' . strtolower(preg_replace('/[^a-z0-9]/i', '', $status));
+            ?>
+            <span class="<?php echo $statusClass; ?>"><?php echo $this->escape($status); ?></span>
             <a href="<?php echo Route::_('index.php?option=com_bookingmanager&task=communication.logout'); ?>"><?php echo Text::_('COM_BOOKINGMANAGER_LOGOUT_BUTTON'); ?></a>
         </div>
         <p>
