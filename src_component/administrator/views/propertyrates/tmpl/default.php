@@ -48,9 +48,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     <tbody>
                         <?php foreach ($this->rateData->seasons as $season) : 
                             $rate = $this->rateData->rates[$season->name] ?? null;
-                            $rateValue = $rate ? $rate->base_rate : '';
-                            $overrideChecked = $rate && $rate->override_admin_commission ? 'checked' : '';
-                            $commissionValue = $rate ? $rate->admin_commission : '';
+                            $rateValue = ($rate && isset($rate->base_rate)) ? $rate->base_rate : '';
+                            $overrideChecked = ($rate && isset($rate->override_admin_commission) && $rate->override_admin_commission) ? 'checked' : '';
+                            $commissionValue = ($rate && isset($rate->admin_commission)) ? $rate->admin_commission : '';
                         ?>
                         <tr>
                             <td><?php echo $this->escape($season->name); ?><br/><small><?php echo $season->start_date . ' to ' . $season->end_date; ?></small></td>
