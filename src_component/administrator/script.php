@@ -102,6 +102,19 @@ class com_bookingmanagerInstallerScript
             $db->execute();
             JFactory::getApplication()->enqueueMessage('Table #__booking_requests updated with user_id column.', 'message');
         }
+
+        // Add client statistics columns to booking_requests table
+        if (!$this->columnExists('#__booking_requests', 'client_ip_address')) {
+            $db->setQuery("ALTER TABLE `#__booking_requests` ADD COLUMN `client_ip_address` VARCHAR(45) NULL DEFAULT NULL");
+            $db->execute();
+            JFactory::getApplication()->enqueueMessage('Table #__booking_requests updated with client_ip_address column.', 'message');
+        }
+
+        if (!$this->columnExists('#__booking_requests', 'client_user_agent')) {
+            $db->setQuery("ALTER TABLE `#__booking_requests` ADD COLUMN `client_user_agent` TEXT NULL DEFAULT NULL");
+            $db->execute();
+            JFactory::getApplication()->enqueueMessage('Table #__booking_requests updated with client_user_agent column.', 'message');
+        }
         
         $this->addSampleData($db);
         $this->addDefaultTemplates($db);

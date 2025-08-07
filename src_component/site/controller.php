@@ -45,7 +45,9 @@ class BookingmanagerController extends BaseController
                 'unit_count'     => $input->post->get('unit_count', 1, 'int'),
                 'discount_note'  => $input->post->get('discount_note', '', 'string'),
                 'created_at'     => (new Date('now'))->toSql(),
-                'status'         => 'New'
+                'status'         => 'New',
+                'client_ip_address' => $_SERVER['REMOTE_ADDR'] ?? 'Unknown',
+                'client_user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown'
             ];
             if (empty($data['client_email']) || empty($data['property_name']) || empty($data['start_date'])) {
                 throw new Exception('Required data is missing.', 400);
