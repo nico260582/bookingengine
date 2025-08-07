@@ -52,10 +52,10 @@ class BookingmanagerController extends BaseController
             }
 
             // User creation logic
-            $userId = (int) UserHelper::getUserId($data['client_email']);
+            $userId = (int) \Joomla\CMS\User\UserHelper::getUserId($data['client_email']);
             if (!$userId) {
                 $user = Factory::getUser(0);
-                $password = UserHelper::genRandomPassword(10);
+                $password = \Joomla\CMS\User\UserHelper::genRandomPassword(10);
                 $userData = [
                     'name'      => $data['client_name'],
                     'username'  => $data['client_email'],
