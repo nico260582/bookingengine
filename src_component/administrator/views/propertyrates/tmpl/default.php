@@ -22,20 +22,41 @@ defined('_JEXEC') or die;
             <?php elseif (empty($this->rateData->seasons)) : ?>
                 <div class="alert">This property's supplier has no seasons defined.</div>
             <?php else : ?>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.override-commission-checkbox').forEach(function(checkbox) {
+        var commissionInput = checkbox.closest('tr').querySelector('.commission-value-input');
+
+        function toggleCommissionInput() {
+            commissionInput.disabled = !checkbox.checked;
+        }
+
+        checkbox.addEventListener('change', toggleCommissionInput);
+        toggleCommissionInput(); // Initial state
+    });
+});
+</script>
                 <table class="table table-striped">
                     <thead>
                         <tr>
                             <th>Season</th>
                             <th>Base Rate (per night)</th>
+                            <th class="nowrap">Override Admin Commission?</th>
+                            <th>Admin Commission %</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php foreach ($this->rateData->seasons as $season) : 
-                            $rateValue = isset($this->rateData->rates[$season->name]) ? $this->rateData->rates[$season->name]->base_rate : '';
+                            $rate = $this->rateData->rates[$season->name] ?? null;
+                            $rateValue = $rate ? $rate->base_rate : '';
+                            $overrideChecked = $rate && $rate->override_admin_commission ? 'checked' : '';
+                            $commissionValue = $rate ? $rate->admin_commission : '';
                         ?>
                         <tr>
                             <td><?php echo $this->escape($season->name); ?><br/><small><?php echo $season->start_date . ' to ' . $season->end_date; ?></small></td>
-                            <td><input type="number" step="0.01" name="jform[rates][<?php echo $this->escape($season->name); ?>]" value="<?php echo $rateValue; ?>" class="input-small" /></td>
+                            <td><input type="number" step="0.01" name="jform[rates][<?php echo $this->escape($season->name); ?>][base_rate]" value="<?php echo $this->escape($rateValue); ?>" class="input-small" /></td>
+                            <td><input type="checkbox" name="jform[rates][<?php echo $this->escape($season->name); ?>][override_admin_commission]" value="1" class="override-commission-checkbox" <?php echo $overrideChecked; ?> /></td>
+                            <td><input type="number" step="0.01" name="jform[rates][<?php echo $this->escape($season->name); ?>][admin_commission]" value="<?php echo $this->escape($commissionValue); ?>" class="input-small commission-value-input" /></td>
                         </tr>
                         <?php endforeach; ?>
                     </tbody>

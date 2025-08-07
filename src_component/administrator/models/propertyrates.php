@@ -33,7 +33,7 @@ class BookingmanagerModelPropertyrates extends BaseDatabaseModel
         $rules = json_decode($rulesJson);
         $data->seasons = $rules->seasons ?? [];
         
-        $query->clear()->select('season_name, base_rate')->from($db->quoteName('#__bookingmanager_rates'))
+        $query->clear()->select('*')->from($db->quoteName('#__bookingmanager_rates'))
             ->where('property_id = ' . (int)$propertyId);
         $data->rates = $db->setQuery($query)->loadObjectList('season_name');
         
@@ -43,7 +43,7 @@ class BookingmanagerModelPropertyrates extends BaseDatabaseModel
     public function save($data)
     {
         $propertyId = (int)($data['property_id'] ?? 0);
-        $rates = $data['rates'] ?? [];
+        $ratesData = $data['rates'] ?? [];
         if (!$propertyId) {
             $this->setError('No property selected.');
             return false;
@@ -52,12 +52,20 @@ class BookingmanagerModelPropertyrates extends BaseDatabaseModel
         $query = $db->getQuery(true)->delete($db->quoteName('#__bookingmanager_rates'))->where('property_id = ' . $propertyId);
         $db->setQuery($query)->execute();
 
-        foreach ($rates as $seasonName => $baseRate) {
-            if ($baseRate !== '' && is_numeric($baseRate)) {
+        foreach ($ratesData as $seasonName => $seasonData) {
+            if (isset($seasonData['base_rate']) && $seasonData['base_rate'] !== '' && is_numeric($seasonData['base_rate'])) {
                 $rateObj = new stdClass();
                 $rateObj->property_id = $propertyId;
                 $rateObj->season_name = $seasonName;
-                $rateObj->base_rate = (float)$baseRate;
+                $rateObj->base_rate = (float)$seasonData['base_rate'];
+
+                $rateObj->override_admin_commission = isset($seasonData['override_admin_commission']) ? 1 : 0;
+                if ($rateObj->override_admin_commission) {
+                    $rateObj->admin_commission = isset($seasonData['admin_commission']) && is_numeric($seasonData['admin_commission']) ? (float)$seasonData['admin_commission'] : null;
+                } else {
+                    $rateObj->admin_commission = null;
+                }
+
                 $db->insertObject('#__bookingmanager_rates', $rateObj);
             }
         }

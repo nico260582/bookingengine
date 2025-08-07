@@ -60,6 +60,13 @@ class com_bookingmanagerInstallerScript
             $db->setQuery($query);
             try { $db->execute(); } catch (Exception $e) {}
         }
+
+        // Add columns for commission override. Use individual try-catch to avoid issues on re-install/update.
+        $db->setQuery("ALTER TABLE `#__bookingmanager_rates` ADD COLUMN `override_admin_commission` TINYINT(1) NOT NULL DEFAULT 0");
+        try { $db->execute(); } catch (Exception $e) {}
+
+        $db->setQuery("ALTER TABLE `#__bookingmanager_rates` ADD COLUMN `admin_commission` DECIMAL(5,2) DEFAULT NULL");
+        try { $db->execute(); } catch (Exception $e) {}
         
         $this->addSampleData($db);
         $this->addDefaultTemplates($db);
