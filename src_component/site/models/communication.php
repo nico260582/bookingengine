@@ -35,9 +35,32 @@ class BookingmanagerModelCommunication extends BaseDatabaseModel
             ->select('*')
             ->from($db->quoteName('#__booking_communication'))
             ->where($db->quoteName('request_id') . ' = ' . (int) $requestId)
-            ->order($db->quoteName('created_at') . ' DESC');
+            ->order($db->quoteName('created_at') . ' ASC');
 
-        return $db->setQuery($query)->loadObjectList();
+        $messages = $db->setQuery($query)->loadObjectList('id');
+
+        if (empty($messages)) {
+            return [];
+        }
+
+        $messageIds = array_keys($messages);
+        $query->clear()
+            ->select('*')
+            ->from($db->quoteName('#__booking_attachments'))
+            ->where($db->quoteName('message_id') . ' IN (' . implode(',', $messageIds) . ')');
+
+        $attachments = $db->setQuery($query)->loadObjectList();
+
+        foreach ($attachments as $attachment) {
+            if (isset($messages[$attachment->message_id])) {
+                if (!isset($messages[$attachment->message_id]->attachments)) {
+                    $messages[$attachment->message_id]->attachments = [];
+                }
+                $messages[$attachment->message_id]->attachments[] = $attachment;
+            }
+        }
+
+        return array_values($messages);
     }
 
     public function getAttachments($requestId)
@@ -73,7 +96,7 @@ class BookingmanagerModelCommunication extends BaseDatabaseModel
 
     public function saveClientMessage($requestId, $message)
     {
-        if (!$requestId || empty($message))
+        if (!$requestId)
         {
             return false;
         }
@@ -96,10 +119,14 @@ class BookingmanagerModelCommunication extends BaseDatabaseModel
             'request_id' => $requestId,
             'created_at' => (new Date('now'))->toSql(),
             'author'     => $clientName . ' (Client)',
-            'message'    => $message
+            'message'    => $message ?: '' // Ensure message is not null
         ];
 
-        return $table->save($data);
+        if ($table->save($data)) {
+            return $table->id;
+        }
+
+        return false;
     }
 
     public function getRequestsForUser($userId)

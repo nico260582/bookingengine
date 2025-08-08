@@ -46,23 +46,6 @@ use Joomla\CMS\Date\Date;
         </p>
     </div>
 
-    <div class="attachments-section">
-        <h4><?php echo Text::_('COM_BOOKINGMANAGER_ATTACHMENTS_HEADING'); ?></h4>
-        <?php if (empty($this->attachments)) : ?>
-            <p><?php echo Text::_('COM_BOOKINGMANAGER_NO_ATTACHMENTS_TEXT'); ?></p>
-        <?php else : ?>
-            <ul>
-                <?php foreach ($this->attachments as $attachment) : ?>
-                    <li>
-                        <a href="<?php echo JUri::root() . $attachment->file_path; ?>" target="_blank">
-                            <?php echo $this->escape($attachment->file_name); ?>
-                        </a>
-                        <span class="attachment-meta">(Uploaded by <?php echo $this->escape($attachment->uploaded_by); ?> on <span class="attachment-date" data-utc-date="<?php echo (new Date($attachment->created_at))->format('c'); ?>"><?php echo (new Date($attachment->created_at))->format('d M Y'); ?></span>)</span>
-                    </li>
-                <?php endforeach; ?>
-            </ul>
-        <?php endif; ?>
-    </div>
 
     <div class="conversation-history">
         <h4><?php echo Text::_('COM_BOOKINGMANAGER_CONVERSATION_HEADING'); ?></h4>
@@ -79,6 +62,20 @@ use Joomla\CMS\Date\Date;
                             </div>
                             <div class="message-body">
                                 <?php echo strpos($message->author, '(Client)') !== false ? nl2br($this->escape(trim($message->message))) : $message->message; ?>
+                                <?php if (!empty($message->attachments)) : ?>
+                                    <div class="message-attachments">
+                                        <strong><?php echo Text::_('COM_BOOKINGMANAGER_ATTACHMENTS_HEADING'); ?>:</strong>
+                                        <ul>
+                                            <?php foreach ($message->attachments as $attachment) : ?>
+                                                <li>
+                                                    <a href="<?php echo JUri::root() . $attachment->file_path; ?>" target="_blank">
+                                                        <?php echo $this->escape($attachment->file_name); ?>
+                                                    </a>
+                                                </li>
+                                            <?php endforeach; ?>
+                                        </ul>
+                                    </div>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
@@ -91,7 +88,10 @@ use Joomla\CMS\Date\Date;
         <h4><?php echo Text::_('COM_BOOKINGMANAGER_SEND_REPLY_HEADING'); ?></h4>
         <form action="<?php echo Route::_('index.php?option=com_bookingmanager&task=communication.addClientMessage'); ?>" method="post" enctype="multipart/form-data">
             <div class="form-group">
-                <textarea name="message" id="message" class="form-control" rows="5" required></textarea>
+                <?php
+                $editor = JEditor::getInstance(Factory::getConfig()->get('editor'));
+                echo $editor->display('message', '', '100%', '250', '60', '20', false);
+                ?>
             </div>
             <div class="form-group">
                 <label for="attachment"><?php echo Text::_('COM_BOOKINGMANAGER_ATTACHMENT_LABEL'); ?></label>

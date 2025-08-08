@@ -103,7 +103,7 @@ class BookingmanagerControllerCommunication extends BaseController
         }
 
         $requestId = $session->get('bookingmanager_request_id');
-        $message   = $input->post->getString('message');
+        $message   = $input->post->get('message', '', 'raw');
         $file      = $input->files->get('attachment');
 
         if (!$requestId || (empty($message) && (empty($file) || $file['error'] !== UPLOAD_ERR_OK))) {
@@ -112,25 +112,30 @@ class BookingmanagerControllerCommunication extends BaseController
         }
         
         $model = $this->getModel('Communication', 'BookingmanagerModel');
-        
-        if (!empty($message)) {
-            if ($model->saveClientMessage($requestId, $message)) {
-                JLoader::register('BookingmanagerHelper', JPATH_ADMINISTRATOR . '/components/com_bookingmanager/helpers/bookingmanager.php');
-                BookingmanagerHelper::sendNotificationEmails($requestId, 'email_admin_client_reply', $message);
+        $messageId = null;
+
+        if (!empty($message) || (!empty($file) && $file['error'] === UPLOAD_ERR_OK)) {
+            $messageId = $model->saveClientMessage($requestId, $message);
+
+            if ($messageId) {
+                if (!empty($message)) {
+                    JLoader::register('BookingmanagerHelper', JPATH_ADMINISTRATOR . '/components/com_bookingmanager/helpers/bookingmanager.php');
+                    BookingmanagerHelper::sendNotificationEmails($requestId, 'email_admin_client_reply', $message);
+                }
+
+                if (!empty($file) && $file['error'] === UPLOAD_ERR_OK) {
+                    $clientName = $model->getRequestData($requestId)->client_name;
+                    $this->uploadAttachment($requestId, $messageId, $file, $clientName . ' (Client)');
+                }
             } else {
                 $app->enqueueMessage('There was an error saving your message.', 'error');
             }
-        }
-        
-        if (!empty($file) && $file['error'] === UPLOAD_ERR_OK) {
-            $clientName = $model->getRequestData($requestId)->client_name;
-            $this->uploadAttachment($requestId, $file, $clientName . ' (Client)');
         }
 
         $app->redirect(Route::_('index.php?option=com_bookingmanager&view=communication', false));
     }
 
-    private function uploadAttachment($requestId, $file, $uploaderName)
+    private function uploadAttachment($requestId, $messageId, $file, $uploaderName)
     {
         if (!$requestId || !isset($file['error']) || $file['error'] !== UPLOAD_ERR_OK) {
             return false;
@@ -138,13 +143,11 @@ class BookingmanagerControllerCommunication extends BaseController
 
         $app = Factory::getApplication();
         $filename = File::makeSafe($file['name']);
-        // Define the destination path for the attachments
         $dest_path = JPATH_SITE . '/media/com_bookingmanager/attachments/' . $requestId;
 
-        // Check if the base directory exists and is writable, if not, try to create it.
         if (!Folder::exists($dest_path)) {
             if (!Folder::create($dest_path)) {
-                $app->enqueueMessage('Error: Could not create attachment directory. Please check permissions for the /media/com_bookingmanager/ folder.', 'error');
+                $app->enqueueMessage('Error: Could not create attachment directory.', 'error');
                 return false;
             }
         }
@@ -155,8 +158,8 @@ class BookingmanagerControllerCommunication extends BaseController
             $db = Factory::getDbo();
             $attachment = new stdClass();
             $attachment->request_id = (int) $requestId;
+            $attachment->message_id = (int) $messageId;
             $attachment->file_name = $filename;
-            // The path stored in the database should be relative to the site root
             $attachment->file_path = 'media/com_bookingmanager/attachments/' . $requestId . '/' . $filename;
             $attachment->uploaded_by = $uploaderName;
             $attachment->created_at = (new Date('now'))->toSql();
@@ -167,7 +170,7 @@ class BookingmanagerControllerCommunication extends BaseController
             }
             return true;
         } else {
-            $app->enqueueMessage('File upload failed. Please check server permissions and file size limits.', 'error');
+            $app->enqueueMessage('File upload failed.', 'error');
             return false;
         }
     }

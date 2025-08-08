@@ -44,12 +44,14 @@ class com_bookingmanagerInstallerScript
         $queries[] = "CREATE TABLE IF NOT EXISTS `#__booking_attachments` (
           `id` int(11) NOT NULL AUTO_INCREMENT,
           `request_id` int(11) NOT NULL,
+          `message_id` int(11) DEFAULT NULL,
           `file_name` varchar(255) NOT NULL,
           `file_path` varchar(2048) NOT NULL,
           `uploaded_by` varchar(255) NOT NULL,
           `created_at` datetime NOT NULL,
           PRIMARY KEY (`id`),
-          KEY `idx_request_id` (`request_id`)
+          KEY `idx_request_id` (`request_id`),
+          KEY `idx_message_id` (`message_id`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
         $queries[] = "CREATE TABLE IF NOT EXISTS `#__booking_request_logs` ( `id` int(11) NOT NULL AUTO_INCREMENT, `request_id` int(11) NOT NULL, `created_at` datetime NOT NULL, `user_id` int(11) NOT NULL, `user_name` varchar(255) NOT NULL, `field_name` varchar(255) NOT NULL, `old_value` text, `new_value` text, PRIMARY KEY (`id`), KEY `idx_request_id` (`request_id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
         $queries[] = "CREATE TABLE IF NOT EXISTS `#__booking_supplier_logs` ( `id` int(11) NOT NULL AUTO_INCREMENT, `supplier_id` int(11) NOT NULL, `created_at` datetime NOT NULL, `user_id` int(11) NOT NULL,
