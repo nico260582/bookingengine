@@ -124,42 +124,6 @@
     margin-top: 0;
 }
 
-.message {
-    padding-bottom: 10px;
-    margin-bottom: 10px;
-    border-bottom: 1px solid #eee; /* SEPARATOR LINE */
-    max-width: 100%;
-}
-.message:last-child {
-    border-bottom: none; /* Remove separator from the last message */
-    margin-bottom: 0;
-}
-.message-header {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 5px;
-    font-weight: bold;
-}
-.message-author {
-    font-size: 0.9rem;
-}
-.message-body {
-    white-space: pre-wrap; /* Preserves line breaks */
-}
-.message-date {
-    font-size: 0.8rem;
-    color: #888;
-    font-weight: bold;
-}
-
-/* Admin vs Client messages */
-.message.admin .message-author {
-    color: #0056b3; /* Blue for admin */
-}
-.message.client .message-author {
-    color: #155724; /* Green for client */
-}
-
 .reply-form {
     margin-top: 20px;
 }
@@ -234,6 +198,10 @@
     margin-bottom: 10px;
     padding-bottom: 5px;
     border-bottom: 1px solid #ddd;
+}
+
+.timeline-content .message-body {
+    white-space: pre-line; /* Collapses whitespace but preserves newlines */
 }
 
 .timeline-item:before {

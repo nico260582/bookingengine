@@ -35,7 +35,7 @@ class BookingmanagerModelCommunication extends BaseDatabaseModel
             ->select('*')
             ->from($db->quoteName('#__booking_communication'))
             ->where($db->quoteName('request_id') . ' = ' . (int) $requestId)
-            ->order($db->quoteName('created_at') . ' ASC');
+            ->order($db->quoteName('created_at') . ' DESC');
 
         $messages = $db->setQuery($query)->loadObjectList('id');
 
