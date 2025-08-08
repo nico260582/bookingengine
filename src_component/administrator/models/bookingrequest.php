@@ -37,7 +37,7 @@ class BookingmanagerModelBookingrequest extends AdminModel
             ->select('*')
             ->from('#__booking_communication')
             ->where('request_id = ' . (int)$requestId)
-            ->order('created_at ASC');
+            ->order('created_at DESC');
 
         $messages = $db->setQuery($query)->loadObjectList('id');
 
