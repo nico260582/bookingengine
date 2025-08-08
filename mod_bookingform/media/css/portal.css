@@ -200,9 +200,6 @@
     border-bottom: 1px solid #ddd;
 }
 
-.timeline-content .message-body {
-    white-space: pre-line; /* Collapses whitespace but preserves newlines */
-}
 
 .timeline-item:before {
     content: '';
