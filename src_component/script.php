@@ -3,9 +3,17 @@ defined('_JEXEC') or die;
 use Joomla\CMS\Factory;
 class com_bookingmanagerInstallerScript
 {
-    public function install($parent) { $this->runInstallQueries($parent); return true; }
+    public function install($parent) {
+        $this->runInstallQueries($parent);
+        $this->runDbMigrations(Factory::getDbo());
+        return true;
+    }
     public function uninstall($parent) { $this->runUninstallQueries($parent); return true; }
-    public function update($parent) { $this->runInstallQueries($parent); return true; }
+    public function update($parent) {
+        $this->runInstallQueries($parent);
+        $this->runDbMigrations(Factory::getDbo());
+        return true;
+    }
 
     private function runInstallQueries($parent){
         $db = Factory::getDbo();
@@ -169,7 +177,43 @@ class com_bookingmanagerInstallerScript
 
     private function runUninstallQueries($parent) {
         $db = Factory::getDbo();
-        $queries = array("DROP TABLE IF EXISTS `#__booking_communication`;", "DROP TABLE IF EXISTS `#__booking_requests`;", "DROP TABLE IF EXISTS `#__booking_request_logs`;", "DROP TABLE IF EXISTS `#__booking_supplier_logs`;", "DROP TABLE IF EXISTS `#__bookingmanager_suppliers`;", "DROP TABLE IF EXISTS `#__bookingmanager_property_map`;", "DROP TABLE IF EXISTS `#__bookingmanager_rates`;", "DROP TABLE IF EXISTS `#__bookingmanager_templates`;", "DROP TABLE IF EXISTS `#__booking_attachments`;");
+        $queries = array("DROP TABLE IF EXISTS `#__booking_communication`;", "DROP TABLE IF EXISTS `#__booking_requests`;", "DROP TABLE IF EXISTS `#__booking_request_logs`;", "DROP TABLE IF EXISTS `#__booking_supplier_logs`;", "DROP TABLE IF EXISTS `#__bookingmanager_suppliers`;", "DROP TABLE IF EXISTS `#__bookingmanager_property_map`;", "DROP TABLE IF EXISTS `#__bookingmanager_rates`;", "DROP TABLE IF EXISTS `#__bookingmanager_templates`;", "DROP TABLE IF EXISTS `#__booking_attachments`;", "DROP TABLE IF EXISTS `#__bookingmanager_clients`;");
         foreach ($queries as $query) { $db->setQuery($query); try { $db->execute(); } catch (Exception $e) {} }
+    }
+
+    private function runDbMigrations($db)
+    {
+        // Add message_id to #__booking_attachments
+        $columns = $db->getTableColumns('#__booking_attachments');
+        if (!isset($columns['message_id'])) {
+            $query = "ALTER TABLE `#__booking_attachments` ADD COLUMN `message_id` INT(11) NULL DEFAULT NULL AFTER `request_id`, ADD INDEX `idx_message_id` (`message_id`);";
+            try { $db->setQuery($query)->execute(); } catch (Exception $e) {}
+        }
+
+        // Add user_id, client_ip_address, client_user_agent to #__booking_requests
+        $columns = $db->getTableColumns('#__booking_requests');
+        if (!isset($columns['user_id'])) {
+            $query = "ALTER TABLE `#__booking_requests` ADD COLUMN `user_id` INT(11) NULL DEFAULT NULL AFTER `pin`;";
+            try { $db->setQuery($query)->execute(); } catch (Exception $e) {}
+        }
+        if (!isset($columns['client_ip_address'])) {
+            $query = "ALTER TABLE `#__booking_requests` ADD COLUMN `client_ip_address` VARCHAR(45) NULL DEFAULT NULL AFTER `user_id`;";
+            try { $db->setQuery($query)->execute(); } catch (Exception $e) {}
+        }
+        if (!isset($columns['client_user_agent'])) {
+            $query = "ALTER TABLE `#__booking_requests` ADD COLUMN `client_user_agent` TEXT NULL DEFAULT NULL AFTER `client_ip_address`;";
+            try { $db->setQuery($query)->execute(); } catch (Exception $e) {}
+        }
+
+        // Add override_admin_commission, admin_commission to #__bookingmanager_rates
+        $columns = $db->getTableColumns('#__bookingmanager_rates');
+        if (!isset($columns['override_admin_commission'])) {
+            $query = "ALTER TABLE `#__bookingmanager_rates` ADD COLUMN `override_admin_commission` TINYINT(1) NOT NULL DEFAULT 0 AFTER `base_rate`;";
+            try { $db->setQuery($query)->execute(); } catch (Exception $e) {}
+        }
+        if (!isset($columns['admin_commission'])) {
+            $query = "ALTER TABLE `#__bookingmanager_rates` ADD COLUMN `admin_commission` DECIMAL(5,2) NULL DEFAULT NULL AFTER `override_admin_commission`;";
+            try { $db->setQuery($query)->execute(); } catch (Exception $e) {}
+        }
     }
 }
