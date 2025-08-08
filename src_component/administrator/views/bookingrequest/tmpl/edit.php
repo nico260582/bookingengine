@@ -8,26 +8,45 @@ use Joomla\CMS\Router\Route;
 <form action="<?php echo Route::_('index.php?option=com_bookingmanager&layout=edit&id=' . (int) $this->item->id); ?>" method="post" name="adminForm" id="item-form" class="form-validate" enctype="multipart/form-data">
     <div class="main-card">
         <?php echo HTMLHelper::_('bootstrap.startTabSet', 'myTab', array('active' => 'details')); ?>
-        <?php echo HTMLHelper::_('bootstrap.addTab', 'myTab', 'details', Text::_('Booking')); ?>
+        <?php echo HTMLHelper::_('bootstrap.addTab', 'myTab', 'details', Text::_('Booking Details')); ?>
             <div class="row-fluid">
-                <div class="span6"><?php echo $this->form->renderFieldset('details'); ?></div>
-                <div class="span6"><?php echo $this->form->renderFieldset('pricing'); ?></div>
+                <div class="span6">
+                    <h4><?php echo Text::_('Client Details'); ?></h4>
+                    <?php echo $this->form->renderFieldset('client'); ?>
+                    <hr>
+                    <h4><?php echo Text::_('Booking Information'); ?></h4>
+                    <?php echo $this->form->renderFieldset('details'); ?>
+                </div>
+                <div class="span6">
+                    <h4><?php echo Text::_('Pricing & Notes'); ?></h4>
+                    <?php echo $this->form->renderFieldset('pricing'); ?>
+                </div>
             </div>
         <?php echo HTMLHelper::_('bootstrap.endTab'); ?>
-
-        <?php echo HTMLHelper::_('bootstrap.addTab', 'myTab', 'client', Text::_('Client')); ?>
-            <?php echo $this->form->renderFieldset('client'); ?>
-        <?php echo HTMLHelper::_('bootstrap.endTab'); ?>
-
         <?php echo HTMLHelper::_('bootstrap.addTab', 'myTab', 'communication', Text::_('Communication')); ?>
             <div class="row-fluid">
                 <div class="span7">
                     <h4>Conversation History</h4>
-                    <div class="well" style="height: 300px; overflow-y: scroll; border: 1px solid #ddd; padding: 10px; border-radius: 4px;">
-                    <?php if ($this->messages) : foreach ($this->messages as $message) : ?>
-                        <p><strong><?php echo $this->escape($message->author); ?></strong><small class="pull-right text-muted"><?php echo HTMLHelper::_('date', $message->created_at, 'Y-m-d H:i'); ?></small></p>
-                        <div><?php echo $message->message; ?></div><hr>
-                    <?php endforeach; else : ?><p>No messages yet.</p><?php endif; ?>
+                    <div class="conversation-history-admin">
+                        <div class="timeline-admin">
+                            <?php if (empty($this->messages)) : ?>
+                                <p>No messages yet.</p>
+                            <?php else : ?>
+                                <?php foreach ($this->messages as $message) : ?>
+                                    <div class="timeline-item-admin <?php echo strpos($message->author, '(Client)') !== false ? 'client' : 'admin'; ?>">
+                                        <div class="timeline-content-admin">
+                                            <div class="message-header-admin">
+                                                <span class="message-author-admin"><?php echo $this->escape($message->author); ?></span>
+                                                <span class="message-date-admin"><?php echo HTMLHelper::_('date', $message->created_at, 'Y-m-d H:i'); ?></span>
+                                            </div>
+                                            <div class="message-body-admin">
+                                                <?php echo $message->message; ?>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </div>
                     </div>
                 </div>
                 <div class="span5">
