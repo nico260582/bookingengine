@@ -41,6 +41,20 @@ use Joomla\CMS\Router\Route;
                                             </div>
                                             <div class="message-body-admin">
                                                 <?php echo $message->message; ?>
+                                                <?php if (!empty($message->attachments)) : ?>
+                                                    <div class="message-attachments-admin">
+                                                        <strong>Attachments:</strong>
+                                                        <ul>
+                                                            <?php foreach ($message->attachments as $attachment) : ?>
+                                                                <li>
+                                                                    <a href="<?php echo JUri::root() . $attachment->file_path; ?>" target="_blank">
+                                                                        <?php echo $this->escape($attachment->file_name); ?>
+                                                                    </a>
+                                                                </li>
+                                                            <?php endforeach; ?>
+                                                        </ul>
+                                                    </div>
+                                                <?php endif; ?>
                                             </div>
                                         </div>
                                     </div>
@@ -57,6 +71,10 @@ use Joomla\CMS\Router\Route;
                         </div>
                     </div>
                     <div class="control-group">
+                        <div class="control-label"><label for="jform_attachment">Attachment</label></div>
+                        <div class="controls"><input type="file" name="jform[attachment]" id="jform_attachment"></div>
+                    </div>
+                    <div class="control-group">
                         <div class="controls">
                             <button type="button" class="btn btn-primary" onclick="Joomla.submitbutton('bookingrequest.addmessage');">Send Message</button>
                         </div>
@@ -65,41 +83,6 @@ use Joomla\CMS\Router\Route;
             </div>
         <?php echo HTMLHelper::_('bootstrap.endTab'); ?>
 
-        <?php echo HTMLHelper::_('bootstrap.addTab', 'myTab', 'attachments', Text::_('Attachments')); ?>
-            <h4>Upload New File</h4>
-            <div class="control-group">
-                <div class="control-label"><label for="jform_attachment">New Attachment</label></div>
-                <div class="controls"><input type="file" name="jform[attachment]" id="jform_attachment"></div>
-            </div>
-            <hr>
-            <h4>Uploaded Files</h4>
-            <?php if (empty($this->attachments)) : ?>
-                <p>There are no attachments for this booking request.</p>
-            <?php else : ?>
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>File Name</th>
-                            <th>Uploaded By</th>
-                            <th>Date</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($this->attachments as $attachment) : ?>
-                            <tr>
-                                <td>
-                                    <a href="<?php echo JUri::root() . $attachment->file_path; ?>" target="_blank">
-                                        <?php echo $this->escape($attachment->file_name); ?>
-                                    </a>
-                                </td>
-                                <td><?php echo $this->escape($attachment->uploaded_by); ?></td>
-                                <td><?php echo HTMLHelper::_('date', $attachment->created_at, 'Y-m-d H:i'); ?></td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            <?php endif; ?>
-        <?php echo HTMLHelper::_('bootstrap.endTab'); ?>
         
         <?php echo HTMLHelper::_('bootstrap.addTab', 'myTab', 'logs', Text::_('Change Log')); ?>
             <table class="table table-striped">

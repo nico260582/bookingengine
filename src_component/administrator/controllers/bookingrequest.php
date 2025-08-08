@@ -32,22 +32,13 @@ class BookingmanagerControllerBookingrequest extends FormController
         // Get the ID of the item we just saved.
         $requestId = $model->getState('bookingrequest.id');
 
-        // Now, check for and process the uploaded file.
-        if (!empty($files['attachment']['name']) && $files['attachment']['error'] === UPLOAD_ERR_OK) {
-            $user = Factory::getUser();
-            if (!$this->uploadAttachment($requestId, $files['attachment'], $user->name . ' (Admin)')) {
-                // The uploadAttachment function will enqueue its own error message.
-            } else {
-                $app->enqueueMessage('Attachment uploaded successfully.');
-            }
-        }
         
         // Set the success message and redirect.
         $this->setMessage(JText::_('COM_BOOKINGMANAGER_ITEM_SAVED_SUCCESSFULLY'));
         $this->setRedirect(Route::_('index.php?option=com_bookingmanager&view=bookingrequests', false));
     }
 
-   private function uploadAttachment($requestId, $file, $uploaderName)
+   private function uploadAttachment($requestId, $messageId, $file, $uploaderName)
     {
         if (!$requestId || !isset($file['error']) || $file['error'] !== UPLOAD_ERR_OK) {
             return false;
@@ -55,13 +46,11 @@ class BookingmanagerControllerBookingrequest extends FormController
 
         $app = Factory::getApplication();
         $filename = File::makeSafe($file['name']);
-        // Define the destination path for the attachments
         $dest_path = JPATH_SITE . '/media/com_bookingmanager/attachments/' . $requestId;
 
-        // Check if the base directory exists and is writable, if not, try to create it.
         if (!Folder::exists($dest_path)) {
             if (!Folder::create($dest_path)) {
-                $app->enqueueMessage('Error: Could not create attachment directory. Please check permissions for the /media/com_bookingmanager/ folder.', 'error');
+                $app->enqueueMessage('Error: Could not create attachment directory.', 'error');
                 return false;
             }
         }
@@ -72,8 +61,8 @@ class BookingmanagerControllerBookingrequest extends FormController
             $db = Factory::getDbo();
             $attachment = new stdClass();
             $attachment->request_id = (int) $requestId;
+            $attachment->message_id = (int) $messageId;
             $attachment->file_name = $filename;
-            // The path stored in the database should be relative to the site root
             $attachment->file_path = 'media/com_bookingmanager/attachments/' . $requestId . '/' . $filename;
             $attachment->uploaded_by = $uploaderName;
             $attachment->created_at = (new Date('now'))->toSql();
@@ -84,7 +73,7 @@ class BookingmanagerControllerBookingrequest extends FormController
             }
             return true;
         } else {
-            $app->enqueueMessage('File upload failed. Please check server permissions and file size limits.', 'error');
+            $app->enqueueMessage('File upload failed.', 'error');
             return false;
         }
     }
@@ -98,13 +87,15 @@ class BookingmanagerControllerBookingrequest extends FormController
         $user       = Factory::getUser();
         
         $jform      = $input->post->get('jform', [], 'array');
+        $files      = $input->files->get('jform');
         $message    = $jform['admin_message'] ?? '';
         $requestId  = (int)($jform['id'] ?? 0);
+        $attachmentFile = $files['attachment'] ?? null;
         
         $redirectUrl = Route::_('index.php?option=com_bookingmanager&view=bookingrequest&layout=edit&id=' . $requestId, false);
 
-        if (empty($message) || empty($requestId)) {
-            $this->setRedirect($redirectUrl, 'Message cannot be empty.', 'error');
+        if (empty($requestId) || (empty($message) && (empty($attachmentFile) || $attachmentFile['error'] !== UPLOAD_ERR_OK))) {
+            $this->setRedirect($redirectUrl, 'Message or attachment cannot be empty.', 'error');
             return;
         }
 
@@ -113,14 +104,20 @@ class BookingmanagerControllerBookingrequest extends FormController
             'request_id' => $requestId,
             'created_at' => (new Date('now'))->toSql(),
             'author'     => $user->name . ' (Admin)',
-            'message'    => $message
+            'message'    => $message ?: ''
         ];
 
         if (!$table->save($saveData)) {
              $app->enqueueMessage($table->getError(), 'error');
         } else {
-            JLoader::register('BookingmanagerHelper', JPATH_ADMINISTRATOR . '/components/com_bookingmanager/helpers/bookingmanager.php');
-            BookingmanagerHelper::sendNotificationEmails($requestId, 'email_client_admin_reply', $message);
+            $messageId = $table->id;
+            if (!empty($message)) {
+                JLoader::register('BookingmanagerHelper', JPATH_ADMINISTRATOR . '/components/com_bookingmanager/helpers/bookingmanager.php');
+                BookingmanagerHelper::sendNotificationEmails($requestId, 'email_client_admin_reply', $message);
+            }
+            if ($attachmentFile && $attachmentFile['error'] === UPLOAD_ERR_OK) {
+                $this->uploadAttachment($requestId, $messageId, $attachmentFile, $user->name . ' (Admin)');
+            }
             $app->enqueueMessage('Message saved and sent to client successfully.');
         }
 
