@@ -195,9 +195,16 @@
 }
 
 .timeline-content .message-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 10px;
     padding-bottom: 5px;
     border-bottom: 1px solid #ddd;
+}
+
+.timeline-content .message-author {
+    font-weight: bold;
 }
 
 
