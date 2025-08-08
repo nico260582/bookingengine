@@ -35,6 +35,9 @@ class com_bookingmanagerInstallerScript
           `payment_link` varchar(2048) DEFAULT NULL,
           `admin_notes` text,
           `pin` varchar(10) DEFAULT NULL,
+          `user_id` int(11) DEFAULT NULL,
+          `client_ip_address` varchar(45) DEFAULT NULL,
+          `client_user_agent` text,
           PRIMARY KEY (`id`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
         $queries[] = "CREATE TABLE IF NOT EXISTS `#__booking_communication` ( `id` int(11) NOT NULL AUTO_INCREMENT, `request_id` int(11) NOT NULL, `created_at` datetime DEFAULT NULL, `author` varchar(255) DEFAULT NULL, `message` text, PRIMARY KEY (`id`), KEY `idx_request_id` (`request_id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
@@ -53,8 +56,9 @@ class com_bookingmanagerInstallerScript
         `user_name` varchar(255) NOT NULL, `field_name` varchar(255) NOT NULL, `old_value` text, `new_value` text, PRIMARY KEY (`id`), KEY `idx_supplier_id` (`supplier_id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
         $queries[] = "CREATE TABLE IF NOT EXISTS `#__bookingmanager_suppliers` ( `id` int(11) NOT NULL AUTO_INCREMENT, `name` varchar(255) NOT NULL, `alias` varchar(255) NOT NULL, `abbreviation` varchar(10) NOT NULL, `published` tinyint(1) NOT NULL DEFAULT '1', `rules` text, `contact_email` varchar(255) DEFAULT NULL, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
         $queries[] = "CREATE TABLE IF NOT EXISTS `#__bookingmanager_property_map` ( `property_id` int(11) NOT NULL, `supplier_id` int(11) NOT NULL, PRIMARY KEY (`property_id`), KEY `idx_supplier_id` (`supplier_id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
-        $queries[] = "CREATE TABLE IF NOT EXISTS `#__bookingmanager_rates` ( `property_id` int(11) NOT NULL, `season_name` varchar(255) NOT NULL, `base_rate` decimal(10,2) NOT NULL, PRIMARY KEY (`property_id`, `season_name`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
+        $queries[] = "CREATE TABLE IF NOT EXISTS `#__bookingmanager_rates` ( `property_id` int(11) NOT NULL, `season_name` varchar(255) NOT NULL, `base_rate` decimal(10,2) DEFAULT NULL, `override_admin_commission` tinyint(1) NOT NULL DEFAULT '0', `admin_commission` decimal(5,2) DEFAULT NULL, PRIMARY KEY (`property_id`, `season_name`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
         $queries[] = "CREATE TABLE IF NOT EXISTS `#__bookingmanager_templates` (`id` int(11) NOT NULL AUTO_INCREMENT, `title` varchar(255) NOT NULL, `type` varchar(50) NOT NULL, `subject` varchar(255) DEFAULT NULL, `body` text, PRIMARY KEY (`id`), UNIQUE KEY `idx_type` (`type`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
+        $queries[] = "CREATE TABLE IF NOT EXISTS `#__bookingmanager_clients` (`id` int(11) NOT NULL AUTO_INCREMENT, `name` varchar(255) NOT NULL, `email` varchar(255) NOT NULL, `pin` varchar(255) NOT NULL, `created_at` datetime NOT NULL, PRIMARY KEY (`id`), UNIQUE KEY `idx_email` (`email`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
 
         foreach ($queries as $query) {
             $db->setQuery($query);
@@ -142,10 +146,21 @@ class com_bookingmanagerInstallerScript
         ];
 
         foreach ($templates as $template) {
-            $db->setQuery("SELECT id FROM `#__bookingmanager_templates` WHERE `type` = " . $db->quote($template['type']));
-            if (!$db->loadResult()) {
-                $db->setQuery("INSERT INTO `#__bookingmanager_templates` (`title`, `type`, `subject`, `body`) VALUES (" . $db->quote($template['title']) . ", " . $db->quote($template['type']) . ", " . $db->quote($template['subject']) . ", " . $db->quote($template['body']) . ")");
-                try { $db->execute(); } catch (Exception $e) {}
+            $query = "INSERT INTO `#__bookingmanager_templates` (`title`, `type`, `subject`, `body`) VALUES (" .
+                $db->quote($template['title']) . ", " .
+                $db->quote($template['type']) . ", " .
+                $db->quote($template['subject']) . ", " .
+                $db->quote($template['body']) .
+            ") ON DUPLICATE KEY UPDATE " .
+                "`title` = VALUES(`title`), " .
+                "`subject` = VALUES(`subject`), " .
+                "`body` = VALUES(`body`)";
+
+            $db->setQuery($query);
+            try {
+                $db->execute();
+            } catch (Exception $e) {
+                // Log or handle the error as needed
             }
         }
     }
