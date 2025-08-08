@@ -5,6 +5,8 @@ use Joomla\CMS\Language\Text;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Date\Date;
+
+HTMLHelper::_('behavior.editor');
 ?>
 
 <div class="portal-container">

@@ -33,8 +33,36 @@ class BookingmanagerModelBookingrequest extends AdminModel
     {
         if (!$requestId) { return []; }
         $db = Factory::getDbo();
-        $query = $db->getQuery(true)->select('*')->from('#__booking_communication')->where('request_id = ' . (int)$requestId)->order('created_at DESC');
-        return $db->setQuery($query)->loadObjectList();
+        $query = $db->getQuery(true)
+            ->select('*')
+            ->from('#__booking_communication')
+            ->where('request_id = ' . (int)$requestId)
+            ->order('created_at ASC');
+
+        $messages = $db->setQuery($query)->loadObjectList('id');
+
+        if (empty($messages)) {
+            return [];
+        }
+
+        $messageIds = array_keys($messages);
+        $query->clear()
+            ->select('*')
+            ->from($db->quoteName('#__booking_attachments'))
+            ->where($db->quoteName('message_id') . ' IN (' . implode(',', $messageIds) . ')');
+
+        $attachments = $db->setQuery($query)->loadObjectList();
+
+        foreach ($attachments as $attachment) {
+            if (isset($messages[$attachment->message_id])) {
+                if (!isset($messages[$attachment->message_id]->attachments)) {
+                    $messages[$attachment->message_id]->attachments = [];
+                }
+                $messages[$attachment->message_id]->attachments[] = $attachment;
+            }
+        }
+
+        return array_values($messages);
     }
 
     public function getChangeLog($requestId)
