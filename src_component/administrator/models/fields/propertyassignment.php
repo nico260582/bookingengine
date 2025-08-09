@@ -3,6 +3,7 @@ defined('JPATH_BASE') or die;
 
 use Joomla\CMS\Form\FormField;
 use Joomla\CMS\Layout\LayoutHelper;
+use Joomla\CMS\MVC\Model\AdminModel;
 
 class JFormFieldPropertyAssignment extends FormField
 {
@@ -10,9 +11,14 @@ class JFormFieldPropertyAssignment extends FormField
 
     protected function getInput()
     {
-        // The real logic is in the layout file.
-        // We just need to load the data into the form object.
-        $this->form->setFieldAttribute($this->name, 'all_properties', $this->form->getData()->all_properties);
+        // Get the model
+        $model = AdminModel::getInstance('Supplier', 'BookingmanagerModel');
+
+        // Get the current supplier's ID from the form data
+        $currentSupplierId = $this->form->getData()->id ?? 0;
+
+        // Get all properties data
+        $allProperties = $model->getAllPropertiesWithAssignments($currentSupplierId);
 
         // Prepare data for the layout
         $displayData = [
@@ -20,7 +26,7 @@ class JFormFieldPropertyAssignment extends FormField
             'name'           => $this->name,
             'value'          => $this->value,
             'label'          => $this->label,
-            'all_properties' => $this->form->getData()->all_properties,
+            'all_properties' => $allProperties,
             'form'           => $this->form
         ];
 
