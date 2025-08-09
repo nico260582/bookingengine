@@ -114,7 +114,7 @@ class BookingmanagerModelSupplier extends AdminModel
             ->where('a.catid > 0')
             ->where('a.access IN (' . implode(',', $user->getAuthorisedViewLevels()) . ')')
             ->where("a.publish_up <= " . $db->quote($now))
-            ->where("(a.publish_down = " . $db->quote($nullDate) . " OR a.publish_down >= " . $db->quote($now) . ")")
+            ->where("(a.publish_down IS NULL OR a.publish_down = " . $db->quote($nullDate) . " OR a.publish_down >= " . $db->quote($now) . ")")
             ->order('a.title');
         $allProperties = $db->setQuery($query)->loadObjectList('id');
 
