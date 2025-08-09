@@ -15,7 +15,7 @@ class JFormFieldPropertyAssignment extends FormField
         $model = AdminModel::getInstance('Supplier', 'BookingmanagerModel');
 
         // Get the current supplier's ID from the form data
-        $currentSupplierId = $this->form->getData()->id ?? 0;
+        $currentSupplierId = $this->form->getData()->get('id', 0);
 
         // Get all properties data
         $allProperties = $model->getAllPropertiesWithAssignments($currentSupplierId);
