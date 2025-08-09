@@ -89,10 +89,7 @@ use Joomla\CMS\Date\Date;
         <h4><?php echo Text::_('COM_BOOKINGMANAGER_SEND_REPLY_HEADING'); ?></h4>
         <form action="<?php echo Route::_('index.php?option=com_bookingmanager&task=communication.addClientMessage'); ?>" method="post" enctype="multipart/form-data">
             <div class="form-group">
-                <?php
-                $editor = \Joomla\CMS\Editor\Editor::getInstance('tinymce');
-                echo $editor->display('message', '', '100%', '250', '60', '20', false);
-                ?>
+                <textarea name="message" id="message" class="form-control" rows="5" required></textarea>
             </div>
             <div class="form-group">
                 <label for="attachment"><?php echo Text::_('COM_BOOKINGMANAGER_ATTACHMENT_LABEL'); ?></label>
