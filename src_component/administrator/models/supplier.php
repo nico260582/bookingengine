@@ -104,10 +104,13 @@ class BookingmanagerModelSupplier extends AdminModel
         $db = Factory::getDbo();
 
         // 1. Get all properties (Joomla articles)
+        $user = Factory::getUser();
         $query = $db->getQuery(true)
             ->select('a.id, a.title')
             ->from($db->quoteName('#__content', 'a'))
-            ->where('a.catid > 0 AND a.state = 1')
+            ->where('a.catid > 0')
+            ->where('a.state = 1')
+            ->where('a.access IN (' . implode(',', $user->getAuthorisedViewLevels()) . ')')
             ->order('a.title');
         $allProperties = $db->setQuery($query)->loadObjectList('id');
 
