@@ -3,6 +3,7 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
 use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
+use Joomla\CMS\Plugin\PluginHelper;
 
 class BookingmanagerViewCommunication extends BaseHtmlView
 {
@@ -46,6 +47,7 @@ class BookingmanagerViewCommunication extends BaseHtmlView
             }
         }
 
+        PluginHelper::importPlugin('editors');
         JHtml::_('behavior.editor');
         $doc = Factory::getDocument();
         $doc->addScript(JUri::root(true) . '/modules/mod_bookingform/media/js/portal.js?v=' . filemtime(JPATH_SITE . '/modules/mod_bookingform/media/js/portal.js'));
