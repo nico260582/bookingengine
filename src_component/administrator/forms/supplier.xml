@@ -54,30 +54,18 @@
                 <field name="country" type="bookingmanagercountry" default="" label="Country" required="true" />
                 <field name="discount_percent" type="number" label="Discount %" step="0.01" required="true" />
                 <field name="note" type="text" label="Note for User &amp; Admin" description="e.g., You've received the 5% Mauritian Resident discount!" />
-                <field name="start_date" type="calendar" label="Start Date" format="%Y-%m-%d" />
-                <field name="end_date" type="calendar" label="End Date" format="%Y-%m-%d" />
-                <field name="is_permanent" type="list" label="Permanent?" default="0">
-                    <option value="1">JYES</option>
-                    <option value="0">JNO</option>
-                </field>
             </form>
         </field>
         <field
             name="coupon_codes"
             type="subform"
             label="Coupon Codes"
-            description="Create custom coupon codes. If a start and end date are not set, the 'Permanent?' flag must be set to 'Yes' for the coupon to be active."
+            description="Create custom coupon codes. These are for admin use only and do not appear on the public form."
             layout="joomla.form.field.subform.repeatable-table"
             multiple="true">
             <form>
                 <field name="code" type="text" label="Coupon Code" required="true" />
                 <field name="discount_percent" type="number" label="Discount %" step="0.01" required="true" />
-                <field name="start_date" type="calendar" label="Start Date" format="%Y-%m-%d" />
-                <field name="end_date" type="calendar" label="End Date" format="%Y-%m-%d" />
-                <field name="is_permanent" type="list" label="Permanent?" default="0">
-                    <option value="1">JYES</option>
-                    <option value="0">JNO</option>
-                </field>
             </form>
         </field>
     </fieldset>

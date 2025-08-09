@@ -2,7 +2,6 @@
 defined('JPATH_BASE') or die;
 
 use Joomla\CMS\Form\FormField;
-use Joomla\CMS\Layout\LayoutHelper;
 use Joomla\CMS\MVC\Model\AdminModel;
 
 class JFormFieldPropertyAssignment extends FormField
@@ -11,16 +10,10 @@ class JFormFieldPropertyAssignment extends FormField
 
     protected function getInput()
     {
-        // Get the model
         $model = AdminModel::getInstance('Supplier', 'BookingmanagerModel');
-
-        // Get the current supplier's ID from the form data
         $currentSupplierId = $this->form->getData()->get('id', 0);
-
-        // Get all properties data
         $allProperties = $model->getAllPropertiesWithAssignments($currentSupplierId);
 
-        // Prepare data for the layout
         $displayData = [
             'id'             => $this->id,
             'name'           => $this->name,
@@ -30,7 +23,15 @@ class JFormFieldPropertyAssignment extends FormField
             'form'           => $this->form
         ];
 
-        // Render the layout
-        return LayoutHelper::render('joomla.form.field.propertyassignment', $displayData, JPATH_COMPONENT_ADMINISTRATOR . '/layouts');
+        // Manually render the layout from the simpler path
+        $layoutPath = JPATH_COMPONENT_ADMINISTRATOR . '/layouts/propertyassignment.php';
+
+        if (file_exists($layoutPath)) {
+            ob_start();
+            include $layoutPath;
+            return ob_get_clean();
+        } else {
+            return '<div>Layout file not found at: ' . $layoutPath . '</div>';
+        }
     }
 }
