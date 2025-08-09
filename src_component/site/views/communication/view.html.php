@@ -54,7 +54,7 @@ class BookingmanagerViewCommunication extends BaseHtmlView
 
         if ($this->request) {
             $db = Factory::getDbo();
-            $query = $db->getQuery(true)->select('params')->from($db->quoteName('#__content'))->where('title = ' . $db->quote($this->request->property_name));
+            $query = $db->getQuery(true)->select('attribs')->from($db->quoteName('#__content'))->where('title = ' . $db->quote($this->request->property_name));
             $params = new \Joomla\Registry\Registry($db->setQuery($query)->loadResult());
 
             $options = [
