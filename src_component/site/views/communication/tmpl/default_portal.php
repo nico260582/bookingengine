@@ -90,7 +90,7 @@ use Joomla\CMS\Date\Date;
         <form action="<?php echo Route::_('index.php?option=com_bookingmanager&task=communication.addClientMessage'); ?>" method="post" enctype="multipart/form-data">
             <div class="form-group">
                 <?php
-                $editor = JEditor::getInstance(Factory::getConfig()->get('editor'));
+                $editor = \Joomla\CMS\Editor\Editor::getInstance('tinymce');
                 echo $editor->display('message', '', '100%', '250', '60', '20', false);
                 ?>
             </div>
