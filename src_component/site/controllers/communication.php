@@ -118,9 +118,14 @@ class BookingmanagerControllerCommunication extends BaseController
             $messageId = $model->saveClientMessage($requestId, $message);
 
             if ($messageId) {
-                if (!empty($message)) {
-                    JLoader::register('BookingmanagerHelper', JPATH_ADMINISTRATOR . '/components/com_bookingmanager/helpers/bookingmanager.php');
-                    BookingmanagerHelper::sendNotificationEmails($requestId, 'email_admin_client_reply', $message);
+                $notificationMessage = $message;
+                if (empty($notificationMessage) && !empty($file) && $file['error'] === UPLOAD_ERR_OK) {
+                    $notificationMessage = 'The client has uploaded a new file.';
+                }
+
+                if (!empty($notificationMessage)) {
+                     JLoader::register('BookingmanagerHelper', JPATH_ADMINISTRATOR . '/components/com_bookingmanager/helpers/bookingmanager.php');
+                     BookingmanagerHelper::sendNotificationEmails($requestId, 'email_admin_client_reply', $notificationMessage);
                 }
 
                 if (!empty($file) && $file['error'] === UPLOAD_ERR_OK) {

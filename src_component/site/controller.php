@@ -74,7 +74,22 @@ class BookingmanagerController extends BaseController
             }
             $data['user_id'] = $userId;
 
-            $data['booking_ref'] = 'BHM-' . date('dmy') . '-' . strtoupper(substr(md5(uniqid(rand(), true)), 0, 4));
+            $articleId = $input->post->getInt('article_id', 0);
+            $supplierAbbreviation = 'GEN'; // General fallback
+            if ($articleId) {
+                $db = Factory::getDbo();
+                $query = $db->getQuery(true)
+                    ->select('s.abbreviation')
+                    ->from($db->quoteName('#__bookingmanager_suppliers', 's'))
+                    ->join('INNER', $db->quoteName('#__bookingmanager_property_map', 'm') . ' ON s.id = m.supplier_id')
+                    ->where('m.property_id = ' . (int)$articleId);
+                $abbreviation = $db->setQuery($query)->loadResult();
+                if ($abbreviation) {
+                    $supplierAbbreviation = $abbreviation;
+                }
+            }
+
+            $data['booking_ref'] = 'BHM-' . $supplierAbbreviation . '-' . date('dmy') . '-' . strtoupper(substr(md5(uniqid(rand(), true)), 0, 4));
             $data['pin'] = substr(str_shuffle("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"), 0, 6);
             $table = JTable::getInstance('Bookingrequest', 'BookingmanagerTable');
             if (!$table->save($data)) { throw new Exception('Database save error: ' . $table->getError()); }
@@ -125,8 +140,15 @@ class BookingmanagerController extends BaseController
             $oldChildren = $table->children;
             $newChildren = $input->post->getInt('children', $table->children);
 
+            $oldStartDate = $table->start_date;
+            $newStartDate = $input->post->getString('start_date', $table->start_date);
+            $oldEndDate = $table->end_date;
+            $newEndDate = $input->post->getString('end_date', $table->end_date);
+
             $table->adults = $newAdults;
             $table->children = $newChildren;
+            $table->start_date = $newStartDate;
+            $table->end_date = $newEndDate;
             $table->price_estimate = $input->post->getString('price_estimate', $table->price_estimate);
             $table->unit_count = $input->post->getInt('unit_count', $table->unit_count);
 
@@ -134,8 +156,15 @@ class BookingmanagerController extends BaseController
                 throw new Exception('Failed to save booking changes: ' . $table->getError());
             }
 
-            $details = "Adults: {$oldAdults} -> {$newAdults}, Children: {$oldChildren} -> {$newChildren}";
-            $this->logClientActivity($bookingId, $userId, 'Booking Modified', $details);
+            $details = [];
+            if ($oldAdults != $newAdults) { $details[] = "Adults: {$oldAdults} -> {$newAdults}"; }
+            if ($oldChildren != $newChildren) { $details[] = "Children: {$oldChildren} -> {$newChildren}"; }
+            if ($oldStartDate != $newStartDate) { $details[] = "Start Date: {$oldStartDate} -> {$newStartDate}"; }
+            if ($oldEndDate != $newEndDate) { $details[] = "End Date: {$oldEndDate} -> {$newEndDate}"; }
+
+            if (!empty($details)) {
+                $this->logClientActivity($bookingId, $userId, 'Booking Modified', implode(', ', $details));
+            }
 
             JLoader::register('BookingmanagerHelper', JPATH_ADMINISTRATOR . '/components/com_bookingmanager/helpers/bookingmanager.php');
             BookingmanagerHelper::sendNotificationEmails($bookingId, 'admin_client_update');
