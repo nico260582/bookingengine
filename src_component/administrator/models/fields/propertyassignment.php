@@ -2,6 +2,7 @@
 defined('JPATH_BASE') or die;
 
 use Joomla\CMS\Form\FormField;
+use Joomla\CMS\Layout\LayoutHelper;
 
 class JFormFieldPropertyAssignment extends FormField
 {
@@ -12,13 +13,18 @@ class JFormFieldPropertyAssignment extends FormField
         // The real logic is in the layout file.
         // We just need to load the data into the form object.
         $this->form->setFieldAttribute($this->name, 'all_properties', $this->form->getData()->all_properties);
-        return $this->getLayout($this->layout);
-    }
 
-    protected function getLayoutPaths()
-    {
-        $paths = parent::getLayoutPaths();
-        $paths[] = JPATH_COMPONENT_ADMINISTRATOR . '/layouts';
-        return $paths;
+        // Prepare data for the layout
+        $displayData = [
+            'id'             => $this->id,
+            'name'           => $this->name,
+            'value'          => $this->value,
+            'label'          => $this->label,
+            'all_properties' => $this->form->getData()->all_properties,
+            'form'           => $this->form
+        ];
+
+        // Render the layout
+        return LayoutHelper::render('joomla.form.field.propertyassignment', $displayData, JPATH_COMPONENT_ADMINISTRATOR . '/layouts');
     }
 }
