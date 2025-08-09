@@ -70,6 +70,6 @@
         </field>
     </fieldset>
     <fieldset name="assignments" label="Property Assignments">
-        <field name="properties" type="sql" label="Assign to Properties" description="Select one or more properties (Joomla Articles) that will use these pricing rules." query="SELECT id, title FROM #__content WHERE catid > 0 AND state = 1 ORDER BY title" key_field="id" value_field="title" multiple="true" size="10" />
+        <field name="properties" type="PropertyAssignment" label="Assign to Properties" description="Select one or more properties (Joomla Articles) that will use these pricing rules." />
     </fieldset>
 </form>
