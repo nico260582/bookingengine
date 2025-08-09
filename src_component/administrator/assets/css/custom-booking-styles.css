@@ -152,3 +152,38 @@ body.dark .property-item.assigned-other {
     background-color: #333;
     color: #777;
 }
+
+/* --- Seasons Subform Table Fixes --- */
+
+/* Reduce width of specific columns */
+#subfieldList_jform_seasons th:nth-child(4), /* Min. Stay */
+#subfieldList_jform_seasons td:nth-child(4) {
+    width: 8% !important;
+    min-width: 80px;
+}
+
+#subfieldList_jform_seasons th:nth-child(5), /* Apply Child Supplement */
+#subfieldList_jform_seasons td:nth-child(5) {
+    width: 15% !important;
+    min-width: 120px;
+}
+
+#subfieldList_jform_seasons th:nth-child(6), /* Admin Commission */
+#subfieldList_jform_seasons td:nth-child(6) {
+    width: 15% !important;
+    min-width: 120px;
+}
+
+
+/* --- Calendar Z-index Fix --- */
+
+/* Ensure the calendar popup appears above other elements, especially in modals or complex forms */
+.flatpickr-calendar,
+.litepicker {
+    z-index: 1060 !important; /* Bootstrap modal z-index is 1050, so this should be higher */
+}
+
+/* Address potential overflow issues in Joomla's subform tables */
+.subform-repeatable-wrapper .table-responsive {
+    overflow: visible !important;
+}
