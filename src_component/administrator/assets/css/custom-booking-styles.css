@@ -79,3 +79,76 @@
     padding-top: 10px;
     border-top: 1px dashed #ccc;
 }
+
+/* --- New Styles for Property Assignment UI --- */
+.property-list-box {
+    background-color: #fff;
+    border: 1px solid #ccc;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+}
+
+/* --- General Dark Mode Styles --- */
+body.dark #item-form .main-card,
+body.dark .form-horizontal {
+    background-color: #2c2c2c;
+    border-color: #444;
+    color: #eee;
+}
+
+body.dark #item-form h4 {
+    color: #eee;
+    border-bottom-color: #444;
+}
+
+body.dark #item-form .control-label label {
+    color: #ccc;
+}
+
+body.dark #item-form input[type="text"],
+body.dark #item-form input[type="email"],
+body.dark #item-form input[type="tel"],
+body.dark #item-form input[type="number"],
+body.dark #item-form input[type="url"],
+body.dark #item-form select,
+body.dark #item-form textarea {
+    background-color: #3a3a3a;
+    border-color: #555;
+    color: #eee;
+}
+
+body.dark .conversation-history-admin {
+    background-color: #222;
+    border-color: #444;
+}
+
+body.dark .timeline-item-admin.admin {
+    background-color: #0d2033;
+    border-left-color: #007bff;
+}
+
+body.dark .timeline-item-admin.client {
+    background-color: #333;
+    border-left-color: #6c757d;
+}
+
+body.dark .message-date-admin {
+    color: #999;
+}
+
+body.dark .property-list-box {
+    background-color: #3a3a3a;
+    border-color: #555;
+}
+
+body.dark .property-item {
+    border-bottom-color: #444;
+}
+
+body.dark .property-item:hover {
+    background-color: #4a4a4a;
+}
+
+body.dark .property-item.assigned-other {
+    background-color: #333;
+    color: #777;
+}
