@@ -98,46 +98,6 @@ class BookingmanagerModelSupplier extends AdminModel
         }
         return false;
     }
-
-    public function getAllPropertiesWithAssignments($currentSupplierId = 0)
-    {
-        $db = Factory::getDbo();
-
-        // 1. Get all properties (Joomla articles)
-        $user = Factory::getUser();
-        $now  = Factory::getDate()->toSql();
-        $nullDate = $db->getNullDate();
-        $query = $db->getQuery(true)
-            ->select('a.id, a.title')
-            ->from($db->quoteName('#__content', 'a'))
-            ->where('a.state = 1')
-            ->where('a.catid > 0')
-            ->where('a.access IN (' . implode(',', $user->getAuthorisedViewLevels()) . ')')
-            ->where("a.publish_up <= " . $db->quote($now))
-            ->where("(a.publish_down IS NULL OR a.publish_down = " . $db->quote($nullDate) . " OR a.publish_down >= " . $db->quote($now) . ")")
-            ->order('a.title');
-        $allProperties = $db->setQuery($query)->loadObjectList('id');
-
-        // 2. Get all current assignments with supplier abbreviations
-        $query->clear()
-            ->select('m.property_id, m.supplier_id, s.abbreviation')
-            ->from($db->quoteName('#__bookingmanager_property_map', 'm'))
-            ->join('LEFT', $db->quoteName('#__bookingmanager_suppliers', 's') . ' ON m.supplier_id = s.id');
-        $assignments = $db->setQuery($query)->loadObjectList('property_id');
-
-        // 3. Combine the data
-        foreach ($allProperties as $id => &$property) {
-            $property->assignment = null;
-            if (isset($assignments[$id])) {
-                $property->assignment = [
-                    'supplier_id' => $assignments[$id]->supplier_id,
-                    'abbreviation' => $assignments[$id]->abbreviation,
-                    'is_current' => ($assignments[$id]->supplier_id == $currentSupplierId)
-                ];
-            }
-        }
-        return $allProperties;
-    }
     
     private function logChanges($supplierId, $oldData, $newData)
     {
