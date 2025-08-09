@@ -45,6 +45,27 @@ use Joomla\CMS\Date\Date;
                 <strong>Note:</strong> <?php echo $this->escape($this->request->discount_note); ?>
             <?php endif; ?>
         </p>
+        <div class="booking-modifiers">
+            <h4>Modify Request</h4>
+            <div class="modifier-controls">
+                <div class="form-group">
+                    <label for="adults_modifier">Adults</label>
+                    <input type="number" id="adults_modifier" name="adults" value="<?php echo $this->request->adults; ?>" min="1" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="children_modifier">Children</label>
+                    <input type="number" id="children_modifier" name="children" value="<?php echo $this->request->children; ?>" min="0" class="form-control">
+                </div>
+            </div>
+            <div class="price-recalculation">
+                <div id="price-estimate-display-portal" class="price-total"></div>
+                <div id="unit-count-display-portal" class="units-count"></div>
+            </div>
+            <div class="update-actions">
+                <div id="modification-summary" class="alert alert-warning" style="display: none;"></div>
+                <button id="save-changes-btn" class="btn btn-secondary" style="display: none;">Save Changes & Notify Admin</button>
+            </div>
+        </div>
     </div>
 
 

@@ -9,6 +9,7 @@ class BookingmanagerViewBookingrequest extends HtmlView
     protected $item;
     protected $messages;
     protected $logs;
+    protected $activityLogs;
     protected $attachments;
 
     public function display($tpl = null)
@@ -18,6 +19,7 @@ class BookingmanagerViewBookingrequest extends HtmlView
         $model = $this->getModel();
         $this->messages = $model->getMessages($this->item->id);
         $this->logs = $model->getChangeLog($this->item->id);
+        $this->activityLogs = $model->getActivityLog($this->item->id);
         $this->attachments = $model->getAttachments($this->item->id);
         $this->document->getWebAssetManager()->useScript('form.validate');
         $this->document->addStyleSheet(JUri::root(true) . '/administrator/components/com_bookingmanager/assets/css/bookingmanager.css');

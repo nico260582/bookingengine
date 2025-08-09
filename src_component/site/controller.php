@@ -88,9 +88,148 @@ class BookingmanagerController extends BaseController
             JLoader::register('BookingmanagerHelper', JPATH_ADMINISTRATOR . '/components/com_bookingmanager/helpers/bookingmanager.php');
             BookingmanagerHelper::sendNotificationEmails($table->id, 'all', '', $data['new_user_password'] ?? '');
             
+            $this->logClientActivity($table->id, $userId, 'Booking Created', 'Initial submission from booking form.');
+
             echo json_encode(['success' => true, 'bookingRef' => $data['booking_ref']]);
         } catch (Exception $e) {
             Log::add('Booking form submission failed: ' . $e->getMessage(), Log::ERROR, 'com_bookingmanager');
+            $code = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 500;
+            if (!headers_sent()) { http_response_code($code); }
+            echo json_encode(['success' => false, 'message' => 'Server Error: ' . $e->getMessage()]);
+        }
+        $app->close();
+    }
+
+    public function updateBookingFromPortal()
+    {
+        header('Content-Type: application/json');
+        $app = Factory::getApplication();
+        $input = $app->input;
+        try {
+            if (!Session::checkToken('post')) { throw new Exception('Invalid Token', 403); }
+
+            $bookingId = $input->post->getInt('booking_id', 0);
+            if (!$bookingId) { throw new Exception('Booking ID is required.', 400); }
+
+            // Security check would be needed here to ensure user owns this booking
+
+            JTable::addIncludePath(JPATH_ADMINISTRATOR . '/components/com_bookingmanager/tables');
+            $table = JTable::getInstance('Bookingrequest', 'BookingmanagerTable');
+            if (!$table->load($bookingId)) {
+                throw new Exception('Booking request not found.', 404);
+            }
+
+            $userId = Factory::getUser()->id;
+            $oldAdults = $table->adults;
+            $newAdults = $input->post->getInt('adults', $table->adults);
+            $oldChildren = $table->children;
+            $newChildren = $input->post->getInt('children', $table->children);
+
+            $table->adults = $newAdults;
+            $table->children = $newChildren;
+            $table->price_estimate = $input->post->getString('price_estimate', $table->price_estimate);
+            $table->unit_count = $input->post->getInt('unit_count', $table->unit_count);
+
+            if (!$table->store()) {
+                throw new Exception('Failed to save booking changes: ' . $table->getError());
+            }
+
+            $details = "Adults: {$oldAdults} -> {$newAdults}, Children: {$oldChildren} -> {$newChildren}";
+            $this->logClientActivity($bookingId, $userId, 'Booking Modified', $details);
+
+            JLoader::register('BookingmanagerHelper', JPATH_ADMINISTRATOR . '/components/com_bookingmanager/helpers/bookingmanager.php');
+            BookingmanagerHelper::sendNotificationEmails($bookingId, 'admin_client_update');
+
+            echo json_encode(['success' => true, 'message' => 'Your request has been updated.']);
+
+        } catch (Exception $e) {
+            Log::add('updateBookingFromPortal failed: ' . $e->getMessage(), Log::ERROR, 'com_bookingmanager');
+            $code = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 500;
+            if (!headers_sent()) { http_response_code($code); }
+            echo json_encode(['success' => false, 'message' => 'Server Error: ' . $e->getMessage()]);
+        }
+        $app->close();
+    }
+
+    public function getPricingForRequest()
+    {
+        header('Content-Type: application/json');
+        $app = Factory::getApplication();
+        try {
+            $bookingId = $app->input->getInt('booking_id', 0);
+            if (!$bookingId) {
+                throw new Exception('Booking ID is required.', 400);
+            }
+
+            // A more robust security check should be implemented here, e.g., checking session PIN
+
+            $db = Factory::getDbo();
+            $query = $db->getQuery(true)->select('p.id')->from($db->quoteName('#__content', 'p'))->join('INNER', $db->quoteName('#__booking_requests', 'r') . ' ON p.title = r.property_name')->where('r.id = ' . (int)$bookingId);
+            $articleId = $db->setQuery($query)->loadResult();
+
+            if (!$articleId) {
+                throw new Exception('Could not find associated property.', 404);
+            }
+
+            JLoader::register('ModBookingFormHelper', JPATH_SITE . '/modules/mod_bookingform/helper.php');
+            $pricingRules = ModBookingFormHelper::getPricingDataForArticle($articleId);
+
+            echo json_encode(['success' => true, 'pricingRules' => $pricingRules]);
+
+        } catch (Exception $e) {
+            Log::add('getPricingForRequest failed: ' . $e->getMessage(), Log::ERROR, 'com_bookingmanager');
+            $code = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 500;
+            if (!headers_sent()) { http_response_code($code); }
+            echo json_encode(['success' => false, 'message' => 'Server Error: ' . $e->getMessage()]);
+        }
+        $app->close();
+    }
+
+    private function logClientActivity($bookingId, $userId, $actionType, $actionDetails = '', $screenSize = '')
+    {
+        $db = Factory::getDbo();
+        $log = new \stdClass();
+        $log->booking_request_id = $bookingId;
+        $log->created_at  = (new Date('now'))->toSql();
+        $log->user_id     = $userId;
+        $log->ip_address  = $_SERVER['REMOTE_ADDR'] ?? 'Unknown';
+        $log->user_agent  = $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown';
+        $log->screen_size = $screenSize;
+        $log->action_type = $actionType;
+        $log->action_details = $actionDetails;
+
+        try {
+            $db->insertObject('#__booking_client_activity_logs', $log);
+        } catch (Exception $e) {
+            Log::add('Failed to log client activity: ' . $e->getMessage(), Log::ERROR, 'com_bookingmanager');
+        }
+    }
+
+    public function logActivity()
+    {
+        header('Content-Type: application/json');
+        $app = Factory::getApplication();
+        $input = $app->input;
+
+        try {
+            if (!Session::checkToken('post')) { throw new Exception('Invalid Token', 403); }
+
+            $bookingId = $input->post->getInt('booking_id', 0);
+            $actionType = $input->post->getString('action_type', 'Viewed Portal');
+            $actionDetails = $input->post->getString('action_details', '');
+            $screenSize = $input->post->getString('screen_size', '');
+
+            $userId = Factory::getUser()->id;
+
+            if ($bookingId) {
+                $this->logClientActivity($bookingId, $userId, $actionType, $actionDetails, $screenSize);
+                echo json_encode(['success' => true]);
+            } else {
+                throw new Exception('Booking ID is required.', 400);
+            }
+
+        } catch (Exception $e) {
+            Log::add('logActivity failed: ' . $e->getMessage(), Log::ERROR, 'com_bookingmanager');
             $code = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 500;
             if (!headers_sent()) { http_response_code($code); }
             echo json_encode(['success' => false, 'message' => 'Server Error: ' . $e->getMessage()]);

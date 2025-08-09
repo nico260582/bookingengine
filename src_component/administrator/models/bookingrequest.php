@@ -72,6 +72,20 @@ class BookingmanagerModelBookingrequest extends AdminModel
         $query = $db->getQuery(true)->select('*')->from('#__booking_request_logs')->where('request_id = ' . (int)$requestId)->order('created_at DESC');
         return $db->setQuery($query)->loadObjectList();
     }
+
+    public function getActivityLog($requestId)
+    {
+        if (!$requestId) {
+            return [];
+        }
+        $db = Factory::getDbo();
+        $query = $db->getQuery(true)
+            ->select('*')
+            ->from($db->quoteName('#__booking_client_activity_logs'))
+            ->where('booking_request_id = ' . (int)$requestId)
+            ->order('created_at DESC');
+        return $db->setQuery($query)->loadObjectList();
+    }
     
     public function getAttachments($requestId)
     {

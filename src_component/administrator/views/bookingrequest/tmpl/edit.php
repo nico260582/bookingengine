@@ -102,6 +102,35 @@ use Joomla\CMS\Router\Route;
                 </tbody>
             </table>
         <?php echo HTMLHelper::_('bootstrap.endTab'); ?>
+
+        <?php echo HTMLHelper::_('bootstrap.addTab', 'myTab', 'activity', Text::_('Client Activity')); ?>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Action</th>
+                        <th>Details</th>
+                        <th>IP Address</th>
+                        <th>User Agent</th>
+                        <th>Screen Size</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if ($this->activityLogs) : foreach ($this->activityLogs as $log) : ?>
+                    <tr>
+                        <td><?php echo HTMLHelper::_('date', $log->created_at, 'Y-m-d H:i:s'); ?></td>
+                        <td><strong><?php echo $this->escape($log->action_type); ?></strong></td>
+                        <td><?php echo $this->escape($log->action_details); ?></td>
+                        <td><?php echo $this->escape($log->ip_address); ?></td>
+                        <td><?php echo $this->escape($log->user_agent); ?></td>
+                        <td><?php echo $this->escape($log->screen_size); ?></td>
+                    </tr>
+                    <?php endforeach; else : ?>
+                    <tr><td colspan="6">No client activity has been logged.</td></tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        <?php echo HTMLHelper::_('bootstrap.endTab'); ?>
         <?php echo HTMLHelper::_('bootstrap.endTabSet'); ?>
     </div>
     <input type="hidden" name="task" value="" />

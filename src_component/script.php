@@ -69,6 +69,7 @@ class com_bookingmanagerInstallerScript
         $queries[] = "CREATE TABLE IF NOT EXISTS `#__bookingmanager_rates` ( `property_id` int(11) NOT NULL, `season_name` varchar(255) NOT NULL, `base_rate` decimal(10,2) DEFAULT NULL, `override_admin_commission` tinyint(1) NOT NULL DEFAULT '0', `admin_commission` decimal(5,2) DEFAULT NULL, PRIMARY KEY (`property_id`, `season_name`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
         $queries[] = "CREATE TABLE IF NOT EXISTS `#__bookingmanager_templates` (`id` int(11) NOT NULL AUTO_INCREMENT, `title` varchar(255) NOT NULL, `type` varchar(50) NOT NULL, `subject` varchar(255) DEFAULT NULL, `body` text, PRIMARY KEY (`id`), UNIQUE KEY `idx_type` (`type`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
         $queries[] = "CREATE TABLE IF NOT EXISTS `#__bookingmanager_clients` (`id` int(11) NOT NULL AUTO_INCREMENT, `name` varchar(255) NOT NULL, `email` varchar(255) NOT NULL, `pin` varchar(255) NOT NULL, `created_at` datetime NOT NULL, PRIMARY KEY (`id`), UNIQUE KEY `idx_email` (`email`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
+        $queries[] = "CREATE TABLE IF NOT EXISTS `#__booking_client_activity_logs` ( `id` INT(11) NOT NULL AUTO_INCREMENT, `booking_request_id` INT(11) NOT NULL, `created_at` DATETIME NOT NULL, `user_id` INT(11) NULL, `ip_address` VARCHAR(45) NULL, `user_agent` TEXT NULL, `screen_size` VARCHAR(20) NULL, `action_type` VARCHAR(50) NOT NULL, `action_details` VARCHAR(255) NULL, PRIMARY KEY (`id`), KEY `idx_booking_request_id` (`booking_request_id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
 
         foreach ($queries as $query) {
             $db->setQuery($query);
@@ -177,7 +178,7 @@ class com_bookingmanagerInstallerScript
 
     private function runUninstallQueries($parent) {
         $db = Factory::getDbo();
-        $queries = array("DROP TABLE IF EXISTS `#__booking_communication`;", "DROP TABLE IF EXISTS `#__booking_requests`;", "DROP TABLE IF EXISTS `#__booking_request_logs`;", "DROP TABLE IF EXISTS `#__booking_supplier_logs`;", "DROP TABLE IF EXISTS `#__bookingmanager_suppliers`;", "DROP TABLE IF EXISTS `#__bookingmanager_property_map`;", "DROP TABLE IF EXISTS `#__bookingmanager_rates`;", "DROP TABLE IF EXISTS `#__bookingmanager_templates`;", "DROP TABLE IF EXISTS `#__booking_attachments`;", "DROP TABLE IF EXISTS `#__bookingmanager_clients`;");
+        $queries = array("DROP TABLE IF EXISTS `#__booking_communication`;", "DROP TABLE IF EXISTS `#__booking_requests`;", "DROP TABLE IF EXISTS `#__booking_request_logs`;", "DROP TABLE IF EXISTS `#__booking_supplier_logs`;", "DROP TABLE IF EXISTS `#__bookingmanager_suppliers`;", "DROP TABLE IF EXISTS `#__bookingmanager_property_map`;", "DROP TABLE IF EXISTS `#__bookingmanager_rates`;", "DROP TABLE IF EXISTS `#__bookingmanager_templates`;", "DROP TABLE IF EXISTS `#__booking_attachments`;", "DROP TABLE IF EXISTS `#__bookingmanager_clients`;", "DROP TABLE IF EXISTS `#__booking_client_activity_logs`;");
         foreach ($queries as $query) { $db->setQuery($query); try { $db->execute(); } catch (Exception $e) {} }
     }
 
