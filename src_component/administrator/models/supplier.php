@@ -142,19 +142,47 @@ class BookingmanagerModelSupplier extends AdminModel
     private function logChanges($supplierId, $oldData, $newData)
     {
         $user = Factory::getUser();
-        $db = $this->getDbo();
-        foreach ($newData as $key => $value) {
-            if (array_key_exists($key, $oldData) && $oldData[$key] != $value) {
-                $log = new \stdClass();
-                $log->supplier_id = $supplierId;
-                $log->created_at  = (new Date('now'))->toSql();
-                $log->user_id     = $user->id;
-                $log->user_name   = $user->name;
-                $log->field_name  = $key;
-                $log->old_value   = is_string($oldData[$key]) ? $oldData[$key] : json_encode($oldData[$key]);
-                $log->new_value   = is_string($value) ? $value : json_encode($value);
-                $db->insertObject('#__booking_supplier_logs', $log);
+
+        foreach ($newData as $key => $newValue) {
+            if (!array_key_exists($key, $oldData) || $oldData[$key] == $newValue) {
+                continue; // Skip if key is new or value is unchanged
+            }
+
+            $oldValue = $oldData[$key];
+
+            if ($key === 'rules') {
+                $oldRules = json_decode($oldValue, true);
+                $newRules = json_decode($newValue, true);
+
+                foreach ($newRules as $ruleKey => $ruleValue) {
+                    $oldRuleValue = $oldRules[$ruleKey] ?? null;
+
+                    // A simple way to check if complex fields have changed is to compare their JSON representations.
+                    if (json_encode($oldRuleValue) !== json_encode($ruleValue)) {
+                        if (is_array($ruleValue)) {
+                             $this->createLogEntry($supplierId, $user, "rules." . $ruleKey, "[Complex data changed]", "[Complex data changed]");
+                        } else {
+                            $this->createLogEntry($supplierId, $user, "rules." . $ruleKey, (string)$oldRuleValue, (string)$ruleValue);
+                        }
+                    }
+                }
+            } else {
+                // Standard logging for non-rules fields
+                $this->createLogEntry($supplierId, $user, $key, (string)$oldValue, (string)$newValue);
             }
         }
+    }
+
+    private function createLogEntry($supplierId, $user, $fieldName, $oldValue, $newValue)
+    {
+        $log = new \stdClass();
+        $log->supplier_id = $supplierId;
+        $log->created_at  = (new Date('now'))->toSql();
+        $log->user_id     = $user->id;
+        $log->user_name   = $user->name;
+        $log->field_name  = $fieldName;
+        $log->old_value   = substr((string)$oldValue, 0, 1024);
+        $log->new_value   = substr((string)$newValue, 0, 1024);
+        $this->getDbo()->insertObject('#__booking_supplier_logs', $log);
     }
 }
