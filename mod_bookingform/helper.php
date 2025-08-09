@@ -64,7 +64,8 @@ class ModBookingFormHelper
             'seasons' => isset($rules['seasons']) && is_array($rules['seasons']) ? array_values($rules['seasons']) : [],
             'rates' => $rates,
             'rate_details' => $rateDetails,
-            'country_discounts' => isset($rules['country_discounts']) && is_array($rules['country_discounts']) ? array_values($rules['country_discounts']) : []
+            'country_discounts' => isset($rules['country_discounts']) && is_array($rules['country_discounts']) ? array_values($rules['country_discounts']) : [],
+            'coupon_codes' => isset($rules['coupon_codes']) && is_array($rules['coupon_codes']) ? array_values($rules['coupon_codes']) : []
         ];
 
         return $cleanRules;
