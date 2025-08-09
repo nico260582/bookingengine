@@ -139,7 +139,7 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-    const url = `${options.baseUrl}index.php?option=com_bookingmanager&task=validateCoupon&${Joomla.getFormToken()}=1`;
+        const url = `${options.baseUrl}index.php?option=com_bookingmanager&task=validateCoupon&${Joomla.getFormToken()}=1`;
         const formData = new FormData();
         formData.append('coupon_code', couponCode);
         formData.append('article_id', articleId);
