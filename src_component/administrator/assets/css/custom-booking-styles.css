@@ -1,0 +1,81 @@
+/* General container improvements */
+.main-card {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 20px;
+    background-color: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+/* Improve spacing and layout of form fields */
+.row-fluid .span6 {
+    margin-bottom: 20px;
+}
+
+.row-fluid h4 {
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+/* Style the fieldsets */
+#item-form fieldset.form-horizontal {
+    padding: 0;
+    border: 0;
+}
+
+#item-form .control-group {
+    margin-bottom: 15px;
+}
+
+#item-form .control-label label {
+    font-weight: bold;
+    color: #555;
+}
+
+/* Communication tab improvements */
+.conversation-history-admin {
+    border: 1px solid #ccc;
+    padding: 15px;
+    height: 400px;
+    overflow-y: auto;
+    background-color: #f9f9f9;
+}
+
+.timeline-admin .timeline-item-admin {
+    margin-bottom: 15px;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.timeline-item-admin.admin {
+    background-color: #e7f3ff;
+    border-left: 3px solid #007bff;
+}
+
+.timeline-item-admin.client {
+    background-color: #f1f0f0;
+    border-left: 3px solid #6c757d;
+}
+
+.message-header-admin {
+    margin-bottom: 5px;
+}
+
+.message-author-admin {
+    font-weight: bold;
+}
+
+.message-date-admin {
+    float: right;
+    font-size: 0.9em;
+    color: #777;
+}
+
+.message-attachments-admin {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed #ccc;
+}

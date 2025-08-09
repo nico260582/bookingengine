@@ -97,4 +97,65 @@ class BookingmanagerController extends BaseController
         }
         $app->close();
     }
+
+    public function validateCoupon()
+    {
+        header('Content-Type: application/json');
+        $app = Factory::getApplication();
+        $input = $app->input;
+
+        try {
+            if (!Session::checkToken()) { throw new Exception('Invalid Token', 403); }
+            $couponCode = $input->getString('coupon_code', '');
+            $articleId  = $input->getInt('article_id', 0);
+
+            if (empty($couponCode) || !$articleId) {
+                throw new Exception('Coupon code and article ID are required.', 400);
+            }
+
+            JLoader::register('ModBookingFormHelper', JPATH_SITE . '/modules/mod_bookingform/helper.php');
+            $pricingRules = ModBookingFormHelper::getPricingDataForArticle($articleId);
+
+            if (!$pricingRules || !isset($pricingRules['coupon_codes'])) {
+                throw new Exception('No pricing rules found for this property.', 404);
+            }
+
+            $couponData = null;
+            foreach ($pricingRules['coupon_codes'] as $coupon) {
+                if (strcasecmp($coupon['code'], $couponCode) === 0) {
+                    $couponData = $coupon;
+                    break;
+                }
+            }
+
+            if (!$couponData) {
+                throw new Exception('Invalid coupon code.', 404);
+            }
+
+            $isPermanent = $couponData['is_permanent'] ?? '0';
+            if ($isPermanent !== '1') {
+                $today = new Date('now');
+                $startDate = !empty($couponData['start_date']) ? new Date($couponData['start_date']) : null;
+                $endDate = !empty($couponData['end_date']) ? new Date($couponData['end_date']) : null;
+
+                if (($startDate && $today < $startDate) || ($endDate && $today > $endDate)) {
+                    throw new Exception('This coupon is not active at this time.', 400);
+                }
+            }
+
+            $discountPercent = (float)($couponData['discount_percent'] ?? 0);
+
+            echo json_encode([
+                'success'  => true,
+                'discount' => $discountPercent,
+                'message'  => "Success! A {$discountPercent}% discount has been applied."
+            ]);
+
+        } catch (Exception $e) {
+            $code = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 500;
+            if (!headers_sent()) { http_response_code($code); }
+            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        }
+        $app->close();
+    }
 }

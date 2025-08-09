@@ -24,11 +24,13 @@ document.addEventListener('DOMContentLoaded', function () {
         minStayAlert: document.getElementById('min-stay-alert'),
         discountAlert: document.getElementById('discount-applied-alert'),
         discountNoteInput: document.getElementById('discount-note-input'),
+        couponCodeInput: document.getElementById('coupon-code'),
     };
 
     let numberOfNights = 0;
     let seasonRateCounts = {};
     let iti = null;
+    let couponDiscount = { percent: 0, message: '' };
 
     if (elements.telephoneInput) {
         iti = window.intlTelInput(elements.telephoneInput, {
@@ -127,6 +129,42 @@ document.addEventListener('DOMContentLoaded', function () {
         updateCalculations();
     }
 
+    function validateCouponCode() {
+        const couponCode = elements.couponCodeInput.value.trim();
+        const articleId = options.articleId;
+
+        if (!couponCode) {
+            couponDiscount = { percent: 0, message: '' };
+            updateCalculations();
+            return;
+        }
+
+    const url = `${options.baseUrl}index.php?option=com_bookingmanager&task=validateCoupon&${Joomla.getFormToken()}=1`;
+        const formData = new FormData();
+        formData.append('coupon_code', couponCode);
+        formData.append('article_id', articleId);
+
+        fetch(url, {
+            method: 'POST',
+            body: new URLSearchParams(formData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                couponDiscount = { percent: data.discount, message: data.message };
+            } else {
+                couponDiscount = { percent: 0, message: data.message || 'Invalid coupon.' };
+                alert(couponDiscount.message);
+            }
+            updateCalculations();
+        })
+        .catch(error => {
+            console.error('Coupon validation error:', error);
+            couponDiscount = { percent: 0, message: 'Error validating coupon.' };
+            updateCalculations();
+        });
+    }
+
     function updateCalculations() {
         const adults = parseInt(elements.guestSelect.value, 10);
         const rules = options.pricingRules;
@@ -163,7 +201,7 @@ document.addEventListener('DOMContentLoaded', function () {
             let childrenCounting = childAges.filter(age => age > rules.free_with_parents_age).length;
             totalGuestsForCapacity += childrenCounting;
             const extraGuests = totalGuestsForCapacity - baseCapacity;
-            if (extraGuests === 1) { mattressCost = (rules.extra_mattress_fee || 0) * numberOfNights; } 
+            if (extraGuests === 1) { mattressCost = (rules.extra_mattress_fee || 0) * numberOfNights; }
             else if (extraGuests > 1) { requiredUnits = Math.ceil(totalGuestsForCapacity / baseCapacity); }
         } else {
              let infantsNotCounting = childAges.filter(age => age <= rules.infant_max_age).length;
@@ -210,7 +248,11 @@ document.addEventListener('DOMContentLoaded', function () {
         const selectedCountry = elements.countryResidenceSelect.value;
         let discountPercent = 0;
         let discountNote = '';
-        if (rules.country_discounts && selectedCountry) {
+
+        if (couponDiscount.percent > 0) {
+            discountPercent = couponDiscount.percent;
+            discountNote = couponDiscount.message;
+        } else if (rules.country_discounts && selectedCountry) {
             const countryRule = rules.country_discounts.find(d => d.country === selectedCountry);
             if (countryRule && countryRule.discount_percent) {
                 discountPercent = parseFloat(countryRule.discount_percent);
@@ -251,7 +293,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     elements.bookingForm.addEventListener('submit', function (event) {
-        event.preventDefault(); 
+        event.preventDefault();
         const formData = new FormData(elements.bookingForm);
         const spinner = elements.submitButton.querySelector('.spinner-border');
         const buttonText = elements.submitButton.querySelector('.button-text');
@@ -284,6 +326,10 @@ document.addEventListener('DOMContentLoaded', function () {
             if (iti && isoCode) { iti.setCountry(isoCode.toLowerCase()); }
             updateCalculations();
         });
+    }
+
+    if (elements.couponCodeInput) {
+        elements.couponCodeInput.addEventListener('change', validateCouponCode);
     }
 
     elements.guestSelect.addEventListener('change', updateCalculations);

@@ -35,10 +35,49 @@ class BookingmanagerModelSupplier extends AdminModel
                     }
                 }
             }
-            if ($data && !empty($data->id)) {
+            if ($data) {
                 $db = Factory::getDbo();
-                $query = $db->getQuery(true)->select('property_id')->from('#__bookingmanager_property_map')->where('supplier_id = ' . (int)$data->id);
-                $data->properties = $db->setQuery($query)->loadColumn();
+                $currentSupplierId = $data->id ?? 0;
+
+                // 1. Get all properties (Joomla articles)
+                $query = $db->getQuery(true)
+                    ->select('a.id, a.title')
+                    ->from($db->quoteName('#__content', 'a'))
+                    ->where('a.catid > 0 AND a.state = 1')
+                    ->order('a.title');
+                $allProperties = $db->setQuery($query)->loadObjectList('id');
+
+                // 2. Get all current assignments with supplier abbreviations
+                $query->clear()
+                    ->select('m.property_id, m.supplier_id, s.abbreviation')
+                    ->from($db->quoteName('#__bookingmanager_property_map', 'm'))
+                    ->join('LEFT', $db->quoteName('#__bookingmanager_suppliers', 's') . ' ON m.supplier_id = s.id');
+                $assignments = $db->setQuery($query)->loadObjectList('property_id');
+
+                // 3. Combine the data
+                foreach ($allProperties as $id => &$property) {
+                    $property->assignment = null;
+                    if (isset($assignments[$id])) {
+                        $property->assignment = [
+                            'supplier_id' => $assignments[$id]->supplier_id,
+                            'abbreviation' => $assignments[$id]->abbreviation,
+                            'is_current' => ($assignments[$id]->supplier_id == $currentSupplierId)
+                        ];
+                    }
+                }
+
+                // This will be used by our custom layout
+                $data->all_properties = $allProperties;
+
+                // This is for populating the selected list
+                $data->properties = [];
+                if ($currentSupplierId) {
+                    $query->clear()
+                        ->select('property_id')
+                        ->from('#__bookingmanager_property_map')
+                        ->where('supplier_id = ' . (int)$currentSupplierId);
+                    $data->properties = $db->setQuery($query)->loadColumn();
+                }
             }
         }
         return $data;

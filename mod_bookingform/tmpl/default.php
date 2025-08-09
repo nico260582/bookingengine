@@ -98,6 +98,12 @@ use Joomla\CMS\HTML\HTMLHelper;
             </div>
         </div>
 
+        <div class="row">
+            <div class="col-12 mb-2">
+                <input type="text" id="coupon-code" name="coupon_code" class="form-control" placeholder="Coupon Code">
+            </div>
+        </div>
+
         <div class="price-summary">
             <div id="price-estimate-display" class="price-total">Est. Price: -</div>
             <div id="discount-applied-alert" class="alert alert-success" style="display: none;"></div>
