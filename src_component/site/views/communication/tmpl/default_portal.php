@@ -49,6 +49,10 @@ use Joomla\CMS\Date\Date;
             <h4>Modify Request</h4>
             <div class="modifier-controls">
                 <div class="form-group">
+                    <label for="date_modifier">Dates</label>
+                    <input type="text" id="date_modifier" class="form-control">
+                </div>
+                <div class="form-group">
                     <label for="adults_modifier">Adults</label>
                     <input type="number" id="adults_modifier" name="adults" value="<?php echo $this->request->adults; ?>" min="1" class="form-control">
                 </div>
@@ -56,6 +60,9 @@ use Joomla\CMS\Date\Date;
                     <label for="children_modifier">Children</label>
                     <input type="number" id="children_modifier" name="children" value="<?php echo $this->request->children; ?>" min="0" class="form-control">
                 </div>
+            </div>
+            <div id="child-ages-portal-container" class="modifier-controls">
+                <!-- Child age inputs will be dynamically inserted here -->
             </div>
             <div class="price-recalculation">
                 <div id="price-estimate-display-portal" class="price-total"></div>
