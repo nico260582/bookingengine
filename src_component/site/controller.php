@@ -218,7 +218,7 @@ class BookingmanagerController extends BaseController
         $app->close();
     }
 
-    public function uploadAttachment()
+    public function upload()
     {
         // Simple response to check if the task is reachable
         echo new \Joomla\CMS\Response\JsonResponse(['success' => true, 'message' => 'Task reached!']);
@@ -270,7 +270,7 @@ class BookingmanagerController extends BaseController
         $input = $app->input;
 
         try {
-            if (!Session::checkToken('post')) { throw new Exception('Invalid Token', 403); }
+            if (!Session::checkToken()) { throw new Exception('Invalid Token', 403); }
 
             $bookingId = $input->post->getInt('booking_id', 0);
             $actionType = $input->post->getString('action_type', 'Viewed Portal');
