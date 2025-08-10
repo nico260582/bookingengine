@@ -7,6 +7,8 @@ use Joomla\CMS\Component\ComponentHelper;
 
 class BookingmanagerModelBookingrequests extends ListModel
 {
+    protected $_propertyNames = null;
+
     public function __construct($config = [])
     {
         if (empty($config['filter_fields'])) {
@@ -81,13 +83,24 @@ class BookingmanagerModelBookingrequests extends ListModel
 
     public function getPropertyNames()
     {
-        $db = $this->getDbo();
-        $query = $db->getQuery(true)
-            ->select($db->quoteName('property_name'))
-            ->from($db->quoteName('#__booking_requests'))
-            ->group($db->quoteName('property_name'))
-            ->order($db->quoteName('property_name'));
-        $db->setQuery($query);
-        return $db->loadColumn();
+        if ($this->_propertyNames === null) {
+            $this->_propertyNames = [];
+            try {
+                $db    = $this->getDbo();
+                $query = $db->getQuery(true)
+                    ->select($db->quoteName('property_name'))
+                    ->from($db->quoteName('#__booking_requests'))
+                    ->group($db->quoteName('property_name'))
+                    ->order($db->quoteName('property_name'));
+                $db->setQuery($query);
+                $results = $db->loadColumn();
+                if ($results !== null) {
+                    $this->_propertyNames = $results;
+                }
+            } catch (\Exception $e) {
+                Factory::getApplication()->enqueueMessage('Could not load property names: ' . $e->getMessage(), 'error');
+            }
+        }
+        return $this->_propertyNames;
     }
 }
