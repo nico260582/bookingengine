@@ -38,7 +38,7 @@ class BookingmanagerControllerBookingrequest extends FormController
         $this->setRedirect(Route::_('index.php?option=com_bookingmanager&view=bookingrequests', false));
     }
 
-    public function uploadAttachment()
+    public function upload()
     {
         Factory::getApplication()->input->post->set('jform', ['id' => Factory::getApplication()->input->getInt('id')]);
         parent::checkToken('post');

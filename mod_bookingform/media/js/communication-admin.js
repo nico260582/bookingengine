@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const formData = new FormData();
         formData.append('attachment', file);
         formData.append('option', 'com_bookingmanager');
-        formData.append('task', 'bookingrequest.uploadAttachment');
+        formData.append('task', 'bookingrequest.upload');
         formData.append('id', document.querySelector('input[name="id"]').value);
         formData.append(Joomla.getOptions('csrf.token'), 1);
 

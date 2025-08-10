@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         formData.append('attachment', file);
         formData.append('option', 'com_bookingmanager');
-        formData.append('task', 'uploadAttachment');
+        formData.append('task', 'upload');
         formData.append('request_id', requestId);
         formData.append(Joomla.getOptions('csrf.token'), 1);
 
