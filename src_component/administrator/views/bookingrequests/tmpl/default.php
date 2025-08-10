@@ -14,45 +14,48 @@ $listOrder = $this->state->get('list.ordering');
 $listDirn  = $this->state->get('list.direction');
 ?>
 
-<div id="j-sidebar-container" class="span2">
-    <?php echo $this->sidebar; ?>
-    <div class="js-stools-container-filters sidebar-nav">
-        <div class="js-stools-container-bar">
-            <div class="filter-search btn-group pull-left">
-                <input type="text" name="filter_search" id="filter_search" value="<?php echo $this->escape($this->state->get('filter.search')); ?>" class="has-hint" title="<?php echo Text::_('COM_BOOKINGMANAGER_SEARCH_IN_TITLE'); ?>" placeholder="<?php echo Text::_('JSEARCH_FILTER'); ?>"/>
-            </div>
-            <div class="btn-group pull-left">
-                <button type="submit" class="btn hasTooltip" title="<?php echo Text::_('JSEARCH_FILTER_SUBMIT'); ?>"><i class="icon-search"></i></button>
-                <button type="button" class="btn hasTooltip" title="<?php echo Text::_('JSEARCH_FILTER_CLEAR'); ?>" onclick="document.id('filter_search').value='';this.form.submit();"><i class="icon-remove"></i></button>
-            </div>
-        </div>
-        <div class="js-stools-container-list">
-            <select name="filter_status" class="inputbox" onchange="this.form.submit()">
-                <option value=""><?php echo Text::_('JOPTION_SELECT_STATUS');?></option>
-                <?php $statuses = ['New', 'Confirmed', 'Cancelled', 'Pending']; ?>
-                <?php foreach ($statuses as $status) : ?>
-                    <option value="<?php echo $status; ?>" <?php if ($this->state->get('filter.status') == $status) echo 'selected'; ?>><?php echo $status; ?></option>
-                <?php endforeach; ?>
-            </select>
-            <select name="filter_property_name" class="inputbox" onchange="this.form.submit()">
-                <option value=""><?php echo Text::_('Select Property');?></option>
-                <?php foreach ($this->properties as $property) : ?>
-                    <option value="<?php echo $this->escape($property); ?>" <?php if ($this->state->get('filter.property_name') == $property) echo 'selected'; ?>><?php echo $this->escape($property); ?></option>
-                <?php endforeach; ?>
-            </select>
-            <input type="text" name="filter_date_from" id="filter_date_from" value="<?php echo $this->state->get('filter.date_from'); ?>" placeholder="From Date" class="input-small" title="Date From" />
-            <input type="text" name="filter_date_to" id="filter_date_to" value="<?php echo $this->state->get('filter.date_to'); ?>" placeholder="To Date" class="input-small" title="Date To" />
-            <select name="filter_date_type" class="inputbox">
-                <option value="created_at" <?php if($this->state->get('filter.date_type') == 'created_at') echo 'selected'; ?>>Creation Date</option>
-                <option value="start_date" <?php if($this->state->get('filter.date_type') == 'start_date') echo 'selected'; ?>>Check-in</option>
-                <option value="end_date" <?php if($this->state->get('filter.date_type') == 'end_date') echo 'selected'; ?>>Check-out</option>
-            </select>
-        </div>
-    </div>
-</div>
-<div id="j-main-container" class="span10">
+<div id="j-main-container" class="span12">
     <form action="index.php?option=com_bookingmanager&view=bookingrequests" method="post" name="adminForm" id="adminForm">
-        <table class="table table-striped table-hover">
+        <div id="j-sidebar-container" class="span2">
+            <?php echo $this->sidebar; ?>
+            <div class="js-stools-container-filters sidebar-nav">
+                <div class="js-stools-container-bar">
+                    <div class="filter-search btn-group pull-left">
+                        <input type="text" name="filter_search" id="filter_search" value="<?php echo $this->escape($this->state->get('filter.search')); ?>" class="has-hint" title="<?php echo Text::_('COM_BOOKINGMANAGER_SEARCH_IN_TITLE'); ?>" placeholder="<?php echo Text::_('JSEARCH_FILTER'); ?>"/>
+                    </div>
+                    <div class="btn-group pull-left">
+                        <button type="submit" class="btn hasTooltip" title="<?php echo Text::_('JSEARCH_FILTER_SUBMIT'); ?>"><i class="icon-search"></i></button>
+                        <button type="button" class="btn hasTooltip" title="<?php echo Text::_('JSEARCH_FILTER_CLEAR'); ?>" onclick="document.getElementById('filter_search').value='';this.form.submit();"><i class="icon-remove"></i></button>
+                    </div>
+                </div>
+                <div class="js-stools-container-list">
+                    <select name="filter_status" class="inputbox" onchange="this.form.submit()">
+                        <option value=""><?php echo Text::_('JOPTION_SELECT_STATUS');?></option>
+                        <?php $statuses = ['New', 'Confirmed', 'Cancelled', 'Pending']; ?>
+                        <?php foreach ($statuses as $status) : ?>
+                            <option value="<?php echo $status; ?>" <?php if ($this->state->get('filter.status') == $status) echo 'selected'; ?>><?php echo $status; ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <select name="filter_property_name" class="inputbox" onchange="this.form.submit()">
+                        <option value=""><?php echo Text::_('Select Property');?></option>
+                        <?php if (is_array($this->properties)) : ?>
+                            <?php foreach ($this->properties as $property) : ?>
+                                <option value="<?php echo $this->escape($property); ?>" <?php if ($this->state->get('filter.property_name') == $property) echo 'selected'; ?>><?php echo $this->escape($property); ?></option>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </select>
+                    <input type="text" name="filter_date_from" id="filter_date_from" value="<?php echo $this->state->get('filter.date_from'); ?>" placeholder="From Date" class="input-small" title="Date From" />
+                    <input type="text" name="filter_date_to" id="filter_date_to" value="<?php echo $this->state->get('filter.date_to'); ?>" placeholder="To Date" class="input-small" title="Date To" />
+                    <select name="filter_date_type" class="inputbox">
+                        <option value="created_at" <?php if($this->state->get('filter.date_type') == 'created_at') echo 'selected'; ?>>Creation Date</option>
+                        <option value="start_date" <?php if($this->state->get('filter.date_type') == 'start_date') echo 'selected'; ?>>Check-in</option>
+                        <option value="end_date" <?php if($this->state->get('filter.date_type') == 'end_date') echo 'selected'; ?>>Check-out</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div id="j-main-container" class="span10">
+            <table class="table table-striped table-hover">
             <thead>
                 <tr>
                     <th width="1%" class="hidden-phone"><?php echo HTMLHelper::_('grid.checkall'); ?></th>

@@ -69,11 +69,13 @@ if ($pricingRules) {
         return;
     }
 
-    $doc->addStyleSheet(Uri::root(true) . '/modules/mod_bookingform/media/css/booking-form.css?v=3.8.0');
+    $cssPath = JPATH_SITE . '/modules/mod_bookingform/media/css/booking-form.css';
+    $doc->addStyleSheet(Uri::root(true) . '/modules/mod_bookingform/media/css/booking-form.css?v=' . filemtime($cssPath));
     $doc->addStyleSheet('https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.13/css/intlTelInput.css');
     $doc->addScript('https://cdn.jsdelivr.net/npm/litepicker/dist/litepicker.js');
     $doc->addScript('https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.13/js/intlTelInput.min.js');
-    $doc->addScript(Uri::root(true) . '/modules/mod_bookingform/media/js/booking-form.js?v=3.8.0', ['defer' => 'true']);
+    $jsPath = JPATH_SITE . '/modules/mod_bookingform/media/js/booking-form.js';
+    $doc->addScript(Uri::root(true) . '/modules/mod_bookingform/media/js/booking-form.js?v=' . filemtime($jsPath), ['defer' => 'true']);
 
     $scriptOptions = [
         'totalAccommodationGuests' => $totalAccommodationGuests,
