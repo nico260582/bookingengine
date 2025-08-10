@@ -136,17 +136,37 @@ document.addEventListener('DOMContentLoaded', function () {
                 input.placeholder = `Child ${i} Age`;
                 input.required = true;
 
-                // Defer calculation until button click
-                // input.addEventListener('input', updateCalculations);
-
                 col.appendChild(input);
                 elements.childAgesContainer.appendChild(col);
             }
         } else {
             elements.childAgesLabelRow.style.display = 'none';
         }
-        // Defer calculation until button click
-        // updateCalculations();
+        updateChildAgeNotification();
+    }
+
+    function updateChildAgeNotification() {
+        const rules = options.pricingRules;
+        if (!rules || !elements.childAgeNotificationArea) return;
+
+        const childAges = Array.from(document.querySelectorAll('.child-age-input')).map(input => parseInt(input.value, 10)).filter(age => !isNaN(age));
+        let messages = [];
+        const hasInfant = childAges.some(age => age <= rules.infant_max_age);
+        const hasOlderChild = childAges.some(age => age > rules.infant_max_age);
+
+        if (hasInfant) {
+            messages.push(`Free baby cot provided (age ${rules.infant_max_age} or less).`);
+        }
+        if (hasOlderChild) {
+            messages.push(`Children older than ${rules.infant_max_age} are counted as guests.`);
+        }
+
+        if (messages.length > 0) {
+            elements.childAgeNotificationArea.textContent = messages.join(' ');
+            elements.childAgeNotificationArea.style.display = 'block';
+        } else {
+            elements.childAgeNotificationArea.style.display = 'none';
+        }
     }
 
     function validateCouponCode(callback) {
@@ -190,27 +210,8 @@ document.addEventListener('DOMContentLoaded', function () {
         const rules = options.pricingRules;
         if (!rules) return;
 
+        updateChildAgeNotification();
         const childAges = Array.from(document.querySelectorAll('.child-age-input')).map(input => parseInt(input.value, 10)).filter(age => !isNaN(age));
-
-        if (elements.childAgeNotificationArea) {
-            let messages = [];
-            const hasInfant = childAges.some(age => age <= rules.infant_max_age);
-            const hasOlderChild = childAges.some(age => age > rules.infant_max_age);
-
-            if (hasInfant) {
-                messages.push(`Free baby cot provided (age ${rules.infant_max_age} or less).`);
-            }
-            if (hasOlderChild) {
-                messages.push(`Children older than ${rules.infant_max_age} are counted as guests.`);
-            }
-
-            if (messages.length > 0) {
-                elements.childAgeNotificationArea.textContent = messages.join(' ');
-                elements.childAgeNotificationArea.style.display = 'block';
-            } else {
-                elements.childAgeNotificationArea.style.display = 'none';
-            }
-        }
 
         let totalGuestsForCapacity = adults;
         let mattressCost = 0;
@@ -296,7 +297,13 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         elements.unitCountInput.value = requiredUnits;
-        elements.unitCountDisplay.textContent = `${requiredUnits} Unit${requiredUnits > 1 ? 's' : ''}`;
+        if (requiredUnits > 1) {
+            elements.unitCountDisplay.textContent = `${requiredUnits} Units (Max guests per unit: ${baseCapacity})`;
+            elements.unitCountDisplay.style.color = 'red';
+        } else {
+            elements.unitCountDisplay.textContent = `${requiredUnits} Unit`;
+            elements.unitCountDisplay.style.color = 'inherit';
+        }
 
         if (numberOfNights > 0) {
             const formattedPrice = totalCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -357,6 +364,14 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     elements.childrenSelect.addEventListener('change', updateChildAgeInputs);
+
+    if (elements.childAgesContainer) {
+        elements.childAgesContainer.addEventListener('input', function(e) {
+            if (e.target && e.target.classList.contains('child-age-input')) {
+                updateChildAgeNotification();
+            }
+        });
+    }
 
     updateChildAgeInputs();
 });
