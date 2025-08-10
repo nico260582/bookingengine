@@ -78,56 +78,11 @@ class BookingmanagerControllerBookingrequest extends FormController
         }
     }
 
-    public function addmessage()
-    {
-        JSession::checkToken() or jexit(JText::_('JINVALID_TOKEN'));
-        
-        $app        = Factory::getApplication();
-        $input      = $app->input;
-        $user       = Factory::getUser();
-        
-        $jform      = $input->post->get('jform', [], 'array');
-        $files      = $input->files->get('jform');
-        $message    = $jform['admin_message'] ?? '';
-        $requestId  = (int)($jform['id'] ?? 0);
-        $attachmentFile = $files['attachment'] ?? null;
-        
-        $redirectUrl = Route::_('index.php?option=com_bookingmanager&view=bookingrequest&layout=edit&id=' . $requestId, false);
-
-        if (empty($requestId) || (empty($message) && (empty($attachmentFile) || $attachmentFile['error'] !== UPLOAD_ERR_OK))) {
-            $this->setRedirect($redirectUrl, 'Message or attachment cannot be empty.', 'error');
-            return;
-        }
-
-        $table = JTable::getInstance('Communication', 'BookingmanagerTable');
-        $saveData = [
-            'request_id' => $requestId,
-            'created_at' => (new Date('now'))->toSql(),
-            'author'     => $user->name . ' (Admin)',
-            'message'    => $message ?: ''
-        ];
-
-        if (!$table->save($saveData)) {
-             $app->enqueueMessage($table->getError(), 'error');
-        } else {
-            $messageId = $table->id;
-            if (!empty($message)) {
-                JLoader::register('BookingmanagerHelper', JPATH_ADMINISTRATOR . '/components/com_bookingmanager/helpers/bookingmanager.php');
-                BookingmanagerHelper::sendNotificationEmails($requestId, 'email_client_admin_reply', $message);
-            }
-            if ($attachmentFile && $attachmentFile['error'] === UPLOAD_ERR_OK) {
-                $this->uploadAttachment($requestId, $messageId, $attachmentFile, $user->name . ' (Admin)');
-            }
-            $app->enqueueMessage('Message saved and sent to client successfully.');
-        }
-
-        $this->setRedirect($redirectUrl);
-    }
     public function uploadAttachment()
     {
         $this->checkToken('post');
 
-        $app = JFactory::getApplication();
+        $app = Factory::getApplication();
         $input = $app->input;
         $file = $input->files->get('attachment');
         $id = $input->getInt('id');
@@ -137,14 +92,14 @@ class BookingmanagerControllerBookingrequest extends FormController
             $app->close();
         }
 
-        $filename = JFile::makeSafe($file['name']);
+        $filename = File::makeSafe($file['name']);
         $filepath = JPATH_ROOT . '/media/com_bookingmanager/attachments/' . $id . '/' . $filename;
 
-        if (!JFolder::exists(dirname($filepath))) {
-            JFolder::create(dirname($filepath));
+        if (!Folder::exists(dirname($filepath))) {
+            Folder::create(dirname($filepath));
         }
 
-        if (JFile::upload($file['tmp_name'], $filepath)) {
+        if (File::upload($file['tmp_name'], $filepath)) {
             $data = ['filePath' => 'media/com_bookingmanager/attachments/' . $id . '/' . $filename];
             echo new JResponseJson($data);
         } else {
@@ -158,17 +113,18 @@ class BookingmanagerControllerBookingrequest extends FormController
     {
         $this->checkToken();
 
-        $app = JFactory::getApplication();
+        $app = Factory::getApplication();
         $input = $app->input;
-        $data = $input->post->get('jform', [], 'array');
+        $jform = $input->post->get('jform', [], 'array');
         $id = $input->getInt('id');
+        $uploadedAttachments = json_decode($input->post->get('uploaded_attachments', '[]', 'raw'), true);
 
         $model = $this->getModel();
 
-        if ($model->addAdminMessage($id, $data['admin_message'], $data['uploaded_attachments'] ?? [])) {
-            $this->setRedirect(JRoute::_('index.php?option=com_bookingmanager&view=bookingrequest&id=' . $id, false), 'Message sent.');
+        if ($model->addAdminMessage($id, $jform['admin_message'], $uploadedAttachments)) {
+            $this->setRedirect(Route::_('index.php?option=com_bookingmanager&view=bookingrequest&id=' . $id, false), 'Message sent.');
         } else {
-            $this->setRedirect(JRoute::_('index.php?option=com_bookingmanager&view=bookingrequest&id=' . $id, false), 'Error sending message.', 'error');
+            $this->setRedirect(Route::_('index.php?option=com_bookingmanager&view=bookingrequest&id=' . $id, false), 'Error sending message.', 'error');
         }
     }
 }
