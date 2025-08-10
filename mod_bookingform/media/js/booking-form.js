@@ -44,6 +44,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
     displayStartingPrice();
 
+    // Hide coupon input if no coupons are available
+    if (elements.couponCodeInput && (!options.pricingRules.coupon_codes || options.pricingRules.coupon_codes.length === 0)) {
+        elements.couponCodeInput.closest('.row').style.display = 'none';
+    }
+
     let numberOfNights = 0;
     let seasonRateCounts = {};
     let iti = null;
@@ -299,10 +304,10 @@ document.addEventListener('DOMContentLoaded', function () {
         elements.unitCountInput.value = requiredUnits;
         if (requiredUnits > 1) {
             elements.unitCountDisplay.textContent = `${requiredUnits} Units (Max guests per unit: ${baseCapacity})`;
-            elements.unitCountDisplay.style.color = 'red';
+            elements.unitCountDisplay.classList.add('booking-form-notice');
         } else {
             elements.unitCountDisplay.textContent = `${requiredUnits} Unit`;
-            elements.unitCountDisplay.style.color = 'inherit';
+            elements.unitCountDisplay.classList.remove('booking-form-notice');
         }
 
         if (numberOfNights > 0) {
