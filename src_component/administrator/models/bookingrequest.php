@@ -159,7 +159,13 @@ class BookingmanagerModelBookingrequest extends AdminModel
         if (!empty($message) || !empty($attachments)) {
             JLoader::register('BookingmanagerHelper', JPATH_ADMINISTRATOR . '/components/com_bookingmanager/helpers/bookingmanager.php');
             $notificationMessage = !empty($message) ? $message : 'A new file has been uploaded by the admin.';
-            BookingmanagerHelper::sendNotificationEmails($requestId, 'email_client_admin_reply', $notificationMessage);
+            $attachmentData = [];
+            if (!empty($attachments)) {
+                foreach ($attachments as $filePath) {
+                    $attachmentData[] = ['name' => basename($filePath)];
+                }
+            }
+            BookingmanagerHelper::sendNotificationEmails($requestId, 'email_client_admin_reply', $notificationMessage, '', $attachmentData);
         }
 
         return true;

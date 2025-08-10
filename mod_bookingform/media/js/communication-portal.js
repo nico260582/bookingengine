@@ -64,10 +64,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     console.error('Invalid JSON:', xhr.responseText);
                 }
             } else {
-                    fileElement.querySelector('.status').textContent = '✖';
-                    alert('Upload failed: ' + response.message);
-                }
-            } else {
                 fileElement.querySelector('.status').textContent = '✖';
                 alert('Upload failed with status: ' + xhr.status);
             }
