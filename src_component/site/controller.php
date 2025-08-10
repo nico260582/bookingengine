@@ -193,7 +193,11 @@ class BookingmanagerController extends BaseController
             // A more robust security check should be implemented here, e.g., checking session PIN
 
             $db = Factory::getDbo();
-            $query = $db->getQuery(true)->select('p.id')->from($db->quoteName('#__content', 'p'))->join('INNER', $db->quoteName('#__booking_requests', 'r') . ' ON p.title = r.property_name')->where('r.id = ' . (int)$bookingId);
+            $query = $db->getQuery(true)
+                ->select('p.id')
+                ->from($db->quoteName('#__content', 'p'))
+                ->join('INNER', $db->quoteName('#__booking_requests', 'r') . ' ON p.title = r.property_name COLLATE utf8mb4_unicode_ci')
+                ->where('r.id = ' . (int)$bookingId);
             $articleId = $db->setQuery($query)->loadResult();
 
             if (!$articleId) {
