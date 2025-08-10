@@ -7,7 +7,6 @@ use Joomla\CMS\Layout\LayoutHelper;
 use Joomla\CMS\Language\Text;
 
 HTMLHelper::_('behavior.core');
-HTMLHelper::_('behavior.formvalidation');
 HTMLHelper::_('behavior.keepalive');
 HTMLHelper::_('formbehavior.chosen', 'select');
 
