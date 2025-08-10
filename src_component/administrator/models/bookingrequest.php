@@ -142,7 +142,6 @@ class BookingmanagerModelBookingrequest extends AdminModel
 
         $messageId = $table->id;
         if (!empty($attachments)) {
-            $attachments = json_decode($attachments, true) ? : [];
             $db = $this->getDbo();
             foreach ($attachments as $attachmentPath) {
                 $attachment = new stdClass();

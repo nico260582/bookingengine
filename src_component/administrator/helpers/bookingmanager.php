@@ -149,6 +149,8 @@ abstract class BookingmanagerHelper
 
     public static function sendNotificationEmails($requestId, $type = 'all', $messageContent = '', $newUserPassword = '', $attachments = [])
     {
+        Log::add('Sending notification. Type: ' . $type . '. Attachments: ' . print_r($attachments, true), Log::INFO, 'com_bookingmanager');
+
         $db     = Factory::getDbo();
         $config = ComponentHelper::getParams('com_bookingmanager');
 
