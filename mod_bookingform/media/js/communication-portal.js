@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     const attachmentInput = document.getElementById('attachments');
     const attachmentList = document.getElementById('attachment-list');
-    const form = document.querySelector('form[action*="communication.addClientMessage"]');
+    const form = document.querySelector('form[action*="addClientMessage"]');
     let uploadedFiles = [];
 
     if (attachmentInput) {
@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         formData.append('attachment', file);
         formData.append('option', 'com_bookingmanager');
-        formData.append('task', 'communication.uploadAttachment');
+        formData.append('task', 'uploadAttachment');
         formData.append('request_id', requestId);
         formData.append(Joomla.getOptions('csrf.token'), 1);
 
