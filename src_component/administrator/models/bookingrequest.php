@@ -123,7 +123,7 @@ class BookingmanagerModelBookingrequest extends AdminModel
 
     public function addAdminMessage($requestId, $message, $attachments = [])
     {
-        if (!$requestId || empty($message)) {
+        if (!$requestId || (empty($message) && empty($attachments))) {
             return false;
         }
 
