@@ -271,10 +271,72 @@ class BookingmanagerController extends BaseController
 
         $model = $this->getModel('Communication', 'BookingmanagerModel');
         if ($model->saveClientMessage($requestId, $message, $attachments)) {
+            if (!empty($message) || !empty($attachments)) {
+                JLoader::register('BookingmanagerHelper', JPATH_ADMINISTRATOR . '/components/com_bookingmanager/helpers/bookingmanager.php');
+                $notificationMessage = !empty($message) ? $message : 'A new file has been uploaded by the client.';
+                BookingmanagerHelper::sendNotificationEmails($requestId, 'email_admin_client_reply', $notificationMessage);
+            }
             $this->setRedirect(Route::_('index.php?option=com_bookingmanager&view=communication', false), 'Message sent.');
         } else {
             $this->setRedirect(Route::_('index.php?option=com_bookingmanager&view=communication', false), 'Error sending message.', 'error');
         }
+    }
+
+    public function deleteAttachment()
+    {
+        header('Content-Type: application/json');
+        $app = Factory::getApplication();
+        $input = $app->input;
+
+        try {
+            if (!Session::checkToken('post')) {
+                throw new \Exception('Invalid Token', 403);
+            }
+
+            $filePath = $input->getString('filePath');
+            $requestId = $input->getInt('request_id');
+            $sessionRequestId = $app->getSession()->get('bookingmanager_request_id');
+
+            // Security check: Ensure the request ID from the client matches the one in their session
+            if (!$requestId || $requestId !== $sessionRequestId) {
+                throw new \Exception('Permission denied.', 403);
+            }
+
+            if (empty($filePath)) {
+                throw new \Exception('File path is required.', 400);
+            }
+
+            // Basic security check on file path
+            if (strpos($filePath, 'media/com_bookingmanager/attachments/' . $requestId) !== 0) {
+                throw new \Exception('Invalid file path.', 400);
+            }
+
+            $fullPath = JPATH_ROOT . '/' . $filePath;
+
+            if (File::exists($fullPath)) {
+                if (!File::delete($fullPath)) {
+                    throw new \Exception('Failed to delete file from filesystem.', 500);
+                }
+            }
+
+            $db = Factory::getDbo();
+            $query = $db->getQuery(true)
+                ->delete($db->quoteName('#__booking_attachments'))
+                ->where($db->quoteName('file_path') . ' = ' . $db->quote($filePath))
+                ->where($db->quoteName('request_id') . ' = ' . (int)$requestId);
+
+            $db->setQuery($query);
+            $db->execute();
+
+            echo new \Joomla\CMS\Response\JsonResponse(['success' => true, 'message' => 'Attachment deleted.']);
+
+        } catch (\Exception $e) {
+            $code = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 500;
+            if (!headers_sent()) { http_response_code($code); }
+            echo new \Joomla\CMS\Response\JsonResponse(['success' => false, 'message' => $e->getMessage()]);
+        }
+
+        $app->close();
     }
 
     private function logClientActivity($bookingId, $userId, $actionType, $actionDetails = '', $screenSize = '')

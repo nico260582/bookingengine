@@ -33,6 +33,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <span>${file.name}</span>
             <progress value="0" max="100"></progress>
             <span class="status"></span>
+            <span class="delete-attachment" style="cursor: pointer; display: none;">&nbsp;&#10006;</span>
         `;
         attachmentList.appendChild(fileElement);
 
@@ -45,11 +46,24 @@ document.addEventListener('DOMContentLoaded', function() {
 
         xhr.addEventListener('load', function() {
             if (xhr.status === 200) {
-                const response = JSON.parse(xhr.responseText);
-                if (response.success) {
-                    fileElement.querySelector('.status').textContent = '✔';
-                    uploadedFiles.push(response.data.filePath);
-                } else {
+                try {
+                    const response = JSON.parse(xhr.responseText);
+                    if (response.success) {
+                        fileElement.querySelector('.status').textContent = '✔';
+                        const deleteBtn = fileElement.querySelector('.delete-attachment');
+                        deleteBtn.style.display = 'inline';
+                        deleteBtn.dataset.filePath = response.data.filePath;
+                        uploadedFiles.push(response.data.filePath);
+                    } else {
+                        fileElement.querySelector('.status').textContent = '✖';
+                        alert('Upload failed: ' + (response.message || 'Unknown error'));
+                    }
+                } catch (e) {
+                    fileElement.querySelector('.status').textContent = '✖';
+                    alert('Upload failed: Invalid server response.');
+                    console.error('Invalid JSON:', xhr.responseText);
+                }
+            } else {
                     fileElement.querySelector('.status').textContent = '✖';
                     alert('Upload failed: ' + response.message);
                 }
@@ -66,6 +80,49 @@ document.addEventListener('DOMContentLoaded', function() {
 
         xhr.open('POST', options.urls.upload, true);
         xhr.send(formData);
+    }
+
+    attachmentList.addEventListener('click', function(e) {
+        if (e.target && e.target.classList.contains('delete-attachment')) {
+            const deleteBtn = e.target;
+            const filePath = deleteBtn.dataset.filePath;
+            const fileElement = deleteBtn.closest('div');
+
+            if (confirm('Are you sure you want to delete this attachment?')) {
+                deleteAttachment(filePath, fileElement);
+            }
+        }
+    });
+
+    function deleteAttachment(filePath, fileElement) {
+        const options = Joomla.getOptions('com_bookingmanager');
+        const formData = new FormData();
+        formData.append('filePath', filePath);
+        formData.append('request_id', options.booking_id);
+        formData.append(options.token, 1);
+
+        fetch(options.urls.deleteAttachment, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Remove from UI
+                fileElement.remove();
+                // Remove from array of files to be submitted
+                const index = uploadedFiles.indexOf(filePath);
+                if (index > -1) {
+                    uploadedFiles.splice(index, 1);
+                }
+            } else {
+                alert('Failed to delete attachment: ' + (data.message || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error deleting attachment:', error);
+            alert('An error occurred while deleting the attachment.');
+        });
     }
 
     if (form) {

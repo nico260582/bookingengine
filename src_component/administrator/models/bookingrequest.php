@@ -142,6 +142,7 @@ class BookingmanagerModelBookingrequest extends AdminModel
 
         $messageId = $table->id;
         if (!empty($attachments)) {
+            $attachments = json_decode($attachments, true) ? : [];
             $db = $this->getDbo();
             foreach ($attachments as $attachmentPath) {
                 $attachment = new stdClass();
@@ -153,6 +154,12 @@ class BookingmanagerModelBookingrequest extends AdminModel
                 $attachment->uploaded_by = $user->name . ' (Admin)';
                 $db->insertObject('#__booking_attachments', $attachment);
             }
+        }
+
+        if (!empty($message) || !empty($attachments)) {
+            JLoader::register('BookingmanagerHelper', JPATH_ADMINISTRATOR . '/components/com_bookingmanager/helpers/bookingmanager.php');
+            $notificationMessage = !empty($message) ? $message : 'A new file has been uploaded by the admin.';
+            BookingmanagerHelper::sendNotificationEmails($requestId, 'email_client_admin_reply', $notificationMessage);
         }
 
         return true;

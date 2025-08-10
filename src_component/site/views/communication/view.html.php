@@ -69,6 +69,7 @@ class BookingmanagerViewCommunication extends BaseHtmlView
                 'urls' => [
                     'getPricing' => Route::_('index.php?option=com_bookingmanager&task=getPricingForRequest&booking_id=' . $this->request->id, false),
                     'upload' => Route::_('index.php?option=com_bookingmanager&task=upload', false),
+                    'deleteAttachment' => Route::_('index.php?option=com_bookingmanager&task=deleteAttachment', false),
                     'updateBooking' => Route::_('index.php?option=com_bookingmanager&task=updateBookingFromPortal', false),
                     'logActivity' => Route::_('index.php?option=com_bookingmanager&task=logActivity', false),
                 ]
