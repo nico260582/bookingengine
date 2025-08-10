@@ -62,3 +62,8 @@
 hr {
     margin: 0.75rem 0;
 }
+
+.booking-form-notice {
+    color: #dc3545; /* Bootstrap's standard danger color */
+    font-weight: bold;
+}
