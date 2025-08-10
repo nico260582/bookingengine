@@ -6,6 +6,7 @@ use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
 use Joomla\CMS\Plugin\PluginHelper;
 use Joomla\CMS\Session\Session;
 use Joomla\CMS\Uri\Uri;
+use Joomla\CMS\Router\Route;
 
 class BookingmanagerViewCommunication extends BaseHtmlView
 {
