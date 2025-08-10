@@ -147,7 +147,7 @@ abstract class BookingmanagerHelper
         ];
     }
 
-    public static function sendNotificationEmails($requestId, $type = 'all', $messageContent = '', $newUserPassword = '')
+    public static function sendNotificationEmails($requestId, $type = 'all', $messageContent = '', $newUserPassword = '', $attachments = [])
     {
         $db     = Factory::getDbo();
         $config = ComponentHelper::getParams('com_bookingmanager');
@@ -209,6 +209,15 @@ abstract class BookingmanagerHelper
         $portalLink = Uri::root() . 'index.php?option=com_bookingmanager&view=communication&' . $portalLinkParams;
         $loginLink = Uri::root() . 'index.php?option=com_users&view=login';
 
+        $attachmentListHtml = '';
+        if (!empty($attachments)) {
+            $attachmentListHtml .= '<p><strong>Attachments:</strong></p><ul>';
+            foreach ($attachments as $attachment) {
+                $attachmentListHtml .= '<li>' . htmlspecialchars($attachment['name']) . '</li>';
+            }
+            $attachmentListHtml .= '</ul>';
+        }
+
         $placeholders = [
             '[client_name]'          => (string) ($request->client_name ?? ''),
             '[booking_ref]'          => (string) ($request->booking_ref ?? ''),
@@ -230,7 +239,8 @@ abstract class BookingmanagerHelper
             '[accommodation_url]'    => (string) ($request->accommodation_url ?? ''),
             '[discount_note]'        => !empty($request->discount_note) ? '🇲🇺 ' . htmlspecialchars((string) $request->discount_note) : '',
             '[unit_count]'           => (string) ($request->unit_count ?? ''),
-            '[client_portal_link]'   => $portalLink
+            '[client_portal_link]'   => $portalLink,
+            '[attachments_list]'     => $attachmentListHtml
         ];
         
         $waClientTpl = isset($templates['whatsapp_client_reply']) ? ($templates['whatsapp_client_reply']->body ?? '') : '';
