@@ -5,7 +5,6 @@ use Joomla\CMS\MVC\View\HtmlView;
 use Joomla\CMS\Toolbar\ToolbarHelper;
 use Joomla\CMS\Helper\ContentHelper;
 use Joomla\CMS\Language\Text;
-use BookingmanagerHelper;
 
 
 class BookingmanagerViewBookingrequests extends HtmlView
@@ -22,7 +21,7 @@ class BookingmanagerViewBookingrequests extends HtmlView
         $this->items         = $this->get('Items');
         $this->state         = $this->get('State');
         $this->pagination    = $this->get('Pagination');
-        $this->properties    = $this->get('Properties');
+        $this->properties    = $this->get('PropertyNames');
 
         BookingmanagerHelper::addSubmenu('bookingrequests');
         $this->addToolbar();

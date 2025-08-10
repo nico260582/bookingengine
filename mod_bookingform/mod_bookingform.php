@@ -83,7 +83,5 @@ if ($pricingRules) {
     ];
     $doc->addScriptOptions('mod_bookingform', $scriptOptions);
 
-    $showCouponField = !empty($pricingRules['coupon_codes']);
-
     require ModuleHelper::getLayoutPath('mod_bookingform', $params->get('layout', 'default'));
 }

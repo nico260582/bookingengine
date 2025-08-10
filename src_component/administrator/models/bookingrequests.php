@@ -79,7 +79,7 @@ class BookingmanagerModelBookingrequests extends ListModel
         return $query;
     }
 
-    public function getProperties()
+    public function getPropertyNames()
     {
         $db = $this->getDbo();
         $query = $db->getQuery(true)
