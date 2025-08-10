@@ -14,6 +14,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function uploadFile(file) {
         const options = Joomla.getOptions('com_bookingmanager');
+        if (!options || !options.booking_id) {
+            alert('Error: Could not determine the booking ID. Please refresh the page and try again.');
+            return;
+        }
+
         const xhr = new XMLHttpRequest();
         const formData = new FormData();
 

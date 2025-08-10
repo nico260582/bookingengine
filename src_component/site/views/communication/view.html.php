@@ -67,10 +67,10 @@ class BookingmanagerViewCommunication extends BaseHtmlView
                 'currencySymbol' => '€', // This should probably be a global setting
                 'totalAccommodationGuests' => $params->get('total_accommodation_guests', 2),
                 'urls' => [
-                    'getPricing' => Route::_('index.php?option=com_bookingmanager&task=getPricingForRequest&booking_id=' . $this->request->id),
-                    'upload' => Route::_('index.php?option=com_bookingmanager&task=upload'),
-                    'updateBooking' => Route::_('index.php?option=com_bookingmanager&task=updateBookingFromPortal'),
-                    'logActivity' => Route::_('index.php?option=com_bookingmanager&task=logActivity'),
+                    'getPricing' => Route::_('index.php?option=com_bookingmanager&task=getPricingForRequest&booking_id=' . $this->request->id, false),
+                    'upload' => Route::_('index.php?option=com_bookingmanager&task=upload', false),
+                    'updateBooking' => Route::_('index.php?option=com_bookingmanager&task=updateBookingFromPortal', false),
+                    'logActivity' => Route::_('index.php?option=com_bookingmanager&task=logActivity', false),
                 ]
             ];
             $doc->addScriptOptions('com_bookingmanager', $options);
