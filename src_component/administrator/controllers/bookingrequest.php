@@ -7,6 +7,8 @@ use Joomla\CMS\Router\Route;
 use Joomla\CMS\Filesystem\Folder;
 use Joomla\CMS\Filesystem\File;
 use Joomla\CMS\MVC\Controller\FormController;
+use Joomla\CMS\Response\JsonResponse;
+use Joomla\CMS\Language\JText;
 
 class BookingmanagerControllerBookingrequest extends FormController
 {
@@ -49,7 +51,7 @@ class BookingmanagerControllerBookingrequest extends FormController
         $id = $input->getInt('id');
 
         if (empty($file) || $file['error'] !== UPLOAD_ERR_OK) {
-            echo new \Joomla\CMS\Response\JsonResponse(null, JText::_('COM_BOOKINGMANAGER_ERROR_NO_FILE_UPLOADED'), true);
+            echo new JsonResponse(null, JText::_('COM_BOOKINGMANAGER_ERROR_NO_FILE_UPLOADED'), true);
             $app->close();
         }
 
@@ -62,9 +64,9 @@ class BookingmanagerControllerBookingrequest extends FormController
 
         if (File::upload($file['tmp_name'], $filepath)) {
             $data = ['filePath' => 'media/com_bookingmanager/attachments/' . $id . '/' . $filename];
-            echo new \Joomla\CMS\Response\JsonResponse($data);
+            echo new JsonResponse($data);
         } else {
-            echo new \Joomla\CMS\Response\JsonResponse(null, JText::_('COM_BOOKINGMANAGER_ERROR_FAILED_TO_MOVE_UPLOADED_FILE'), true);
+            echo new JsonResponse(null, JText::_('COM_BOOKINGMANAGER_ERROR_FAILED_TO_MOVE_UPLOADED_FILE'), true);
         }
 
         $app->close();
