@@ -71,8 +71,11 @@ use Joomla\CMS\Router\Route;
                         </div>
                     </div>
                     <div class="control-group">
-                        <div class="control-label"><label for="jform_attachment">Attachment</label></div>
-                        <div class="controls"><input type="file" name="jform[attachment]" id="jform_attachment"></div>
+                        <div class="control-label"><label for="attachments">Attachments</label></div>
+                        <div class="controls">
+                            <input type="file" name="attachments[]" id="attachments" multiple>
+                            <div id="attachment-list"></div>
+                        </div>
                     </div>
                     <div class="control-group">
                         <div class="controls">
@@ -136,3 +139,4 @@ use Joomla\CMS\Router\Route;
     <input type="hidden" name="task" value="" />
     <?php echo HTMLHelper::_('form.token'); ?>
 </form>
+<script src="../modules/mod_bookingform/media/js/communication-admin.js"></script>

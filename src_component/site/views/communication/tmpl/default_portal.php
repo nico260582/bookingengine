@@ -120,11 +120,13 @@ use Joomla\CMS\Date\Date;
                 <textarea name="message" id="message" class="form-control" rows="5" required></textarea>
             </div>
             <div class="form-group">
-                <label for="attachment"><?php echo Text::_('COM_BOOKINGMANAGER_ATTACHMENT_LABEL'); ?></label>
-                <input type="file" name="attachment" id="attachment" class="form-control-file">
+                <label for="attachments"><?php echo Text::_('COM_BOOKINGMANAGER_ATTACHMENT_LABEL'); ?></label>
+                <input type="file" name="attachments[]" id="attachments" class="form-control-file" multiple>
+                <div id="attachment-list"></div>
             </div>
             <button type="submit" class="btn btn-primary"><?php echo Text::_('COM_BOOKINGMANAGER_SEND_BUTTON'); ?></button>
             <?php echo HTMLHelper::_('form.token'); ?>
         </form>
     </div>
 </div>
+<script src="modules/mod_bookingform/media/js/communication-portal.js"></script>

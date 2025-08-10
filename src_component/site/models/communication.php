@@ -94,10 +94,9 @@ class BookingmanagerModelCommunication extends BaseDatabaseModel
         return $requestId > 0 ? $requestId : false;
     }
 
-    public function saveClientMessage($requestId, $message)
+    public function saveClientMessage($requestId, $message, $attachments = [])
     {
-        if (!$requestId)
-        {
+        if (!$requestId) {
             return false;
         }
 
@@ -122,11 +121,26 @@ class BookingmanagerModelCommunication extends BaseDatabaseModel
             'message'    => $message ?: '' // Ensure message is not null
         ];
 
-        if ($table->save($data)) {
-            return $table->id;
+        if (!$table->save($data)) {
+            return false;
         }
 
-        return false;
+        $messageId = $table->id;
+        if (!empty($attachments)) {
+            $db = $this->getDbo();
+            foreach ($attachments as $attachmentPath) {
+                $attachment = new stdClass();
+                $attachment->request_id = $requestId;
+                $attachment->message_id = $messageId;
+                $attachment->file_name = basename($attachmentPath);
+                $attachment->file_path = $attachmentPath;
+                $attachment->created_at = (new Date('now'))->toSql();
+                $attachment->uploaded_by = $clientName . ' (Client)';
+                $db->insertObject('#__booking_attachments', $attachment);
+            }
+        }
+
+        return true;
     }
 
     public function getRequestsForUser($userId)
