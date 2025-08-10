@@ -116,7 +116,33 @@ use Joomla\CMS\HTML\HTMLHelper;
             </button>
             <div id="price-disclaimer" style="display: none;">This is an estimate. Final price will be confirmed by our team.</div>
         </div>
+        <div class="row">
+            <div class="col-12 mb-2">
+                <textarea id="message" name="message" class="form-control" rows="3" placeholder="Your Message"></textarea>
+            </div>
+        </div>
 
+        <?php if ($showCouponField) : ?>
+        <div class="row">
+            <div class="col-12 mb-2">
+                <input type="text" id="coupon-code" name="coupon_code" class="form-control" placeholder="Coupon Code">
+            </div>
+        </div>
+        <?php endif; ?>
+
+        <div class="price-summary">
+            <div id="price-estimate-display" class="price-total">Est. Price: -</div>
+            <div id="discount-applied-alert" class="alert alert-success" style="display: none;"></div>
+            <div id="nights-count-display" class="nights-count"></div>
+            <div id="unit-count-display" class="units-count">1 Unit</div>
+        </div>
+
+        <button type="submit" id="submit-button" class="btn btn-primary w-100">
+            <span class="button-text">Send Booking Request</span>
+            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: none;"></span>
+        </button>
+
+        <div id="price-disclaimer" style="display: none;">This is an estimate. Final price will be confirmed by our team.</div>
         <?php echo HTMLHelper::_('form.token'); ?>
     </form>
 </div>
