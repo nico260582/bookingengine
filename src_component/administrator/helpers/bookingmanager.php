@@ -25,7 +25,7 @@ abstract class BookingmanagerHelper
         return [
             'Booking Details' => ['[booking_ref]', '[property_name]', '[start_date_formatted]', '[end_date_formatted]', '[nights]', '[guest_details]', '[price_estimate]', '[unit_count]'],
             'Client Details' => ['[client_name]', '[client_email]', '[client_phone]', '[client_country]', '[client_message]'],
-            'Advanced' => ['[pin]', '[accommodation_url]', '[discount_note]', '[client_portal_link]', '[whatsapp_link_client]', '[whatsapp_link_admin]', '[admin_message]']
+            'Advanced' => ['[pin]', '[accommodation_url]', '[discount_note]', '[client_portal_link]', '[whatsapp_link_client]', '[whatsapp_link_admin]', '[admin_message]', '[changes_list]']
         ];
     }
 
@@ -147,12 +147,13 @@ abstract class BookingmanagerHelper
         ];
     }
 
-    public static function sendNotificationEmails($requestId, $type = 'all', $messageContent = '', $newUserPassword = '', $attachments = [])
+    public static function sendNotificationEmails($requestId, $type = 'all', $messageContent = '', $newUserPassword = '', $attachments = [], $changes = [])
     {
         Log::add('--- New Email Notification ---', Log::INFO, 'com_bookingmanager');
         Log::add('Request ID: ' . $requestId . ' | Type: ' . $type, Log::INFO, 'com_bookingmanager');
         Log::add('Message Content: ' . $messageContent, Log::INFO, 'com_bookingmanager');
         Log::add('Attachments Data: ' . print_r($attachments, true), Log::INFO, 'com_bookingmanager');
+        Log::add('Changes Data: ' . print_r($changes, true), Log::INFO, 'com_bookingmanager');
 
         $db     = Factory::getDbo();
         $config = ComponentHelper::getParams('com_bookingmanager');
@@ -223,6 +224,15 @@ abstract class BookingmanagerHelper
             $attachmentListHtml .= '</ul>';
         }
 
+        $changesListHtml = '';
+        if (!empty($changes)) {
+            $changesListHtml .= '<ul>';
+            foreach ($changes as $change) {
+                $changesListHtml .= '<li>' . $change . '</li>';
+            }
+            $changesListHtml .= '</ul>';
+        }
+
         $placeholders = [
             '[client_name]'          => (string) ($request->client_name ?? ''),
             '[booking_ref]'          => (string) ($request->booking_ref ?? ''),
@@ -245,7 +255,8 @@ abstract class BookingmanagerHelper
             '[discount_note]'        => !empty($request->discount_note) ? '🇲🇺 ' . htmlspecialchars((string) $request->discount_note) : '',
             '[unit_count]'           => (string) ($request->unit_count ?? ''),
             '[client_portal_link]'   => $portalLink,
-            '[attachments_list]'     => $attachmentListHtml
+            '[attachments_list]'     => $attachmentListHtml,
+            '[changes_list]'         => $changesListHtml
         ];
         
         $waClientTpl = isset($templates['whatsapp_client_reply']) ? ($templates['whatsapp_client_reply']->body ?? '') : '';
@@ -281,5 +292,84 @@ abstract class BookingmanagerHelper
         }
         
         return true;
+    }
+
+    public static function verifyMinimumStay($requestId, $startDate, $endDate)
+    {
+        $db = Factory::getDbo();
+
+        // 1. Get property_name from request
+        $query = $db->getQuery(true)
+            ->select($db->quoteName('property_name'))
+            ->from($db->quoteName('#__booking_requests'))
+            ->where($db->quoteName('id') . ' = ' . (int)$requestId);
+        $propertyName = $db->setQuery($query)->loadResult();
+
+        if (!$propertyName) {
+            return ''; // Cannot verify if property name is not found
+        }
+
+        // 2. Get property_id from content table
+        $query->clear()
+            ->select($db->quoteName('id'))
+            ->from($db->quoteName('#__content'))
+            ->where($db->quoteName('title') . ' = ' . $db->quote($propertyName));
+        $propertyId = $db->setQuery($query)->loadResult();
+
+        if (!$propertyId) {
+            return ''; // Cannot verify if property ID is not found
+        }
+
+        // 3. Get supplier rules
+        $query->clear()
+            ->select('s.rules')
+            ->from($db->quoteName('#__bookingmanager_property_map', 'm'))
+            ->join('INNER', $db->quoteName('#__bookingmanager_suppliers', 's') . ' ON m.supplier_id = s.id')
+            ->where('m.property_id = ' . (int)$propertyId);
+        $rulesJson = $db->setQuery($query)->loadResult();
+
+        if (!$rulesJson) {
+            return ''; // No rules found
+        }
+
+        $rules = json_decode($rulesJson);
+        if (!isset($rules->seasons)) {
+            return ''; // No seasons defined
+        }
+
+        $seasons = is_string($rules->seasons) ? json_decode($rules->seasons) : (array)$rules->seasons;
+        if (empty($seasons)) {
+            return '';
+        }
+
+        // 4. Calculate nights
+        try {
+            $start = new Date($startDate);
+            $end = new Date($endDate);
+            $nights = $end->diff($start)->days;
+        } catch (\Exception $e) {
+            return ''; // Invalid date format
+        }
+
+        // 5. Find current season and check minimum stay
+        $currentMonthDay = $start->format('m-d');
+        $currentSeason = null;
+
+        foreach ($seasons as $season) {
+            if (isset($season->start_date) && isset($season->end_date)) {
+                $seasonStart = date('m-d', strtotime($season->start_date));
+                $seasonEnd = date('m-d', strtotime($season->end_date));
+                if (($currentMonthDay >= $seasonStart && $currentMonthDay <= $seasonEnd) || ($seasonStart > $seasonEnd && ($currentMonthDay >= $seasonStart || $currentMonthDay <= $seasonEnd))) {
+                    $currentSeason = $season;
+                    break;
+                }
+            }
+        }
+
+        if ($currentSeason && isset($currentSeason->min_stay) && $nights < $currentSeason->min_stay) {
+            return '<strong>Warning:</strong> The new booking period of ' . $nights . ' nights is less than the minimum stay of ' . $currentSeason->min_stay . ' nights for the ' . $currentSeason->name . ' season.';
+        }
+
+        return '';
     }
 }
