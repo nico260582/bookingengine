@@ -5,7 +5,7 @@ use Joomla\CMS\HTML\HTMLHelper;
 ?>
 <div class="booking-form-container" id="booking-form-wrapper">
     <div class="booking-form-header">
-        <div id="starting-from-price" style="font-size: 1.5rem; font-weight: bold; color: #333; text-align: center; margin-bottom: 10px;"></div>
+        <div id="starting-from-price" class="price-total" style="text-align: center; margin-bottom: 10px;"></div>
         <h5><?php echo htmlspecialchars($articleTitle, ENT_QUOTES, 'UTF-8'); ?></h5>
     </div>
     <form name="bookingForm" id="bookingForm" method="post" class="form-validate">
