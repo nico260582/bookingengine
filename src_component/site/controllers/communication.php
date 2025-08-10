@@ -92,7 +92,7 @@ class BookingmanagerControllerCommunication extends BaseController
     
     public function uploadAttachment()
     {
-        $this->checkToken('post');
+        Session::checkToken('post') or jexit(JText::_('JINVALID_TOKEN'));
 
         $app = Factory::getApplication();
         $input = $app->input;
@@ -100,7 +100,7 @@ class BookingmanagerControllerCommunication extends BaseController
         $requestId = $input->getInt('request_id');
 
         if (empty($file) || $file['error'] !== UPLOAD_ERR_OK) {
-            echo new JResponseJson(null, 'No file uploaded or upload error.', true);
+            echo new \Joomla\CMS\Response\JsonResponse(null, JText::_('COM_BOOKINGMANAGER_ERROR_NO_FILE_UPLOADED'), true);
             $app->close();
         }
 
@@ -113,9 +113,9 @@ class BookingmanagerControllerCommunication extends BaseController
 
         if (File::upload($file['tmp_name'], $filepath)) {
             $data = ['filePath' => 'media/com_bookingmanager/attachments/' . $requestId . '/' . $filename];
-            echo new JResponseJson($data);
+            echo new \Joomla\CMS\Response\JsonResponse($data);
         } else {
-            echo new JResponseJson(null, 'Failed to move uploaded file.', true);
+            echo new \Joomla\CMS\Response\JsonResponse(null, JText::_('COM_BOOKINGMANAGER_ERROR_FAILED_TO_MOVE_UPLOADED_FILE'), true);
         }
 
         $app->close();
@@ -123,7 +123,7 @@ class BookingmanagerControllerCommunication extends BaseController
 
     public function addClientMessage()
     {
-        $this->checkToken();
+        Session::checkToken() or jexit(JText::_('JINVALID_TOKEN'));
 
         $app = Factory::getApplication();
         $input = $app->input;
