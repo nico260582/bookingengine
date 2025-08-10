@@ -37,7 +37,7 @@ use Joomla\CMS\Date\Date;
             <a href="<?php echo Route::_('index.php?option=com_bookingmanager&task=communication.logout'); ?>"><?php echo Text::_('COM_BOOKINGMANAGER_LOGOUT_BUTTON'); ?></a>
         </div>
         <p>
-            <strong>Property:</strong> <a href="<?php echo $this->escape($this->request->accommodation_url); ?>" target="_blank"><?php echo $this->escape($this->request->property_name); ?></a><br>
+            <strong>Property:</strong> <?php echo $this->escape($this->request->property_name); ?><br>
             <strong>Dates:</strong> <?php echo (new Date($this->request->start_date))->format('d M Y'); ?> to <?php echo (new Date($this->request->end_date))->format('d M Y'); ?><br>
             <strong>Guests:</strong> <?php echo $this->escape($this->request->adults); ?> Adults, <?php echo $this->escape($this->request->children); ?> Children (Ages: <?php echo $this->escape($this->request->child_ages); ?>)<br>
             <strong>Estimated Price:</strong> <?php echo $this->escape($this->request->price_estimate); ?><br>

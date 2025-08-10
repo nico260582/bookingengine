@@ -174,9 +174,6 @@ class BookingmanagerModelBookingrequest extends AdminModel
     {
         $user = Factory::getUser();
         $db = $this->getDbo();
-        $trackedChanges = [];
-        $fieldsToTrack = ['adults', 'children', 'start_date', 'end_date'];
-
         foreach ($newData as $key => $value) {
             if (array_key_exists($key, $oldData) && $oldData[$key] != $value) {
                 $log = new \stdClass();
@@ -188,24 +185,7 @@ class BookingmanagerModelBookingrequest extends AdminModel
                 $log->old_value  = (string) $oldData[$key];
                 $log->new_value  = (string) $value;
                 $db->insertObject('#__booking_request_logs', $log);
-
-                if (in_array($key, $fieldsToTrack)) {
-                    $trackedChanges[] = '<strong>' . ucfirst(str_replace('_', ' ', $key)) . ':</strong> Changed from "' . htmlspecialchars((string) $oldData[$key]) . '" to "' . htmlspecialchars((string) $value) . '"';
-                }
             }
-        }
-
-        if (isset($newData['start_date']) && isset($newData['end_date']) && ($oldData['start_date'] != $newData['start_date'] || $oldData['end_date'] != $newData['end_date'])) {
-            JLoader::register('BookingmanagerHelper', JPATH_ADMINISTRATOR . '/components/com_bookingmanager/helpers/bookingmanager.php');
-            $minStayWarning = BookingmanagerHelper::verifyMinimumStay($requestId, $newData['start_date'], $newData['end_date']);
-            if (!empty($minStayWarning)) {
-                $trackedChanges[] = $minStayWarning;
-            }
-        }
-
-        if (!empty($trackedChanges)) {
-            JLoader::register('BookingmanagerHelper', JPATH_ADMINISTRATOR . '/components/com_bookingmanager/helpers/bookingmanager.php');
-            BookingmanagerHelper::sendNotificationEmails($requestId, 'email_admin_booking_changed', '', '', [], $trackedChanges);
         }
     }
 }
