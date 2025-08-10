@@ -161,13 +161,19 @@ class com_bookingmanagerInstallerScript
                 'title'   => 'Admin - Client Reply Notification',
                 'type'    => 'email_admin_client_reply',
                 'subject' => 'New Client Message on Booking Request [booking_ref]',
-                'body'    => "<h3>New Client Message</h3><p>A new message has been received from [client_name] regarding booking request [booking_ref] for [property_name].</p><p><strong>Message:</strong></p><blockquote>[client_message]</blockquote><p>Please log in to the administrator area to reply.</p>"
+                'body'    => "<h3>New Client Message</h3><p>A new message has been received from [client_name] regarding booking request [booking_ref] for [property_name].</p><p><strong>Message:</strong></p><blockquote>[client_message]</blockquote><p>[attachments_list]</p><p>Please log in to the administrator area to reply.</p>"
             ],
             [
                 'title'   => 'Client - Admin Reply Notification',
                 'type'    => 'email_client_admin_reply',
                 'subject' => 'You have a new message regarding your booking request [booking_ref]',
-                'body'    => "<p>Hello [client_name],</p><p>You have received a new message from our team regarding your booking request [booking_ref].</p><p><strong>Message:</strong></p><blockquote>[admin_message]</blockquote><hr><p>To reply to this message, please use our secure client portal:</p><p><a href=\"[client_portal_link]\">Reply via Client Portal</a> (PIN: <strong>[pin]</strong>)</p><p>Warm regards,<br>The Book Holidays Mauritius Team</p>"
+                'body'    => "<p>Hello [client_name],</p><p>You have received a new message from our team regarding your booking request [booking_ref].</p><p><strong>Message:</strong></p><blockquote>[admin_message]</blockquote><p>[attachments_list]</p><hr><p>To reply to this message, please use our secure client portal:</p><p><a href=\"[client_portal_link]\">Reply via Client Portal</a> (PIN: <strong>[pin]</strong>)</p><p>Warm regards,<br>The Book Holidays Mauritius Team</p>"
+            ],
+            [
+                'title'   => 'Admin - Booking Request Changed',
+                'type'    => 'email_admin_booking_changed',
+                'subject' => 'Booking Request [booking_ref] has been modified',
+                'body'    => "<h3>Booking Request Modified</h3><p>The following changes have been made to booking request [booking_ref] for [property_name]:</p>[changes_list]<p>Please review the changes and take any necessary action.</p>"
             ],
             [
                 'title'   => 'Supplier - Availability Request',

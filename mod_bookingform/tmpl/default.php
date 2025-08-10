@@ -98,11 +98,13 @@ use Joomla\CMS\HTML\HTMLHelper;
             </div>
         </div>
 
+        <?php if ($showCouponField) : ?>
         <div class="row">
             <div class="col-12 mb-2">
                 <input type="text" id="coupon-code" name="coupon_code" class="form-control" placeholder="Coupon Code">
             </div>
         </div>
+        <?php endif; ?>
 
         <div class="price-summary">
             <div id="price-estimate-display" class="price-total">Est. Price: -</div>
