@@ -149,7 +149,10 @@ abstract class BookingmanagerHelper
 
     public static function sendNotificationEmails($requestId, $type = 'all', $messageContent = '', $newUserPassword = '', $attachments = [])
     {
-        Log::add('Sending notification. Type: ' . $type . '. Attachments: ' . print_r($attachments, true), Log::INFO, 'com_bookingmanager');
+        Log::add('--- New Email Notification ---', Log::INFO, 'com_bookingmanager');
+        Log::add('Request ID: ' . $requestId . ' | Type: ' . $type, Log::INFO, 'com_bookingmanager');
+        Log::add('Message Content: ' . $messageContent, Log::INFO, 'com_bookingmanager');
+        Log::add('Attachments Data: ' . print_r($attachments, true), Log::INFO, 'com_bookingmanager');
 
         $db     = Factory::getDbo();
         $config = ComponentHelper::getParams('com_bookingmanager');
@@ -256,8 +259,16 @@ abstract class BookingmanagerHelper
         $placeholders['[whatsapp_link_admin]'] = $clientWhatsAppNum ? '<a href="' . $waAdminLink . '">Contact Client on WhatsApp</a>' : '';
 
         foreach ($emailTypes as $emailType) {
+            Log::add('Processing email type: ' . $emailType, Log::INFO, 'com_bookingmanager');
             $recipient = ($emailType === 'email_client_confirm' || $emailType === 'email_client_admin_reply' || $emailType === 'email_client_new_user') ? $request->client_email : $adminEmail;
+            Log::add('Recipient: ' . $recipient, Log::INFO, 'com_bookingmanager');
             
+            if (isset($templates[$emailType])) {
+                Log::add('Template found for ' . $emailType, Log::INFO, 'com_bookingmanager');
+            } else {
+                Log::add('Template NOT found for ' . $emailType, Log::INFO, 'com_bookingmanager');
+            }
+
             if (MailHelper::isEmailAddress($recipient) && isset($templates[$emailType])) {
                 $mailer = Factory::getMailer();
                 $mailer->isHtml(true);
