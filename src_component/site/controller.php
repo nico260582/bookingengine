@@ -218,6 +218,55 @@ class BookingmanagerController extends BaseController
         $app->close();
     }
 
+    public function uploadAttachment()
+    {
+        Session::checkToken('post') or jexit(JText::_('JINVALID_TOKEN'));
+
+        $app = Factory::getApplication();
+        $input = $app->input;
+        $file = $input->files->get('attachment');
+        $requestId = $input->getInt('request_id');
+
+        if (empty($file) || $file['error'] !== UPLOAD_ERR_OK) {
+            echo new \Joomla\CMS\Response\JsonResponse(null, JText::_('COM_BOOKINGMANAGER_ERROR_NO_FILE_UPLOADED'), true);
+            $app->close();
+        }
+
+        $filename = File::makeSafe($file['name']);
+        $filepath = JPATH_ROOT . '/media/com_bookingmanager/attachments/' . $requestId . '/' . $filename;
+
+        if (!Folder::exists(dirname($filepath))) {
+            Folder::create(dirname($filepath));
+        }
+
+        if (File::upload($file['tmp_name'], $filepath)) {
+            $data = ['filePath' => 'media/com_bookingmanager/attachments/' . $requestId . '/' . $filename];
+            echo new \Joomla\CMS\Response\JsonResponse($data);
+        } else {
+            echo new \Joomla\CMS\Response\JsonResponse(null, JText::_('COM_BOOKINGMANAGER_ERROR_FAILED_TO_MOVE_UPLOADED_FILE'), true);
+        }
+
+        $app->close();
+    }
+
+    public function addClientMessage()
+    {
+        Session::checkToken() or jexit(JText::_('JINVALID_TOKEN'));
+
+        $app = Factory::getApplication();
+        $input = $app->input;
+        $message = $input->getString('message');
+        $attachments = json_decode($input->get('uploaded_attachments', '[]', 'raw'), true);
+        $requestId = $app->getSession()->get('bookingmanager_request_id');
+
+        $model = $this->getModel('Communication', 'BookingmanagerModel');
+        if ($model->saveClientMessage($requestId, $message, $attachments)) {
+            $this->setRedirect(Route::_('index.php?option=com_bookingmanager&view=communication', false), 'Message sent.');
+        } else {
+            $this->setRedirect(Route::_('index.php?option=com_bookingmanager&view=communication', false), 'Error sending message.', 'error');
+        }
+    }
+
     private function logClientActivity($bookingId, $userId, $actionType, $actionDetails = '', $screenSize = '')
     {
         $db = Factory::getDbo();

@@ -115,7 +115,7 @@ use Joomla\CMS\Date\Date;
 
     <div class="reply-form">
         <h4><?php echo Text::_('COM_BOOKINGMANAGER_SEND_REPLY_HEADING'); ?></h4>
-        <form action="<?php echo Route::_('index.php?option=com_bookingmanager&task=communication.addClientMessage'); ?>" method="post" enctype="multipart/form-data">
+        <form action="<?php echo Route::_('index.php?option=com_bookingmanager&task=addClientMessage'); ?>" method="post" enctype="multipart/form-data">
             <div class="form-group">
                 <textarea name="message" id="message" class="form-control" rows="5" required></textarea>
             </div>
