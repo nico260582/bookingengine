@@ -348,9 +348,36 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (elements.getQuoteButton) {
         elements.getQuoteButton.addEventListener('click', function() {
+            // Validation for minimum stay
+            let minStay = 0;
+            let minStaySeason = '';
+            if (options.pricingRules && Array.isArray(options.pricingRules.seasons)) {
+                for (const season of options.pricingRules.seasons) {
+                    if (seasonRateCounts[season.name] && season.min_stay > minStay) {
+                        minStay = season.min_stay;
+                        minStaySeason = season.name;
+                    }
+                }
+            }
+            if (numberOfNights > 0 && numberOfNights < minStay) {
+                alert(`A minimum stay of ${minStay} nights is required for the selected period (${minStaySeason} season).`);
+                return;
+            }
             if (numberOfNights === 0) {
                 alert('Please select your check-in and check-out dates first.');
                 return;
+            }
+
+            // Validation for child ages
+            const childrenCount = parseInt(elements.childrenSelect.value, 10);
+            const childAgeInputs = elements.childAgesContainer.querySelectorAll('.child-age-input');
+            if (childrenCount > 0 && childAgeInputs.length > 0) {
+                for (const input of childAgeInputs) {
+                    if (input.value === '') {
+                        alert('Please enter the age for all children.');
+                        return;
+                    }
+                }
             }
 
             validateCouponCode(function() {
