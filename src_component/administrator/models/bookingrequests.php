@@ -41,7 +41,7 @@ class BookingmanagerModelBookingrequests extends ListModel
         $db = $this->getDbo();
         $query = $db->getQuery(true);
 
-        $query->select($this->getStoreId('list.select', 'a.*'))
+        $query->select('a.*')
               ->from($db->quoteName('#__booking_requests', 'a'));
 
         // Search filter
