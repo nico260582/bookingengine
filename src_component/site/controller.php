@@ -121,7 +121,7 @@ class BookingmanagerController extends BaseController
         $app = Factory::getApplication();
         $input = $app->input;
         try {
-            if (!Session::checkToken()) { throw new Exception('Invalid Token', 403); }
+            if (!Session::checkToken('post')) { throw new Exception('Invalid Token', 403); }
 
             $bookingId = $input->post->getInt('booking_id', 0);
             if (!$bookingId) { throw new Exception('Booking ID is required.', 400); }
@@ -220,14 +220,45 @@ class BookingmanagerController extends BaseController
 
     public function upload()
     {
-        // Simple response to check if the task is reachable
-        echo new \Joomla\CMS\Response\JsonResponse(['success' => true, 'message' => 'Task reached!']);
-        Factory::getApplication()->close();
+        if (!Session::checkToken('post')) {
+            echo new \Joomla\CMS\Response\JsonResponse(null, JText::_('JINVALID_TOKEN'), true);
+            Factory::getApplication()->close();
+            return;
+        }
+
+        $app = Factory::getApplication();
+        $input = $app->input;
+        $file = $input->files->get('attachment');
+        $requestId = $input->getInt('request_id');
+
+        if (empty($file) || $file['error'] !== UPLOAD_ERR_OK) {
+            echo new \Joomla\CMS\Response\JsonResponse(null, JText::_('COM_BOOKINGMANAGER_ERROR_NO_FILE_UPLOADED'), true);
+            $app->close();
+        }
+
+        $filename = File::makeSafe($file['name']);
+        $filepath = JPATH_ROOT . '/media/com_bookingmanager/attachments/' . $requestId . '/' . $filename;
+
+        if (!Folder::exists(dirname($filepath))) {
+            Folder::create(dirname($filepath));
+        }
+
+        if (File::upload($file['tmp_name'], $filepath)) {
+            $data = ['filePath' => 'media/com_bookingmanager/attachments/' . $requestId . '/' . $filename];
+            echo new \Joomla\CMS\Response\JsonResponse($data);
+        } else {
+            echo new \Joomla\CMS\Response\JsonResponse(null, JText::_('COM_BOOKINGMANAGER_ERROR_FAILED_TO_MOVE_UPLOADED_FILE'), true);
+        }
+
+        $app->close();
     }
 
     public function addClientMessage()
     {
-        Session::checkToken() or jexit(JText::_('JINVALID_TOKEN'));
+        if (!Session::checkToken('post')) {
+            $this->setRedirect(Route::_('index.php?option=com_bookingmanager&view=communication', false), JText::_('JINVALID_TOKEN'), 'error');
+            return;
+        }
 
         $app = Factory::getApplication();
         $input = $app->input;
@@ -270,7 +301,7 @@ class BookingmanagerController extends BaseController
         $input = $app->input;
 
         try {
-            if (!Session::checkToken()) { throw new Exception('Invalid Token', 403); }
+            if (!Session::checkToken('post')) { throw new Exception('Invalid Token', 403); }
 
             $bookingId = $input->post->getInt('booking_id', 0);
             $actionType = $input->post->getString('action_type', 'Viewed Portal');

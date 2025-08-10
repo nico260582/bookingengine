@@ -13,15 +13,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function uploadFile(file) {
+        const options = Joomla.getOptions('com_bookingmanager');
         const xhr = new XMLHttpRequest();
         const formData = new FormData();
-        const requestId = document.querySelector('input[name="request_id"]') ? document.querySelector('input[name="request_id"]').value : new URLSearchParams(window.location.search).get('request_id');
 
         formData.append('attachment', file);
-        formData.append('option', 'com_bookingmanager');
-        formData.append('task', 'upload');
-        formData.append('request_id', requestId);
-        formData.append(Joomla.getOptions('csrf.token'), 1);
+        formData.append('request_id', options.booking_id);
+        formData.append(options.token, 1);
 
         const fileId = 'file-' + Date.now();
         const fileElement = document.createElement('div');
@@ -61,7 +59,7 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('An error occurred during the upload.');
         });
 
-        xhr.open('POST', 'index.php', true);
+        xhr.open('POST', options.urls.upload, true);
         xhr.send(formData);
     }
 

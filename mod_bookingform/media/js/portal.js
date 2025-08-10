@@ -47,8 +47,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function fetchPricingRules() {
-        const url = `${options.baseUrl}index.php?option=com_bookingmanager&task=getPricingForRequest&booking_id=${options.booking_id}`;
-        fetch(url)
+        fetch(options.urls.getPricing)
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
@@ -175,7 +174,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function saveChanges() {
-        const url = `${options.baseUrl}index.php?option=com_bookingmanager&task=updateBookingFromPortal&${options.token}=1`;
         const childAges = Array.from(document.querySelectorAll('.child-age-input')).map(input => parseInt(input.value, 10)).filter(age => !isNaN(age));
         const formData = new FormData();
         formData.append('booking_id', options.booking_id);
@@ -186,11 +184,12 @@ document.addEventListener('DOMContentLoaded', function() {
         formData.append('end_date', currentEndDate);
         formData.append('price_estimate', elements.priceDisplay.textContent.replace('New Est. Price: ', ''));
         formData.append('unit_count', elements.unitDisplay.textContent.charAt(0));
+        formData.append(options.token, 1);
 
         elements.saveButton.disabled = true;
         elements.saveButton.textContent = 'Saving...';
 
-        fetch(url, { method: 'POST', body: new URLSearchParams(formData) })
+        fetch(options.urls.updateBooking, { method: 'POST', body: new URLSearchParams(formData) })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
@@ -212,12 +211,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function logPageView() {
         if (!options || !options.booking_id) return;
-        const url = `${options.baseUrl}index.php?option=com_bookingmanager&task=logActivity&${options.token}=1`;
         const formData = new FormData();
         formData.append('booking_id', options.booking_id);
         formData.append('action_type', 'Viewed Portal');
         formData.append('screen_size', `${window.screen.width}x${window.screen.height}`);
-        navigator.sendBeacon(url, new URLSearchParams(formData));
+        formData.append(options.token, 1);
+
+        fetch(options.urls.logActivity, {
+            method: 'POST',
+            body: new URLSearchParams(formData),
+            keepalive: true // a rough equivalent for sendBeacon's purpose
+        }).catch(error => console.error('Error logging page view:', error));
     }
 
     function convertDatesToLocalTime() {
