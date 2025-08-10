@@ -36,55 +36,6 @@ class BookingmanagerControllerCommunication extends BaseController
             $app->enqueueMessage(JText::_('COM_BOOKINGMANAGER_CLIENT_PORTAL_ERROR_NOT_FOUND'), 'error');
             $app->redirect(Route::_('index.php?option=com_bookingmanager&view=communication', false));
         }
-
-    public function uploadAttachment()
-    {
-        $this->checkToken('post');
-
-        $app = JFactory::getApplication();
-        $input = $app->input;
-        $file = $input->files->get('attachment');
-        $requestId = $input->getInt('request_id');
-
-        if (empty($file) || $file['error'] !== UPLOAD_ERR_OK) {
-            echo new JResponseJson(null, 'No file uploaded or upload error.', true);
-            $app->close();
-        }
-
-        $filename = JFile::makeSafe($file['name']);
-        $filepath = JPATH_ROOT . '/media/com_bookingmanager/attachments/' . $requestId . '/' . $filename;
-
-        if (!JFolder::exists(dirname($filepath))) {
-            JFolder::create(dirname($filepath));
-        }
-
-        if (JFile::upload($file['tmp_name'], $filepath)) {
-            $data = ['filePath' => 'media/com_bookingmanager/attachments/' . $requestId . '/' . $filename];
-            echo new JResponseJson($data);
-        } else {
-            echo new JResponseJson(null, 'Failed to move uploaded file.', true);
-        }
-
-        $app->close();
-    }
-
-    public function addClientMessage()
-    {
-        $this->checkToken();
-
-        $app = JFactory::getApplication();
-        $input = $app->input;
-        $message = $input->getString('message');
-        $attachments = $input->get('uploaded_attachments', [], 'array');
-        $requestId = $app->getSession()->get('bookingmanager_request_id');
-
-        $model = $this->getModel();
-        if ($model->saveClientMessage($requestId, $message, $attachments)) {
-            $this->setRedirect(JRoute::_('index.php?option=com_bookingmanager&view=communication', false), 'Message sent.');
-        } else {
-            $this->setRedirect(JRoute::_('index.php?option=com_bookingmanager&view=communication', false), 'Error sending message.', 'error');
-        }
-    }
     }
 
     public function logout()
@@ -139,93 +90,52 @@ class BookingmanagerControllerCommunication extends BaseController
         Factory::getApplication()->redirect(Route::_('index.php?option=com_bookingmanager&view=communication', false));
     }
     
-    public function addClientMessage()
+    public function uploadAttachment()
     {
+        $this->checkToken('post');
+
         $app = Factory::getApplication();
         $input = $app->input;
-        $session = Factory::getSession();
+        $file = $input->files->get('attachment');
+        $requestId = $input->getInt('request_id');
 
-        if (!Session::checkToken('post')) {
-            $app->enqueueMessage(JText::_('JINVALID_TOKEN'), 'error');
-            $app->redirect(Route::_('index.php?option=com_bookingmanager&view=communication', false));
-            return;
+        if (empty($file) || $file['error'] !== UPLOAD_ERR_OK) {
+            echo new JResponseJson(null, 'No file uploaded or upload error.', true);
+            $app->close();
         }
 
-        $requestId = $session->get('bookingmanager_request_id');
-        $message   = $input->post->get('message', '', 'raw');
-        $file      = $input->files->get('attachment');
+        $filename = File::makeSafe($file['name']);
+        $filepath = JPATH_ROOT . '/media/com_bookingmanager/attachments/' . $requestId . '/' . $filename;
 
-        if (!$requestId || (empty($message) && (empty($file) || $file['error'] !== UPLOAD_ERR_OK))) {
-            $app->redirect(Route::_('index.php?option=com_bookingmanager&view=communication', false));
-            return;
-        }
-        
-        $model = $this->getModel('Communication', 'BookingmanagerModel');
-        $messageId = null;
-
-        if (!empty($message) || (!empty($file) && $file['error'] === UPLOAD_ERR_OK)) {
-            $messageId = $model->saveClientMessage($requestId, $message);
-
-            if ($messageId) {
-                $notificationMessage = $message;
-                if (empty($notificationMessage) && !empty($file) && $file['error'] === UPLOAD_ERR_OK) {
-                    $notificationMessage = 'The client has uploaded a new file.';
-                }
-
-                if (!empty($notificationMessage)) {
-                     JLoader::register('BookingmanagerHelper', JPATH_ADMINISTRATOR . '/components/com_bookingmanager/helpers/bookingmanager.php');
-                     BookingmanagerHelper::sendNotificationEmails($requestId, 'email_admin_client_reply', $notificationMessage);
-                }
-
-                if (!empty($file) && $file['error'] === UPLOAD_ERR_OK) {
-                    $clientName = $model->getRequestData($requestId)->client_name;
-                    $this->uploadAttachment($requestId, $messageId, $file, $clientName . ' (Client)');
-                }
-            } else {
-                $app->enqueueMessage('There was an error saving your message.', 'error');
-            }
+        if (!Folder::exists(dirname($filepath))) {
+            Folder::create(dirname($filepath));
         }
 
-        $app->redirect(Route::_('index.php?option=com_bookingmanager&view=communication', false));
+        if (File::upload($file['tmp_name'], $filepath)) {
+            $data = ['filePath' => 'media/com_bookingmanager/attachments/' . $requestId . '/' . $filename];
+            echo new JResponseJson($data);
+        } else {
+            echo new JResponseJson(null, 'Failed to move uploaded file.', true);
+        }
+
+        $app->close();
     }
 
-    private function uploadAttachment($requestId, $messageId, $file, $uploaderName)
+    public function addClientMessage()
     {
-        if (!$requestId || !isset($file['error']) || $file['error'] !== UPLOAD_ERR_OK) {
-            return false;
-        }
+        $this->checkToken();
 
         $app = Factory::getApplication();
-        $filename = File::makeSafe($file['name']);
-        $dest_path = JPATH_SITE . '/media/com_bookingmanager/attachments/' . $requestId;
+        $input = $app->input;
+        $message = $input->getString('message');
+        $attachments = json_decode($input->get('uploaded_attachments', '[]', 'raw'), true);
+        $requestId = $app->getSession()->get('bookingmanager_request_id');
 
-        if (!Folder::exists($dest_path)) {
-            if (!Folder::create($dest_path)) {
-                $app->enqueueMessage('Error: Could not create attachment directory.', 'error');
-                return false;
-            }
-        }
-        
-        $dest_file = $dest_path . '/' . $filename;
-
-        if (File::upload($file['tmp_name'], $dest_file)) {
-            $db = Factory::getDbo();
-            $attachment = new stdClass();
-            $attachment->request_id = (int) $requestId;
-            $attachment->message_id = (int) $messageId;
-            $attachment->file_name = $filename;
-            $attachment->file_path = 'media/com_bookingmanager/attachments/' . $requestId . '/' . $filename;
-            $attachment->uploaded_by = $uploaderName;
-            $attachment->created_at = (new Date('now'))->toSql();
-            
-            if (!$db->insertObject('#__booking_attachments', $attachment)) {
-                $app->enqueueMessage('Database error: Could not save attachment record.', 'error');
-                return false;
-            }
-            return true;
+        $model = $this->getModel();
+        if ($model->saveClientMessage($requestId, $message, $attachments)) {
+            $this->setRedirect(Route::_('index.php?option=com_bookingmanager&view=communication', false), 'Message sent.');
         } else {
-            $app->enqueueMessage('File upload failed.', 'error');
-            return false;
+            $this->setRedirect(Route::_('index.php?option=com_bookingmanager&view=communication', false), 'Error sending message.', 'error');
         }
     }
 }
