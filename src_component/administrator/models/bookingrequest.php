@@ -121,6 +121,43 @@ class BookingmanagerModelBookingrequest extends AdminModel
         return false;
     }
 
+    public function addAdminMessage($requestId, $message, $attachments = [])
+    {
+        if (!$requestId || empty($message)) {
+            return false;
+        }
+
+        $user = JFactory::getUser();
+        $table = JTable::getInstance('Communication', 'BookingmanagerTable');
+        $data = [
+            'request_id' => $requestId,
+            'created_at' => (new JDate('now'))->toSql(),
+            'author'     => $user->name . ' (Admin)',
+            'message'    => $message
+        ];
+
+        if (!$table->save($data)) {
+            return false;
+        }
+
+        $messageId = $table->id;
+        if (!empty($attachments)) {
+            $db = $this->getDbo();
+            foreach ($attachments as $attachmentPath) {
+                $attachment = new stdClass();
+                $attachment->request_id = $requestId;
+                $attachment->message_id = $messageId;
+                $attachment->file_name = basename($attachmentPath);
+                $attachment->file_path = $attachmentPath;
+                $attachment->created_at = (new JDate('now'))->toSql();
+                $attachment->uploaded_by = $user->name . ' (Admin)';
+                $db->insertObject('#__booking_attachments', $attachment);
+            }
+        }
+
+        return true;
+    }
+
     private function logChanges($requestId, $oldData, $newData)
     {
         $user = Factory::getUser();

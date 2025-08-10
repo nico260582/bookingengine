@@ -123,4 +123,52 @@ class BookingmanagerControllerBookingrequest extends FormController
 
         $this->setRedirect($redirectUrl);
     }
+    public function uploadAttachment()
+    {
+        $this->checkToken('post');
+
+        $app = JFactory::getApplication();
+        $input = $app->input;
+        $file = $input->files->get('attachment');
+        $id = $input->getInt('id');
+
+        if (empty($file) || $file['error'] !== UPLOAD_ERR_OK) {
+            echo new JResponseJson(null, 'No file uploaded or upload error.', true);
+            $app->close();
+        }
+
+        $filename = JFile::makeSafe($file['name']);
+        $filepath = JPATH_ROOT . '/media/com_bookingmanager/attachments/' . $id . '/' . $filename;
+
+        if (!JFolder::exists(dirname($filepath))) {
+            JFolder::create(dirname($filepath));
+        }
+
+        if (JFile::upload($file['tmp_name'], $filepath)) {
+            $data = ['filePath' => 'media/com_bookingmanager/attachments/' . $id . '/' . $filename];
+            echo new JResponseJson($data);
+        } else {
+            echo new JResponseJson(null, 'Failed to move uploaded file.', true);
+        }
+
+        $app->close();
+    }
+
+    public function addmessage()
+    {
+        $this->checkToken();
+
+        $app = JFactory::getApplication();
+        $input = $app->input;
+        $data = $input->post->get('jform', [], 'array');
+        $id = $input->getInt('id');
+
+        $model = $this->getModel();
+
+        if ($model->addAdminMessage($id, $data['admin_message'], $data['uploaded_attachments'] ?? [])) {
+            $this->setRedirect(JRoute::_('index.php?option=com_bookingmanager&view=bookingrequest&id=' . $id, false), 'Message sent.');
+        } else {
+            $this->setRedirect(JRoute::_('index.php?option=com_bookingmanager&view=bookingrequest&id=' . $id, false), 'Error sending message.', 'error');
+        }
+    }
 }

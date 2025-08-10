@@ -36,6 +36,55 @@ class BookingmanagerControllerCommunication extends BaseController
             $app->enqueueMessage(JText::_('COM_BOOKINGMANAGER_CLIENT_PORTAL_ERROR_NOT_FOUND'), 'error');
             $app->redirect(Route::_('index.php?option=com_bookingmanager&view=communication', false));
         }
+
+    public function uploadAttachment()
+    {
+        $this->checkToken('post');
+
+        $app = JFactory::getApplication();
+        $input = $app->input;
+        $file = $input->files->get('attachment');
+        $requestId = $input->getInt('request_id');
+
+        if (empty($file) || $file['error'] !== UPLOAD_ERR_OK) {
+            echo new JResponseJson(null, 'No file uploaded or upload error.', true);
+            $app->close();
+        }
+
+        $filename = JFile::makeSafe($file['name']);
+        $filepath = JPATH_ROOT . '/media/com_bookingmanager/attachments/' . $requestId . '/' . $filename;
+
+        if (!JFolder::exists(dirname($filepath))) {
+            JFolder::create(dirname($filepath));
+        }
+
+        if (JFile::upload($file['tmp_name'], $filepath)) {
+            $data = ['filePath' => 'media/com_bookingmanager/attachments/' . $requestId . '/' . $filename];
+            echo new JResponseJson($data);
+        } else {
+            echo new JResponseJson(null, 'Failed to move uploaded file.', true);
+        }
+
+        $app->close();
+    }
+
+    public function addClientMessage()
+    {
+        $this->checkToken();
+
+        $app = JFactory::getApplication();
+        $input = $app->input;
+        $message = $input->getString('message');
+        $attachments = $input->get('uploaded_attachments', [], 'array');
+        $requestId = $app->getSession()->get('bookingmanager_request_id');
+
+        $model = $this->getModel();
+        if ($model->saveClientMessage($requestId, $message, $attachments)) {
+            $this->setRedirect(JRoute::_('index.php?option=com_bookingmanager&view=communication', false), 'Message sent.');
+        } else {
+            $this->setRedirect(JRoute::_('index.php?option=com_bookingmanager&view=communication', false), 'Error sending message.', 'error');
+        }
+    }
     }
 
     public function logout()
