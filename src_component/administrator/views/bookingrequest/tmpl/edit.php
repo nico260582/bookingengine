@@ -3,6 +3,9 @@ defined('_JEXEC') or die;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Router\Route;
+use Joomla\CMS\Factory;
+use Joomla\CMS\Session\Session;
+use Joomla\CMS\Uri\Uri;
 ?>
 
 <form action="<?php echo Route::_('index.php?option=com_bookingmanager&layout=edit&id=' . (int) $this->item->id); ?>" method="post" name="adminForm" id="item-form" class="form-validate" enctype="multipart/form-data">
@@ -137,6 +140,15 @@ use Joomla\CMS\Router\Route;
         <?php echo HTMLHelper::_('bootstrap.endTabSet'); ?>
     </div>
     <input type="hidden" name="task" value="" />
+    <input type="hidden" name="id" value="<?php echo $this->item->id; ?>" />
     <?php echo HTMLHelper::_('form.token'); ?>
 </form>
-<script src="../modules/mod_bookingform/media/js/communication-admin.js"></script>
+<?php
+$doc = Factory::getDocument();
+$ajaxUrls = [
+    'upload' => Route::_('index.php?option=com_bookingmanager&task=bookingrequest.upload&' . Session::getFormToken() . '=1', false),
+    'deleteAttachment' => Route::_('index.php?option=com_bookingmanager&task=bookingrequest.deleteAttachment&' . Session::getFormToken() . '=1', false)
+];
+$doc->addScriptOptions('com_bookingmanager.admin', $ajaxUrls);
+$doc->addScript(Uri::root(true) . '/modules/mod_bookingform/media/js/communication-admin.js');
+?>

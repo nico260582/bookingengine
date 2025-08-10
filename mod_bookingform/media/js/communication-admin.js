@@ -11,13 +11,11 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     function uploadFile(file) {
+        const options = Joomla.getOptions('com_bookingmanager.admin');
         const xhr = new XMLHttpRequest();
         const formData = new FormData();
         formData.append('attachment', file);
-        formData.append('option', 'com_bookingmanager');
-        formData.append('task', 'bookingrequest.upload');
         formData.append('id', document.querySelector('input[name="id"]').value);
-        formData.append(Joomla.getOptions('csrf.token'), 1);
 
         const fileId = 'file-' + Date.now();
         const fileElement = document.createElement('div');
@@ -67,7 +65,7 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('An error occurred during the upload.');
         });
 
-        xhr.open('POST', 'index.php', true);
+        xhr.open('POST', options.upload, true);
         xhr.send(formData);
     }
 
@@ -84,11 +82,11 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     function deleteAttachment(filePath, fileElement) {
+        const options = Joomla.getOptions('com_bookingmanager.admin');
         const formData = new FormData();
         formData.append('filePath', filePath);
-        formData.append(Joomla.getOptions('csrf.token'), 1);
 
-        fetch('index.php?option=com_bookingmanager&task=bookingrequest.deleteAttachment', {
+        fetch(options.deleteAttachment, {
             method: 'POST',
             body: formData
         })
