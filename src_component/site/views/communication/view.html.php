@@ -59,13 +59,18 @@ class BookingmanagerViewCommunication extends BaseHtmlView
             $params = new \Joomla\Registry\Registry($db->setQuery($query)->loadResult());
 
             $options = [
-                'booking_id' => $this->request->id,
-                'baseUrl'    => Uri::root(true) . '/',
-                'token'      => Session::getFormToken(),
-                'start_date' => $this->request->start_date,
-                'end_date'   => $this->request->end_date,
+                'booking_id'    => $this->request->id,
+                'token'         => Session::getFormToken(),
+                'start_date'    => $this->request->start_date,
+                'end_date'      => $this->request->end_date,
                 'currencySymbol' => '€', // This should probably be a global setting
-                'totalAccommodationGuests' => $params->get('total_accommodation_guests', 2)
+                'totalAccommodationGuests' => $params->get('total_accommodation_guests', 2),
+                'urls' => [
+                    'getPricing' => Route::_('index.php?option=com_bookingmanager&task=getPricingForRequest&booking_id=' . $this->request->id),
+                    'upload' => Route::_('index.php?option=com_bookingmanager&task=upload'),
+                    'updateBooking' => Route::_('index.php?option=com_bookingmanager&task=updateBookingFromPortal'),
+                    'logActivity' => Route::_('index.php?option=com_bookingmanager&task=logActivity'),
+                ]
             ];
             $doc->addScriptOptions('com_bookingmanager', $options);
         }
