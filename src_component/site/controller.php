@@ -129,7 +129,9 @@ class BookingmanagerController extends BaseController
             $bookingId = $input->post->getInt('booking_id', 0);
             if (!$bookingId) { throw new Exception('Booking ID is required.', 400); }
 
-            // Security check would be needed here to ensure user owns this booking
+            if (!$this->_isAllowedToAccessBooking($bookingId)) {
+                throw new Exception('Permission Denied. You do not have access to this booking.', 403);
+            }
 
             JTable::addIncludePath(JPATH_ADMINISTRATOR . '/components/com_bookingmanager/tables');
             $table = JTable::getInstance('Bookingrequest', 'BookingmanagerTable');
@@ -193,7 +195,9 @@ class BookingmanagerController extends BaseController
                 throw new Exception('Booking ID is required.', 400);
             }
 
-            // A more robust security check should be implemented here, e.g., checking session PIN
+            if (!$this->_isAllowedToAccessBooking($bookingId)) {
+                throw new Exception('Permission Denied. You do not have access to this booking.', 403);
+            }
 
             $db = Factory::getDbo();
             $query = $db->getQuery(true)
@@ -456,5 +460,35 @@ class BookingmanagerController extends BaseController
             echo json_encode(['success' => false, 'message' => $e->getMessage()]);
         }
         $app->close();
+    }
+
+    private function _isAllowedToAccessBooking($bookingId)
+    {
+        $user = Factory::getUser();
+        if ($user->guest) {
+            return false; // Not logged in
+        }
+
+        JTable::addIncludePath(JPATH_ADMINISTRATOR . '/components/com_bookingmanager/tables');
+        $booking = JTable::getInstance('Bookingrequest', 'BookingmanagerTable');
+        if (!$booking->load($bookingId)) {
+            return false; // Booking does not exist
+        }
+
+        // Allow access if the user is the owner of the booking
+        if ($booking->user_id == $user->id) {
+            // Check if the PIN stored in the session matches the booking's PIN
+            $sessionPin = Factory::getApplication()->getSession()->get('bookingmanager_pin');
+            if ($sessionPin === $booking->pin) {
+                return true;
+            }
+        }
+
+        // Allow access for administrators/super users
+        if ($user->authorise('core.admin', 'com_bookingmanager')) {
+            return true;
+        }
+
+        return false;
     }
 }

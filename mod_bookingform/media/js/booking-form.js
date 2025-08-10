@@ -1,207 +1,228 @@
-document.addEventListener('DOMContentLoaded', function () {
-    const options = Joomla.getOptions('mod_bookingform');
-    if (!options || !options.pricingRules) { return; }
-
-    const elements = {
-        bookingForm: document.getElementById('bookingForm'),
-        guestSelect: document.getElementById('guest-count'),
-        childrenSelect: document.getElementById('children-count'),
-        childAgesContainer: document.getElementById('child-ages-container'),
-        childAgesLabelRow: document.getElementById('child-ages-label-row'),
-        childAgeNotificationArea: document.getElementById('child-age-notification-area'),
-        unitCountInput: document.getElementById('unit-count-input'),
-        unitCountDisplay: document.getElementById('unit-count-display'),
-        priceDisplay: document.getElementById('price-estimate-display'),
-        priceInput: document.getElementById('price-estimate-input'),
-        priceDisclaimer: document.getElementById('price-disclaimer'),
-        startDateInput: document.getElementById('start-date'),
-        endDateInput: document.getElementById('end-date'),
-        datePickerEl: document.getElementById('date-range-picker'),
-        nightsDisplay: document.getElementById('nights-count-display'),
-        countryResidenceSelect: document.getElementById('country-residence'),
-        telephoneInput: document.getElementById('telephone'),
-        submitButton: document.getElementById('submit-button'),
-        minStayAlert: document.getElementById('min-stay-alert'),
-        discountAlert: document.getElementById('discount-applied-alert'),
-        discountNoteInput: document.getElementById('discount-note-input'),
-        couponCodeInput: document.getElementById('coupon-code'),
-    };
-
-    let numberOfNights = 0;
-    let seasonRateCounts = {};
-    let iti = null;
-    let couponDiscount = { percent: 0, message: '' };
-
-    if (elements.telephoneInput) {
-        iti = window.intlTelInput(elements.telephoneInput, {
-            initialCountry: "auto",
-            geoIpLookup: (callback) => { fetch("https://ipapi.co/json").then(res => res.json()).then(data => callback(data.country_code)).catch(() => callback("mu")); },
-            separateDialCode: true,
-            utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.13/js/utils.js",
-        });
+class BookingForm {
+    constructor(options) {
+        this.options = options;
+        this.elements = {
+            bookingForm: document.getElementById('bookingForm'),
+            guestSelect: document.getElementById('guest-count'),
+            childrenSelect: document.getElementById('children-count'),
+            childAgesContainer: document.getElementById('child-ages-container'),
+            childAgesLabelRow: document.getElementById('child-ages-label-row'),
+            childAgeNotificationArea: document.getElementById('child-age-notification-area'),
+            unitCountInput: document.getElementById('unit-count-input'),
+            unitCountDisplay: document.getElementById('unit-count-display'),
+            priceDisplay: document.getElementById('price-estimate-display'),
+            priceInput: document.getElementById('price-estimate-input'),
+            priceDisclaimer: document.getElementById('price-disclaimer'),
+            startDateInput: document.getElementById('start-date'),
+            endDateInput: document.getElementById('end-date'),
+            datePickerEl: document.getElementById('date-range-picker'),
+            nightsDisplay: document.getElementById('nights-count-display'),
+            countryResidenceSelect: document.getElementById('country-residence'),
+            telephoneInput: document.getElementById('telephone'),
+            submitButton: document.getElementById('submit-button'),
+            minStayAlert: document.getElementById('min-stay-alert'),
+            discountAlert: document.getElementById('discount-applied-alert'),
+            discountNoteInput: document.getElementById('discount-note-input'),
+            couponCodeInput: document.getElementById('coupon-code'),
+            startingFromPrice: document.getElementById('starting-from-price'),
+            getQuoteButton: document.getElementById('get-quote-button'),
+            priceSummaryContainer: document.getElementById('price-summary-container'),
+            quoteStep2: document.getElementById('quote-step-2'),
+        };
+        this.numberOfNights = 0;
+        this.seasonRateCounts = {};
+        this.iti = null;
+        this.couponDiscount = { percent: 0, message: '' };
     }
 
-    function getSeasonForDate(date) {
-        const rules = options.pricingRules;
+    init() {
+        if (!this.options || !this.options.pricingRules) return;
+        this.initIntlTelInput();
+        this.initLitepicker();
+        this.initEventListeners();
+        this.displayStartingPrice();
+        this.updateChildAgeInputs();
+    }
+
+    initIntlTelInput() {
+        if (this.elements.telephoneInput) {
+            this.iti = window.intlTelInput(this.elements.telephoneInput, {
+                initialCountry: "auto",
+                geoIpLookup: (callback) => {
+                    fetch("https://ipapi.co/json")
+                        .then(res => res.json())
+                        .then(data => callback(data.country_code))
+                        .catch(() => callback("mu"));
+                },
+                separateDialCode: true,
+                utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.13/js/utils.js",
+            });
+        }
+    }
+
+    initLitepicker() {
+        if (typeof Litepicker !== 'undefined') {
+            new Litepicker({
+                element: this.elements.datePickerEl,
+                singleMode: false,
+                minDate: new Date(),
+                format: 'DD MMM, YYYY',
+                tooltipText: { 'one': 'day', 'other': 'days' },
+                setup: (picker) => {
+                    picker.on('selected', (date1, date2) => {
+                        if (!date1 || !date2) return;
+                        this.elements.startDateInput.value = date1.format('YYYY-MM-DD');
+                        this.elements.endDateInput.value = date2.format('YYYY-MM-DD');
+                        this.calculateNightsAndSeasons(date1, date2);
+                    });
+                }
+            });
+        }
+    }
+
+    initEventListeners() {
+        this.elements.bookingForm.addEventListener('submit', (e) => this.submitForm(e));
+        this.elements.childrenSelect.addEventListener('change', () => this.updateChildAgeInputs());
+        this.elements.getQuoteButton.addEventListener('click', () => this.handleGetQuote());
+        if (this.elements.countryResidenceSelect) {
+            this.elements.countryResidenceSelect.addEventListener('change', (e) => {
+                const selectedOption = e.target.options[e.target.selectedIndex];
+                const isoCode = selectedOption.getAttribute('data-iso-code');
+                if (this.iti && isoCode) {
+                    this.iti.setCountry(isoCode.toLowerCase());
+                }
+            });
+        }
+    }
+
+    displayStartingPrice() {
+        const rates = this.options.pricingRules.rates;
+        if (!rates || Object.keys(rates).length === 0) return;
+        const lowestRate = Math.min(...Object.values(rates));
+        if (this.elements.startingFromPrice && lowestRate > 0) {
+            this.elements.startingFromPrice.textContent = `From ${this.options.currencySymbol}${lowestRate} / night`;
+        }
+    }
+
+    calculateNightsAndSeasons(date1, date2) {
+        this.seasonRateCounts = {};
+        let currentDate = date1.toJSDate();
+        while (currentDate < date2.toJSDate()) {
+            const season = this.getSeasonForDate(currentDate);
+            if (season) {
+                this.seasonRateCounts[season.name] = (this.seasonRateCounts[season.name] || 0) + 1;
+            }
+            currentDate.setDate(currentDate.getDate() + 1);
+        }
+        this.numberOfNights = Object.values(this.seasonRateCounts).reduce((a, b) => a + b, 0);
+        this.checkMinStay();
+    }
+
+    getSeasonForDate(date) {
+        const rules = this.options.pricingRules;
         if (!rules || !Array.isArray(rules.seasons)) return null;
-
-        const year = date.getFullYear();
-        const month = (date.getMonth() + 1).toString().padStart(2, '0');
-        const day = date.getDate().toString().padStart(2, '0');
-        const dateStr = `${year}-${month}-${day}`;
-
-        for (const season of rules.seasons) {
-            if (dateStr >= season.start_date && dateStr <= season.end_date) return season;
-        }
-        return null;
+        const dateStr = date.toISOString().slice(0, 10);
+        return rules.seasons.find(season => dateStr >= season.start_date && dateStr <= season.end_date) || null;
     }
 
-    if (typeof Litepicker !== 'undefined') {
-        new Litepicker({
-            element: elements.datePickerEl,
-            singleMode: false,
-            minDate: new Date(),
-            format: 'DD MMM, YYYY',
-            tooltipText: { 'one': 'day', 'other': 'days' },
-            setup: (picker) => {
-                picker.on('selected', (date1, date2) => {
-                    if (date1 && date2) {
-                        elements.startDateInput.value = date1.format('YYYY-MM-DD');
-                        elements.endDateInput.value = date2.format('YYYY-MM-DD');
-
-                        seasonRateCounts = {};
-                        let currentDate = date1.toJSDate();
-                        while(currentDate < date2.toJSDate()){
-                            const season = getSeasonForDate(currentDate);
-                            if (season) { seasonRateCounts[season.name] = (seasonRateCounts[season.name] || 0) + 1; }
-                            currentDate.setDate(currentDate.getDate() + 1);
-                        }
-                        numberOfNights = Object.values(seasonRateCounts).reduce((a, b) => a + b, 0);
-
-                        let minStay = 0;
-                        let minStaySeason = '';
-                        if (options.pricingRules && Array.isArray(options.pricingRules.seasons)) {
-                            for (const season of options.pricingRules.seasons) {
-                                if (seasonRateCounts[season.name] && season.min_stay > minStay) { minStay = season.min_stay; minStaySeason = season.name; }
-                            }
-                        }
-                        if (elements.minStayAlert) {
-                            if (numberOfNights > 0 && numberOfNights < minStay) {
-                                elements.minStayAlert.textContent = `A minimum stay of ${minStay} nights is required for the selected period (${minStaySeason} season).`;
-                                elements.minStayAlert.style.display = 'block';
-                            } else { elements.minStayAlert.style.display = 'none'; }
-                        }
-                        updateCalculations();
-                    }
-                });
+    checkMinStay() {
+        let minStay = 0;
+        let minStaySeason = '';
+        if (this.options.pricingRules && Array.isArray(this.options.pricingRules.seasons)) {
+            for (const season of this.options.pricingRules.seasons) {
+                if (this.seasonRateCounts[season.name] && season.min_stay > minStay) {
+                    minStay = season.min_stay;
+                    minStaySeason = season.name;
+                }
             }
-        });
-    }
-
-    function updateChildAgeInputs() {
-        const childrenCount = parseInt(elements.childrenSelect.value, 10);
-        elements.childAgesContainer.innerHTML = '';
-
-        if (childrenCount > 0) {
-            elements.childAgesLabelRow.style.display = 'flex';
-
-            for (let i = 1; i <= childrenCount; i++) {
-                const col = document.createElement('div');
-                col.className = 'col-md-4 col-sm-6 mb-2';
-
-                const input = document.createElement('input');
-                input.type = 'number';
-                input.min = '0';
-                input.max = '17';
-                input.name = `child_ages[]`;
-                input.className = 'form-control child-age-input';
-                input.placeholder = `Child ${i} Age`;
-                input.required = true;
-
-                input.addEventListener('input', updateCalculations);
-
-                col.appendChild(input);
-                elements.childAgesContainer.appendChild(col);
-            }
-        } else {
-            elements.childAgesLabelRow.style.display = 'none';
         }
-        updateCalculations();
+        if (this.elements.minStayAlert) {
+            if (this.numberOfNights > 0 && this.numberOfNights < minStay) {
+                this.elements.minStayAlert.textContent = `A minimum stay of ${minStay} nights is required for the selected period (${minStaySeason} season).`;
+                this.elements.minStayAlert.style.display = 'block';
+            } else {
+                this.elements.minStayAlert.style.display = 'none';
+            }
+        }
     }
 
-    function validateCouponCode() {
-        const couponCode = elements.couponCodeInput.value.trim();
-        const articleId = options.articleId;
+    updateChildAgeInputs() {
+        const childrenCount = parseInt(this.elements.childrenSelect.value, 10);
+        this.elements.childAgesContainer.innerHTML = '';
+        this.elements.childAgesLabelRow.style.display = childrenCount > 0 ? 'flex' : 'none';
 
-        if (!couponCode) {
-            couponDiscount = { percent: 0, message: '' };
-            updateCalculations();
+        for (let i = 1; i <= childrenCount; i++) {
+            const col = document.createElement('div');
+            col.className = 'col-md-4 col-sm-6 mb-2';
+            const input = document.createElement('input');
+            input.type = 'number';
+            input.min = '0';
+            input.max = '17';
+            input.name = `child_ages[]`;
+            input.className = 'form-control child-age-input';
+            input.placeholder = `Child ${i} Age`;
+            input.required = true;
+            col.appendChild(input);
+            this.elements.childAgesContainer.appendChild(col);
+        }
+    }
+
+    async handleGetQuote() {
+        if (this.numberOfNights === 0) {
+            alert('Please select your check-in and check-out dates first.');
             return;
         }
-
-        const url = `${options.baseUrl}index.php?option=com_bookingmanager&task=validateCoupon&${Joomla.getFormToken()}=1`;
-        const formData = new FormData();
-        formData.append('coupon_code', couponCode);
-        formData.append('article_id', articleId);
-
-        fetch(url, {
-            method: 'POST',
-            body: new URLSearchParams(formData)
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                couponDiscount = { percent: data.discount, message: data.message };
-            } else {
-                couponDiscount = { percent: 0, message: data.message || 'Invalid coupon.' };
-                alert(couponDiscount.message);
-            }
-            updateCalculations();
-        })
-        .catch(error => {
-            console.error('Coupon validation error:', error);
-            couponDiscount = { percent: 0, message: 'Error validating coupon.' };
-            updateCalculations();
-        });
+        await this.validateCouponCode();
+        this.updateCalculations();
+        this.elements.priceSummaryContainer.style.display = 'block';
+        this.elements.quoteStep2.style.display = 'block';
+        this.elements.startingFromPrice.style.display = 'none';
+        this.elements.getQuoteButton.textContent = 'Recalculate Price';
     }
 
-    function updateCalculations() {
-        const adults = parseInt(elements.guestSelect.value, 10);
-        const rules = options.pricingRules;
+    async validateCouponCode() {
+        const couponCode = this.elements.couponCodeInput.value.trim();
+        if (!couponCode) {
+            this.couponDiscount = { percent: 0, message: '' };
+            return;
+        }
+        const url = `${this.options.submissionUrl.split('task=')[0]}task=validateCoupon&${Joomla.getFormToken()}=1`;
+        const formData = new FormData();
+        formData.append('coupon_code', couponCode);
+        formData.append('article_id', this.options.articleId);
+
+        try {
+            const response = await fetch(url, { method: 'POST', body: new URLSearchParams(formData) });
+            const data = await response.json();
+            if (data.success) {
+                this.couponDiscount = { percent: data.discount, message: data.message };
+            } else {
+                this.couponDiscount = { percent: 0, message: data.message || 'Invalid coupon.' };
+                alert(this.couponDiscount.message);
+            }
+        } catch (error) {
+            console.error('Coupon validation error:', error);
+            this.couponDiscount = { percent: 0, message: 'Error validating coupon.' };
+        }
+    }
+
+    updateCalculations() {
+        const adults = parseInt(this.elements.guestSelect.value, 10);
+        const rules = this.options.pricingRules;
         if (!rules) return;
 
         const childAges = Array.from(document.querySelectorAll('.child-age-input')).map(input => parseInt(input.value, 10)).filter(age => !isNaN(age));
 
-        if (elements.childAgeNotificationArea) {
-            let messages = [];
-            const hasInfant = childAges.some(age => age <= rules.infant_max_age);
-            const hasOlderChild = childAges.some(age => age > rules.infant_max_age);
-
-            if (hasInfant) {
-                messages.push(`Free baby cot provided (age ${rules.infant_max_age} or less).`);
-            }
-            if (hasOlderChild) {
-                messages.push(`Children older than ${rules.infant_max_age} are counted as guests.`);
-            }
-
-            if (messages.length > 0) {
-                elements.childAgeNotificationArea.textContent = messages.join(' ');
-                elements.childAgeNotificationArea.style.display = 'block';
-            } else {
-                elements.childAgeNotificationArea.style.display = 'none';
-            }
-        }
-
         let totalGuestsForCapacity = adults;
         let mattressCost = 0;
         let requiredUnits = 1;
-        const baseCapacity = options.totalAccommodationGuests || 2;
+        const baseCapacity = this.options.totalAccommodationGuests || 2;
 
         if (rules.pricing_model === 'CapacityBased') {
             let childrenCounting = childAges.filter(age => age > rules.free_with_parents_age).length;
             totalGuestsForCapacity += childrenCounting;
             const extraGuests = totalGuestsForCapacity - baseCapacity;
-            if (extraGuests === 1) { mattressCost = (rules.extra_mattress_fee || 0) * numberOfNights; }
+            if (extraGuests === 1) { mattressCost = (rules.extra_mattress_fee || 0) * this.numberOfNights; }
             else if (extraGuests > 1) { requiredUnits = Math.ceil(totalGuestsForCapacity / baseCapacity); }
         } else {
              let infantsNotCounting = childAges.filter(age => age <= rules.infant_max_age).length;
@@ -210,11 +231,9 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         let roomCost = 0;
-        let totalCommission = 0;
-        for (const [seasonName, nightsInSeason] of Object.entries(seasonRateCounts)) {
+        for (const [seasonName, nightsInSeason] of Object.entries(this.seasonRateCounts)) {
             let nightlyRate = rules.rates[seasonName] || 0;
             const currentSeason = rules.seasons.find(s => s.name === seasonName);
-
             if (rules.pricing_model === 'SupplementPerGuest' && currentSeason) {
                 let chargeableAdults = adults;
                 let chargeableChildren = 0;
@@ -225,33 +244,18 @@ document.addEventListener('DOMContentLoaded', function () {
                 const extraAdults = Math.max(0, chargeableAdults - 2);
                 nightlyRate += (extraAdults * (rules.adult_supplement || 0)) + (chargeableChildren * (rules.child_supplement || 0));
             }
-
-            const seasonCost = nightlyRate * nightsInSeason;
-            roomCost += seasonCost;
-
-            let commissionRate = 0;
-            const rateDetail = rules.rate_details ? rules.rate_details[seasonName] : null;
-
-            if (rateDetail && rateDetail.override_admin_commission) {
-                commissionRate = rateDetail.admin_commission || 0;
-            } else if (currentSeason && currentSeason.admin_commission) {
-                commissionRate = parseFloat(currentSeason.admin_commission) || 0;
-            }
-
-            if (commissionRate > 0) {
-                totalCommission += seasonCost * (commissionRate / 100);
-            }
+            roomCost += (nightlyRate * nightsInSeason);
         }
 
-        let totalCost = (roomCost * requiredUnits) + mattressCost + totalCommission;
+        let totalCost = (roomCost * requiredUnits) + mattressCost;
 
-        const selectedCountry = elements.countryResidenceSelect.value;
+        const selectedCountry = this.elements.countryResidenceSelect.value;
         let discountPercent = 0;
         let discountNote = '';
 
-        if (couponDiscount.percent > 0) {
-            discountPercent = couponDiscount.percent;
-            discountNote = couponDiscount.message;
+        if (this.couponDiscount.percent > 0) {
+            discountPercent = this.couponDiscount.percent;
+            discountNote = this.couponDiscount.message;
         } else if (rules.country_discounts && selectedCountry) {
             const countryRule = rules.country_discounts.find(d => d.country === selectedCountry);
             if (countryRule && countryRule.discount_percent) {
@@ -259,82 +263,75 @@ document.addEventListener('DOMContentLoaded', function () {
                 discountNote = countryRule.note || `A ${discountPercent}% discount has been applied!`;
             }
         }
-
         if (discountPercent > 0) {
             totalCost *= (1 - (discountPercent / 100));
         }
 
-        if (elements.discountAlert) {
+        if (this.elements.discountAlert) {
             if (discountPercent > 0 && totalCost > 0) {
-                elements.discountAlert.textContent = discountNote;
-                elements.discountAlert.style.display = 'block';
-                elements.discountNoteInput.value = discountNote;
+                this.elements.discountAlert.textContent = discountNote;
+                this.elements.discountAlert.style.display = 'block';
+                this.elements.discountNoteInput.value = discountNote;
             } else {
-                elements.discountAlert.style.display = 'none';
-                elements.discountNoteInput.value = '';
+                this.elements.discountAlert.style.display = 'none';
+                this.elements.discountNoteInput.value = '';
             }
         }
 
-        elements.unitCountInput.value = requiredUnits;
-        elements.unitCountDisplay.textContent = `${requiredUnits} Unit${requiredUnits > 1 ? 's' : ''}`;
+        this.elements.unitCountInput.value = requiredUnits;
+        this.elements.unitCountDisplay.textContent = `${requiredUnits} Unit${requiredUnits > 1 ? 's' : ''}`;
 
-        if (numberOfNights > 0) {
+        if (this.numberOfNights > 0) {
             const formattedPrice = totalCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            elements.priceDisplay.textContent = `Est. Price: ${options.currencySymbol}${formattedPrice}`;
-            elements.priceInput.value = `${options.currencySymbol}${formattedPrice}`;
-            elements.nightsDisplay.textContent = `(${numberOfNights} ${numberOfNights > 1 ? 'Nights' : 'Night'})`;
-            elements.priceDisclaimer.style.display = 'block';
+            this.elements.priceDisplay.textContent = `Est. Price: ${this.options.currencySymbol}${formattedPrice}`;
+            this.elements.priceInput.value = `${this.options.currencySymbol}${formattedPrice}`;
+            this.elements.nightsDisplay.textContent = `(${this.numberOfNights} ${this.numberOfNights > 1 ? 'Nights' : 'Night'})`;
+            this.elements.priceDisclaimer.style.display = 'block';
         } else {
-            elements.priceDisplay.textContent = 'Est. Price: -';
-            elements.priceInput.value = 'N/A';
-            elements.nightsDisplay.textContent = '';
-            elements.priceDisclaimer.style.display = 'none';
+            this.elements.priceDisplay.textContent = 'Est. Price: -';
+            this.elements.priceInput.value = 'N/A';
+            this.elements.nightsDisplay.textContent = '';
+            this.elements.priceDisclaimer.style.display = 'none';
         }
     }
 
-    elements.bookingForm.addEventListener('submit', function (event) {
+    submitForm(event) {
         event.preventDefault();
-        const formData = new FormData(elements.bookingForm);
-        const spinner = elements.submitButton.querySelector('.spinner-border');
-        const buttonText = elements.submitButton.querySelector('.button-text');
-        elements.submitButton.disabled = true;
+        const formData = new FormData(this.elements.bookingForm);
+        const spinner = this.elements.submitButton.querySelector('.spinner-border');
+        const buttonText = this.elements.submitButton.querySelector('.button-text');
+        this.elements.submitButton.disabled = true;
         if (buttonText) buttonText.textContent = 'Sending...';
         if (spinner) spinner.style.display = 'inline-block';
 
-        fetch(options.submissionUrl, { method: 'POST', body: new URLSearchParams(formData) })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                document.getElementById('booking-form-wrapper').style.display = 'none';
-                const thankYouEl = document.getElementById('thank-you-message');
-                thankYouEl.style.display = 'block';
-                document.getElementById('booking-ref-display').textContent = data.bookingRef;
-            } else { alert('An error occurred: ' + (data.message || 'Please try again.')); }
-        })
-        .catch(error => { console.error('Submission Error:', error); alert('A network error occurred.'); })
-        .finally(() => {
-            elements.submitButton.disabled = false;
-            if(buttonText) buttonText.textContent = 'Send Booking Request';
-            if (spinner) spinner.style.display = 'none';
-        });
-    });
-
-    if (elements.countryResidenceSelect) {
-        elements.countryResidenceSelect.addEventListener('change', function() {
-            const selectedOption = this.options[this.selectedIndex];
-            const isoCode = selectedOption.getAttribute('data-iso-code');
-            if (iti && isoCode) { iti.setCountry(isoCode.toLowerCase()); }
-            updateCalculations();
-        });
+        fetch(this.options.submissionUrl, { method: 'POST', body: new URLSearchParams(formData) })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('booking-form-wrapper').style.display = 'none';
+                    const thankYouEl = document.getElementById('thank-you-message');
+                    thankYouEl.style.display = 'block';
+                    document.getElementById('booking-ref-display').textContent = data.bookingRef;
+                } else {
+                    alert('An error occurred: ' + (data.message || 'Please try again.'));
+                }
+            })
+            .catch(error => {
+                console.error('Submission Error:', error);
+                alert('A network error occurred.');
+            })
+            .finally(() => {
+                this.elements.submitButton.disabled = false;
+                if(buttonText) buttonText.textContent = 'Send Booking Request';
+                if (spinner) spinner.style.display = 'none';
+            });
     }
+}
 
-    if (elements.couponCodeInput) {
-        elements.couponCodeInput.addEventListener('change', validateCouponCode);
+document.addEventListener('DOMContentLoaded', function () {
+    const options = Joomla.getOptions('mod_bookingform');
+    if (options) {
+        const bookingForm = new BookingForm(options);
+        bookingForm.init();
     }
-
-    elements.guestSelect.addEventListener('change', updateCalculations);
-    elements.childrenSelect.addEventListener('change', updateChildAgeInputs);
-
-    updateChildAgeInputs();
-    setTimeout(updateCalculations, 500);
 });
