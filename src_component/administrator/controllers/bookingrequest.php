@@ -8,7 +8,6 @@ use Joomla\CMS\Filesystem\Folder;
 use Joomla\CMS\Filesystem\File;
 use Joomla\CMS\MVC\Controller\FormController;
 use Joomla\CMS\Response\JsonResponse;
-use Joomla\CMS\Language\JText;
 
 class BookingmanagerControllerBookingrequest extends FormController
 {
