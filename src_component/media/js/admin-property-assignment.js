@@ -126,11 +126,16 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         searchInput.addEventListener('keyup', debounce((e) => {
+            // Debug line to provide immediate feedback
+            resultsContainer.innerHTML = '<div class="property-item-placeholder">Key press detected! Processing...</div>';
+
             const searchTerm = e.target.value.trim();
             if (searchTerm.length > 2) {
                 search(searchTerm);
             } else if (searchTerm.length === 0) {
                 resultsContainer.innerHTML = '<div class="property-item-placeholder">Type to search for properties.</div>';
+            } else {
+                resultsContainer.innerHTML = '<div class="property-item-placeholder">Please type more than 2 characters.</div>';
             }
         }, 300));
 
