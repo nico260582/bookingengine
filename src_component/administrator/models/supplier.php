@@ -5,6 +5,7 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\Date\Date;
 use Joomla\CMS\MVC\Model\AdminModel;
 use Joomla\CMS\Component\ComponentHelper;
+use Joomla\CMS\Language\Text;
 
 class BookingmanagerModelSupplier extends AdminModel
 {
@@ -58,12 +59,35 @@ class BookingmanagerModelSupplier extends AdminModel
         $table = $this->getTable();
         $pkValue = $data['id'] ?? 0;
         $oldData = null;
-        if ($pkValue) {
-            if ($table->load($pkValue)) {
-                $oldData = $table->getProperties();
-            }
+        if ($pkValue && $table->load($pkValue)) {
+            $oldData = $table->getProperties();
         }
 
+        // Extract assigned properties before they are unset
+        $assignedProperties = $data['properties'] ?? [];
+        unset($data['properties']);
+
+        // Prepare the rules data
+        $this->prepareRules($data);
+
+        if (parent::save($data)) {
+            $id = (int) $this->getState($this->getName() . '.id');
+
+            if ($oldData) {
+                $table->load($id);
+                $newData = $table->getProperties();
+                $this->logChanges($id, $oldData, $newData);
+            }
+
+            $this->updatePropertyAssignments($id, $assignedProperties);
+
+            return true;
+        }
+        return false;
+    }
+
+    private function prepareRules(array &$data)
+    {
         $rules = new stdClass();
         $rule_fields = ['pricing_model', 'adult_supplement', 'child_supplement', 'extra_mattress_fee', 'seasons', 'infant_max_age', 'child_max_age', 'teen_max_age', 'free_with_parents_age', 'country_discounts', 'coupon_codes'];
         foreach ($rule_fields as $field) {
@@ -73,36 +97,37 @@ class BookingmanagerModelSupplier extends AdminModel
             }
         }
         $data['rules'] = json_encode($rules);
-        
-        $assignedProperties = $data['properties'] ?? [];
-        unset($data['properties']);
-
-        if (parent::save($data)) {
-            $id = (int) $this->getState($this->getName() . '.id');
-            if ($oldData) {
-                $table->load($id);
-                $newData = $table->getProperties();
-                $this->logChanges($id, $oldData, $newData);
-            }
-            $db = Factory::getDbo();
-            $query = $db->getQuery(true)->delete('#__bookingmanager_property_map')->where('supplier_id = ' . $id);
-            $db->setQuery($query)->execute();
-
-            if (!empty($assignedProperties)) {
-                $query->clear()->insert('#__bookingmanager_property_map')->columns(['property_id', 'supplier_id']);
-                foreach ($assignedProperties as $propId) {
-                    $query->values((int)$propId . ',' . $id);
-                }
-                $db->setQuery($query)->execute();
-            }
-            return true;
-        }
-        return false;
     }
 
-    public function getAllPropertiesWithAssignments($currentSupplierId = 0)
+    private function updatePropertyAssignments(int $supplierId, array $assignedProperties)
     {
         $db = Factory::getDbo();
+        
+        // Delete existing assignments
+        $query = $db->getQuery(true)
+            ->delete($db->quoteName('#__bookingmanager_property_map'))
+            ->where($db->quoteName('supplier_id') . ' = ' . $supplierId);
+        $db->setQuery($query)->execute();
+
+        // Insert new assignments if any
+        if (!empty($assignedProperties)) {
+            $insertQuery = $db->getQuery(true)
+                ->insert($db->quoteName('#__bookingmanager_property_map'))
+                ->columns([$db->quoteName('property_id'), $db->quoteName('supplier_id')]);
+
+            foreach ($assignedProperties as $propId) {
+                $insertQuery->values((int)$propId . ',' . $supplierId);
+            }
+            $db->setQuery($insertQuery)->execute();
+        }
+    }
+
+    public function getAllPropertiesWithAssignments($options = [])
+    {
+        $db = Factory::getDbo();
+
+        $currentSupplierId = $options['currentSupplierId'] ?? 0;
+        $searchTerm        = $options['searchTerm'] ?? '';
 
         // 1. Get all properties (Joomla articles)
         $user = Factory::getUser();
@@ -154,6 +179,10 @@ class BookingmanagerModelSupplier extends AdminModel
             $query->where('a.catid IN (' . implode(',', $allCategoryIds) . ')');
         }
 
+        if (!empty($searchTerm)) {
+            $query->where('a.title LIKE ' . $db->quote('%' . $db->escape($searchTerm, true) . '%'));
+        }
+
         $query->order('a.title');
         $allProperties = $db->setQuery($query)->loadObjectList('id');
 
@@ -177,6 +206,21 @@ class BookingmanagerModelSupplier extends AdminModel
         }
         return $allProperties;
     }
+
+    public function getAssignedProperties(array $propertyIds)
+    {
+        if (empty($propertyIds)) {
+            return [];
+        }
+
+        $db = Factory::getDbo();
+        $query = $db->getQuery(true)
+            ->select('a.id, a.title')
+            ->from($db->quoteName('#__content', 'a'))
+            ->where('a.id IN (' . implode(',', array_map('intval', $propertyIds)) . ')');
+
+        return $db->setQuery($query)->loadObjectList('id');
+    }
     
     private function logChanges($supplierId, $oldData, $newData)
     {
@@ -199,7 +243,7 @@ class BookingmanagerModelSupplier extends AdminModel
                     // A simple way to check if complex fields have changed is to compare their JSON representations.
                     if (json_encode($oldRuleValue) !== json_encode($ruleValue)) {
                         if (is_array($ruleValue)) {
-                             $this->createLogEntry($supplierId, $user, "rules." . $ruleKey, "[Complex data changed]", "[Complex data changed]");
+                             $this->createLogEntry($supplierId, $user, "rules." . $ruleKey, Text::_('COM_BOOKINGMANAGER_LOG_COMPLEX_DATA_CHANGED'), Text::_('COM_BOOKINGMANAGER_LOG_COMPLEX_DATA_CHANGED'));
                         } else {
                             $this->createLogEntry($supplierId, $user, "rules." . $ruleKey, (string)$oldRuleValue, (string)$ruleValue);
                         }

@@ -1,101 +1,73 @@
 <?php
 defined('_JEXEC') or die;
 
-$allProperties = $displayData['all_properties'] ?? [];
-$selectedIds = $displayData['value'] ?? [];
-$currentSupplierId = $displayData['form']->getData()->get('id', 0);
-?>
+use Joomla\CMS\HTML\HTMLHelper;
+use Joomla\CMS\Language\Text;
 
-<style>
-    .property-assignment-container { display: flex; gap: 20px; }
-    .property-list-box { width: 45%; border: 1px solid #ccc; padding: 10px; height: 400px; overflow-y: auto; }
-    .property-list-box h5 { margin-top: 0; }
-    .property-item { padding: 5px; cursor: pointer; border-bottom: 1px solid #eee; }
-    .property-item:hover { background-color: #f0f0f0; }
-    .property-item.assigned-other { background-color: #f2f2f2; color: #999; cursor: not-allowed; }
-    .property-item.assigned-other .supplier-abbr { font-weight: bold; margin-left: 10px; }
-</style>
+// The form field now passes the already assigned properties
+$assignedProperties = $displayData['assignedProperties'] ?? [];
+$currentSupplierId = $displayData['currentSupplierId'] ?? 0;
+
+// We need a hidden select list to store the values for the form
+// Note: This select list will be hidden via CSS or JS and managed by our script.
+echo HTMLHelper::_('select.idlist', $displayData['name'], $assignedProperties, 'id', 'title', $displayData['value']);
+?>
 
 <div class="control-group">
     <div class="control-label">
-        <label><?php echo $displayData['label']; ?></label>
+        <label><?php echo Text::_($displayData['label']); ?></label>
     </div>
     <div class="controls">
-        <div class="property-assignment-container">
-            <div class="property-list-box" id="available-properties">
-                <h5>Available Properties</h5>
-                <?php foreach ($allProperties as $property) : ?>
-                    <?php
-                        $isAssigned = !empty($property->assignment);
-                        $isAssignedToCurrent = $isAssigned && $property->assignment['is_current'];
-                        if ($isAssigned && !$isAssignedToCurrent) : ?>
-                            <div class="property-item assigned-other" title="Assigned to <?php echo htmlspecialchars($property->assignment['abbreviation']); ?>">
-                                <?php echo htmlspecialchars($property->title); ?>
-                                <span class="supplier-abbr">(<?php echo htmlspecialchars($property->assignment['abbreviation']); ?>)</span>
-                            </div>
-                        <?php elseif (!$isAssigned) : ?>
-                            <div class="property-item" data-id="<?php echo $property->id; ?>">
-                                <?php echo htmlspecialchars($property->title); ?>
-                            </div>
-                        <?php endif; ?>
-                <?php endforeach; ?>
+        <div class="property-assignment-ajax-container"
+             data-supplier-id="<?php echo $currentSupplierId; ?>"
+             data-field-id="<?php echo $displayData['id']; ?>"
+             data-field-name="<?php echo $displayData['name']; ?>">
+
+            <div class="property-search-bar">
+                <input type="text" id="<?php echo $displayData['id']; ?>_search" placeholder="Search for properties..." class="input-medium">
             </div>
 
-            <div class="property-list-box" id="selected-properties">
-                <h5>Assigned to this Supplier</h5>
-                <?php foreach ($allProperties as $property) : ?>
-                    <?php if (!empty($property->assignment) && $property->assignment['is_current']) : ?>
-                        <div class="property-item" data-id="<?php echo $property->id; ?>">
-                            <?php echo htmlspecialchars($property->title); ?>
-                        </div>
-                    <?php endif; ?>
-                <?php endforeach; ?>
+            <div class="property-assignment-boxes">
+                <div class="property-list-box" id="<?php echo $displayData['id']; ?>_results">
+                    <h5>Search Results</h5>
+                    <div class="property-list-results">
+                        <!-- AJAX results will be loaded here -->
+                        <div class="property-item-placeholder">Type to search for properties.</div>
+                    </div>
+                </div>
+
+                <div class="property-list-box" id="<?php echo $displayData['id']; ?>_selected">
+                    <h5>Assigned to this Supplier</h5>
+                    <div class="property-list-selected">
+                        <?php if (empty($assignedProperties)) : ?>
+                            <div class="property-item-placeholder" id="<?php echo $displayData['id']; ?>_selected_placeholder">No properties assigned.</div>
+                        <?php else : ?>
+                            <?php foreach ($assignedProperties as $property) : ?>
+                                <div class="property-item" data-id="<?php echo $property->id; ?>">
+                                    <span><?php echo htmlspecialchars($property->title); ?></span>
+                                    <button type="button" class="btn btn-mini btn-danger remove-property">X</button>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </div>
+                </div>
             </div>
-        </div>
-        <div id="hidden-inputs-container">
-            <?php foreach ($selectedIds as $id) : ?>
-                <input type="hidden" name="<?php echo $displayData['name']; ?>[]" value="<?php echo $id; ?>">
-            <?php endforeach; ?>
         </div>
     </div>
 </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const availableBox = document.getElementById('available-properties');
-    const selectedBox = document.getElementById('selected-properties');
-    const hiddenInputsContainer = document.getElementById('hidden-inputs-container');
-
-    function moveItem(item, toBox) {
-        if (item.classList.contains('assigned-other')) {
-            return;
-        }
-        toBox.appendChild(item);
-        updateHiddenInputs();
-    }
-
-    availableBox.addEventListener('click', function(e) {
-        if (e.target.classList.contains('property-item')) {
-            moveItem(e.target, selectedBox);
-        }
-    });
-
-    selectedBox.addEventListener('click', function(e) {
-        if (e.target.classList.contains('property-item')) {
-            moveItem(e.target, availableBox);
-        }
-    });
-
-    function updateHiddenInputs() {
-        hiddenInputsContainer.innerHTML = '';
-        const selectedItems = selectedBox.querySelectorAll('.property-item');
-        selectedItems.forEach(function(item) {
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = '<?php echo $displayData['name']; ?>[]';
-            input.value = item.dataset.id;
-            hiddenInputsContainer.appendChild(input);
-        });
-    }
-});
-</script>
+<style>
+    /* Adding some styles for the new layout */
+    .property-assignment-ajax-container .property-search-bar { margin-bottom: 10px; }
+    .property-assignment-ajax-container .property-assignment-boxes { display: flex; gap: 20px; }
+    .property-assignment-ajax-container .property-list-box { width: 45%; border: 1px solid #ccc; padding: 10px; height: 400px; overflow-y: auto; }
+    .property-assignment-ajax-container .property-list-box h5 { margin-top: 0; }
+    .property-assignment-ajax-container .property-item { display: flex; justify-content: space-between; align-items: center; padding: 5px; cursor: pointer; border-bottom: 1px solid #eee; }
+    .property-assignment-ajax-container .property-item:hover { background-color: #f0f0f0; }
+    .property-assignment-ajax-container .property-item.assigned-other { background-color: #f2f2f2; color: #999; cursor: not-allowed; }
+    .property-assignment-ajax-container .property-item.assigned-other .supplier-abbr { font-weight: bold; margin-left: 10px; }
+    .property-assignment-ajax-container .remove-property { visibility: hidden; }
+    .property-assignment-ajax-container .property-item:hover .remove-property { visibility: visible; }
+    /* Hide the original select list */
+    select[name="<?php echo $displayData['name']; ?>"] { display: none; }
+</style>
