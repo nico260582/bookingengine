@@ -34,13 +34,31 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     function displayStartingPrice() {
-        const rates = options.pricingRules.rates;
-        if (!rates || Object.keys(rates).length === 0) return;
+        const rules = options.pricingRules;
+        if (!rules.rates || Object.keys(rules.rates).length === 0) return;
 
-        const lowestRate = Math.min(...Object.values(rates).filter(rate => rate > 0));
+        const finalRates = Object.entries(rules.rates).map(([seasonName, baseRate]) => {
+            if (baseRate <= 0) return null;
 
-        if (elements.startingFromPrice && lowestRate > 0 && isFinite(lowestRate)) {
-            elements.startingFromPrice.textContent = `From ${options.currencySymbol}${lowestRate} / night`;
+            const season = rules.seasons.find(s => s.name === seasonName);
+            const rateDetail = rules.rate_details ? rules.rate_details[seasonName] : null;
+
+            let commissionRate = 0;
+            if (rateDetail && rateDetail.override_admin_commission && rateDetail.admin_commission > 0) {
+                commissionRate = parseFloat(rateDetail.admin_commission);
+            } else if (season && season.admin_commission) {
+                commissionRate = parseFloat(season.admin_commission);
+            }
+
+            return baseRate * (1 + (commissionRate / 100));
+        }).filter(rate => rate !== null);
+
+        if (finalRates.length === 0) return;
+
+        const lowestFinalRate = Math.min(...finalRates);
+
+        if (elements.startingFromPrice && lowestFinalRate > 0 && isFinite(lowestFinalRate)) {
+            elements.startingFromPrice.textContent = `From ${options.currencySymbol}${Math.ceil(lowestFinalRate)} / night`;
         }
     }
 
