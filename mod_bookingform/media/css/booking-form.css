@@ -2,8 +2,12 @@
     background-color: #f8f9fa; padding: 15px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
 .booking-form-header h5 {
-    font-size: 1rem; color: #6c757d; text-align: center; margin-bottom: 1rem; font-weight: normal;
-    margin-top: 0px !important;
+  font-size: 1.2rem;
+  color: #f37321;
+  text-align: center;
+  margin-bottom: 1rem;
+  font-weight: bold;
+  margin-top: 0px !important;
 }
 .form-label {
     font-weight: bold; margin-bottom: 0.25rem; color: #333; font-size: 0.9rem;
