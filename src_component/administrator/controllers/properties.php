@@ -37,7 +37,13 @@ class BookingmanagerControllerProperties extends BaseController
 
             // 5. Send the JSON response
             $app->setHeader('Content-Type', 'application/json');
-            echo json_encode(['success' => true, 'data' => $properties]);
+            $jsonOutput = json_encode(['success' => true, 'data' => $properties]);
+
+            if ($jsonOutput === false) {
+                throw new \Exception('JSON encoding error: ' . json_last_error_msg(), 500);
+            }
+
+            echo $jsonOutput;
         } catch (\Exception $e) {
             // 6. Catch potential errors
             $app->setHeader('Content-Type', 'application/json', true);

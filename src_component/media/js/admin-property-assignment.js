@@ -30,16 +30,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
             try {
                 const response = await fetch(url);
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Request failed with status ${response.status}: ${errorText}`);
+                }
+
                 const json = await response.json();
 
-                if (json.success && json.data) {
+                if (json.success) {
                     renderResults(json.data);
                 } else {
-                    resultsContainer.innerHTML = '<div class="property-item-placeholder">Error loading results.</div>';
+                    const errorMessage = json.message || 'An unknown error occurred on the server.';
+                    resultsContainer.innerHTML = `<div class="property-item-placeholder">${errorMessage}</div>`;
                 }
             } catch (error) {
                 console.error('Error fetching properties:', error);
-                resultsContainer.innerHTML = '<div class="property-item-placeholder">Error fetching properties.</div>';
+                resultsContainer.innerHTML = `<div class="property-item-placeholder">Error: ${error.message}</div>`;
             }
         };
 
