@@ -1,7 +1,6 @@
 <?php
 defined('_JEXEC') or die;
 
-use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 
 // The form field now passes the already assigned properties
@@ -9,8 +8,15 @@ $assignedProperties = $displayData['assignedProperties'] ?? [];
 $currentSupplierId = $displayData['currentSupplierId'] ?? 0;
 
 // We need a hidden select list to store the values for the form
-// Note: This select list will be hidden via CSS or JS and managed by our script.
-echo HTMLHelper::_('select.idlist', $displayData['name'], $assignedProperties, 'id', 'title', $displayData['value']);
+?>
+<select name="<?php echo $displayData['name']; ?>[]" id="<?php echo $displayData['id']; ?>_hidden_select" multiple="multiple" style="display:none;">
+    <?php if ($assignedProperties) : ?>
+        <?php foreach ($assignedProperties as $property) : ?>
+            <option value="<?php echo $property->id; ?>" selected="selected"><?php echo htmlspecialchars($property->title); ?></option>
+        <?php endforeach; ?>
+    <?php endif; ?>
+</select>
+<?php
 ?>
 
 <div class="control-group">
@@ -68,6 +74,4 @@ echo HTMLHelper::_('select.idlist', $displayData['name'], $assignedProperties, '
     .property-assignment-ajax-container .property-item.assigned-other .supplier-abbr { font-weight: bold; margin-left: 10px; }
     .property-assignment-ajax-container .remove-property { visibility: hidden; }
     .property-assignment-ajax-container .property-item:hover .remove-property { visibility: visible; }
-    /* Hide the original select list */
-    select[name="<?php echo $displayData['name']; ?>"] { display: none; }
 </style>

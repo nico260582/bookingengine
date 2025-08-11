@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const searchInput = container.querySelector(`#${fieldId}_search`);
         const resultsContainer = container.querySelector(`#${fieldId}_results .property-list-results`);
         const selectedContainer = container.querySelector(`#${fieldId}_selected .property-list-selected`);
-        const hiddenSelect = document.querySelector(`select[name="${fieldName}"]`);
+        const hiddenSelect = document.querySelector(`#${fieldId}_hidden_select`);
         const selectedPlaceholder = container.querySelector(`#${fieldId}_selected_placeholder`);
 
         // Debounce function to limit AJAX calls
