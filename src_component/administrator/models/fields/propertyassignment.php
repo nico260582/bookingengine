@@ -3,8 +3,7 @@ defined('JPATH_BASE') or die;
 
 use Joomla\CMS\Form\FormField;
 use Joomla\CMS\MVC\Model\AdminModel;
-use Joomla\CMS\Factory;
-use Joomla\CMS\Uri\Uri;
+use Joomla\CMS\HTML\HTMLHelper;
 
 class JFormFieldPropertyAssignment extends FormField
 {
@@ -12,9 +11,8 @@ class JFormFieldPropertyAssignment extends FormField
 
     protected function getInput()
     {
-        // Attach JS using a more compatible method.
-        $doc = Factory::getDocument();
-        $doc->addScript(Uri::root() . 'media/com_bookingmanager/js/admin-property-assignment.js', ['type' => 'text/javascript'], ['defer' => true]);
+        // Attach JS with cache-busting version string.
+        HTMLHelper::_('script', 'media/com_bookingmanager/js/admin-property-assignment.js', ['version' => 'auto', 'relative' => true], ['defer' => true]);
 
         $model = AdminModel::getInstance('Supplier', 'BookingmanagerModel');
 
