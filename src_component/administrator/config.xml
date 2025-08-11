@@ -14,7 +14,17 @@
             description="Enter the full number including country code (e.g., +23051234567). Used for generating WhatsApp links in notification emails." 
             required="true" />
     </fieldset>
-    <fieldset 
+    <fieldset name="property_settings" label="Property Settings">
+        <field
+            name="property_categories"
+            type="category"
+            extension="com_content"
+            label="Select Property Categories"
+            description="Select the categories from which to list articles (properties). If none are selected, all articles will be listed."
+            multiple="true"
+            />
+    </fieldset>
+    <fieldset
         name="permissions"
         description="JCONFIG_PERMISSIONS_DESC"
         label="JCONFIG_PERMISSIONS_LABEL"

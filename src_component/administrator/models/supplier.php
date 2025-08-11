@@ -4,6 +4,7 @@ defined('_JEXEC') or die;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Date\Date;
 use Joomla\CMS\MVC\Model\AdminModel;
+use Joomla\CMS\Component\ComponentHelper;
 
 class BookingmanagerModelSupplier extends AdminModel
 {
@@ -107,6 +108,39 @@ class BookingmanagerModelSupplier extends AdminModel
         $user = Factory::getUser();
         $now  = Factory::getDate()->toSql();
         $nullDate = $db->getNullDate();
+
+        $params = ComponentHelper::getParams('com_bookingmanager');
+        $selectedCategories = $params->get('property_categories', []);
+
+        $allCategoryIds = [];
+        if (!empty($selectedCategories) && is_array($selectedCategories)) {
+            // Sanitize to ensure we have an array of integers
+            $categoryIds = array_map('intval', $selectedCategories);
+
+            // Get the lft and rgt values for the selected categories
+            $rangesQuery = $db->getQuery(true)
+                ->select('c.lft, c.rgt')
+                ->from($db->quoteName('#__categories', 'c'))
+                ->where('c.id IN (' . implode(',', $categoryIds) . ')');
+            $ranges = $db->setQuery($rangesQuery)->loadObjectList();
+
+            if ($ranges) {
+                $whereClauses = [];
+                foreach ($ranges as $range) {
+                    $whereClauses[] = '(c.lft >= ' . $range->lft . ' AND c.rgt <= ' . $range->rgt . ')';
+                }
+
+                // Get all categories (including sub-categories) within the selected category trees
+                $subCategoriesQuery = $db->getQuery(true)
+                    ->select('c.id')
+                    ->from($db->quoteName('#__categories', 'c'))
+                    ->where('(' . implode(' OR ', $whereClauses) . ')')
+                    ->where("c.extension = 'com_content'");
+
+                $allCategoryIds = $db->setQuery($subCategoriesQuery)->loadColumn();
+            }
+        }
+
         $query = $db->getQuery(true)
             ->select('a.id, a.title')
             ->from($db->quoteName('#__content', 'a'))
@@ -114,8 +148,13 @@ class BookingmanagerModelSupplier extends AdminModel
             ->where('a.catid > 0')
             ->where('a.access IN (' . implode(',', $user->getAuthorisedViewLevels()) . ')')
             ->where("a.publish_up <= " . $db->quote($now))
-            ->where("(a.publish_down IS NULL OR a.publish_down = " . $db->quote($nullDate) . " OR a.publish_down >= " . $db->quote($now) . ")")
-            ->order('a.title');
+            ->where("(a.publish_down IS NULL OR a.publish_down = " . $db->quote($nullDate) . " OR a.publish_down >= " . $db->quote($now) . ")");
+
+        if (!empty($allCategoryIds)) {
+            $query->where('a.catid IN (' . implode(',', $allCategoryIds) . ')');
+        }
+
+        $query->order('a.title');
         $allProperties = $db->setQuery($query)->loadObjectList('id');
 
         // 2. Get all current assignments with supplier abbreviations
