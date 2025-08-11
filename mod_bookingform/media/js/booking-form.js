@@ -29,6 +29,8 @@ document.addEventListener('DOMContentLoaded', function () {
         getQuoteButton: document.getElementById('get-quote-button'),
         bookingStep2: document.getElementById('booking-step-2'),
         priceSummaryContainer: document.getElementById('price-summary-container'),
+        dateRangeError: document.getElementById('date-range-error'),
+        childAgesError: document.getElementById('child-ages-error'),
     };
 
     function displayStartingPrice() {
@@ -353,6 +355,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (elements.getQuoteButton) {
         elements.getQuoteButton.addEventListener('click', function() {
+            // Clear previous errors
+            elements.datePickerEl.classList.remove('is-invalid');
+            elements.dateRangeError.style.display = 'none';
+            elements.childAgesError.style.display = 'none';
+            elements.childAgesContainer.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+
+            let isValid = true;
+
             // Validation for minimum stay
             let minStay = 0;
             let minStaySeason = '';
@@ -364,25 +374,40 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 }
             }
-            if (numberOfNights > 0 && numberOfNights < minStay) {
-                alert(`A minimum stay of ${minStay} nights is required for the selected period (${minStaySeason} season).`);
-                return;
-            }
             if (numberOfNights === 0) {
-                alert('Please select your check-in and check-out dates first.');
-                return;
+                elements.dateRangeError.textContent = 'Please select your check-in and check-out dates first.';
+                elements.datePickerEl.classList.add('is-invalid');
+                elements.dateRangeError.style.display = 'block';
+                isValid = false;
+            } else if (numberOfNights < minStay) {
+                elements.dateRangeError.textContent = `A minimum stay of ${minStay} nights is required for the selected period (${minStaySeason} season).`;
+                elements.datePickerEl.classList.add('is-invalid');
+                elements.dateRangeError.style.display = 'block';
+                isValid = false;
             }
 
             // Validation for child ages
             const childrenCount = parseInt(elements.childrenSelect.value, 10);
             const childAgeInputs = elements.childAgesContainer.querySelectorAll('.child-age-input');
             if (childrenCount > 0 && childAgeInputs.length > 0) {
+                let allAgesEntered = true;
                 for (const input of childAgeInputs) {
                     if (input.value === '') {
-                        alert('Please enter the age for all children.');
-                        return;
+                        input.classList.add('is-invalid');
+                        allAgesEntered = false;
+                    } else {
+                        input.classList.remove('is-invalid');
                     }
                 }
+                if (!allAgesEntered) {
+                    elements.childAgesError.textContent = 'Please enter the age for all children.';
+                    elements.childAgesError.style.display = 'block';
+                    isValid = false;
+                }
+            }
+
+            if (!isValid) {
+                return;
             }
 
             validateCouponCode(function() {

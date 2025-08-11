@@ -21,7 +21,7 @@ use Joomla\CMS\HTML\HTMLHelper;
         <div class="row">
             <div class="col-12 mb-2">
                 <input id="date-range-picker" type="text" class="form-control" placeholder="Check-in / Check-out">
-                <div id="min-stay-alert" class="alert alert-warning mt-2" style="display: none;"></div>
+                <div id="date-range-error" class="invalid-feedback"></div>
             </div>
         </div>
 
@@ -46,6 +46,7 @@ use Joomla\CMS\HTML\HTMLHelper;
             <div class="col-12 mb-2">
                 <label class="form-label">Age of Children</label>
                 <div id="child-age-notification-area" class="alert alert-info" style="display: none;"></div>
+                <div id="child-ages-error" class="invalid-feedback"></div>
             </div>
         </div>
         <div class="row" id="child-ages-container">
