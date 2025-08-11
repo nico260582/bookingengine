@@ -2,6 +2,7 @@
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Language\Text;
+use Joomla\CMS\Session\Session;
 
 // The form field now passes the already assigned properties
 $assignedProperties = $displayData['assignedProperties'] ?? [];
@@ -27,7 +28,8 @@ $currentSupplierId = $displayData['currentSupplierId'] ?? 0;
         <div class="property-assignment-ajax-container"
              data-supplier-id="<?php echo $currentSupplierId; ?>"
              data-field-id="<?php echo $displayData['id']; ?>"
-             data-field-name="<?php echo $displayData['name']; ?>">
+             data-field-name="<?php echo $displayData['name']; ?>"
+             data-form-token="<?php echo Session::getFormToken(); ?>">
 
             <div class="property-search-bar">
                 <input type="text" id="<?php echo $displayData['id']; ?>_search" placeholder="Search for properties..." class="input-medium">

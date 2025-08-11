@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const supplierId = container.dataset.supplierId;
         const fieldId = container.dataset.fieldId;
         const fieldName = container.dataset.fieldName;
+        const formToken = container.dataset.formToken;
 
         const searchInput = container.querySelector(`#${fieldId}_search`);
         const resultsContainer = container.querySelector(`#${fieldId}_results .property-list-results`);
@@ -25,7 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const search = async (searchTerm) => {
             resultsContainer.innerHTML = '<div class="property-item-placeholder">Searching...</div>';
 
-            const url = `index.php?option=com_bookingmanager&task=properties.get&format=raw&supplier_id=${supplierId}&search=${encodeURIComponent(searchTerm)}`;
+            const url = `index.php?option=com_bookingmanager&task=properties.get&format=raw&supplier_id=${supplierId}&search=${encodeURIComponent(searchTerm)}&${formToken}=1`;
 
             try {
                 const response = await fetch(url);
