@@ -1,5 +1,8 @@
 .booking-form-container {
-    background-color: #f8f9fa; padding: 15px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  background-color: #fff;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(6, 4, 4, 0.35);
 }
 .booking-form-header h5 {
   font-size: 1.2rem;
