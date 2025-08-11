@@ -4,6 +4,8 @@ defined('_JEXEC') or die;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\Factory;
 use Joomla\CMS\MVC\Model\AdminModel;
+use Joomla\CMS\Session\Session;
+use Joomla\CMS\Language\Text;
 
 class BookingmanagerControllerProperties extends BaseController
 {
@@ -11,22 +13,37 @@ class BookingmanagerControllerProperties extends BaseController
     {
         $app = Factory::getApplication();
         $input = $app->input;
+        $user = Factory::getUser();
 
-        // Get the model
-        $model = AdminModel::getInstance('Supplier', 'BookingmanagerModel');
+        // 1. Check token and permissions
+        if (!Session::checkToken('get') || !$user->authorise('core.manage', 'com_bookingmanager')) {
+            $app->setHeader('Content-Type', 'application/json');
+            echo json_encode(['success' => false, 'message' => Text::_('JERROR_ALERTNOAUTHOR')]);
+            $app->close();
+        }
 
-        // Prepare options for the model method
-        $options = [
-            'currentSupplierId' => $input->getInt('supplier_id', 0),
-            'searchTerm'        => $input->getString('search', '')
-        ];
+        try {
+            // 2. Get the model
+            $model = AdminModel::getInstance('Supplier', 'BookingmanagerModel');
 
-        // Get the properties
-        $properties = $model->getAllPropertiesWithAssignments($options);
+            // 3. Prepare options for the model method
+            $options = [
+                'currentSupplierId' => $input->getInt('supplier_id', 0),
+                'searchTerm'        => $input->getString('search', '')
+            ];
 
-        // Send the JSON response
-        $app->setHeader('Content-Type', 'application/json');
-        echo json_encode(['success' => true, 'data' => $properties]);
+            // 4. Get the properties
+            $properties = $model->getAllPropertiesWithAssignments($options);
+
+            // 5. Send the JSON response
+            $app->setHeader('Content-Type', 'application/json');
+            echo json_encode(['success' => true, 'data' => $properties]);
+        } catch (\Exception $e) {
+            // 6. Catch potential errors
+            $app->setHeader('Content-Type', 'application/json', true);
+            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        }
+
         $app->close();
     }
 }
