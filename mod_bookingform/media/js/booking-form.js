@@ -202,13 +202,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
             let supplementMsg = '';
             if (payableSeasons.length > 0) {
-                supplementMsg += `A child supplement is payable for the ${payableSeasons.join(', ')} season(s). `;
+                supplementMsg = `A child supplement is payable for the ${payableSeasons.join(', ')} season(s).`;
+            } else if (freeSeasons.length > 0) {
+                supplementMsg = `Children stay free of charge during the ${freeSeasons.join(', ')} season(s).`;
             }
-            if (freeSeasons.length > 0) {
-                supplementMsg += `Children stay free of charge during the ${freeSeasons.join(', ')} season(s).`;
-            }
+
             if (supplementMsg) {
-                messages.push(supplementMsg.trim());
+                messages.push(supplementMsg);
             }
         } else if (children.length > 0) {
             messages.push('For children, a supplement may apply depending on the seasons selected.');
