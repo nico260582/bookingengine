@@ -28,8 +28,8 @@ class JFormFieldPropertyAssignment extends FormField
             'currentSupplierId'  => $this->form->getData()->get('id', 0),
         ];
 
-        // Embed the JavaScript directly to avoid all loading/caching/timing issues.
-        $js = "
+        // Embed the JavaScript directly using a nowdoc to avoid PHP parsing issues.
+        $js = <<<'JS'
         document.addEventListener('DOMContentLoaded', () => {
             const containers = document.querySelectorAll('.property-assignment-ajax-container');
 
@@ -66,7 +66,7 @@ class JFormFieldPropertyAssignment extends FormField
                 };
 
                 const search = async (searchTerm) => {
-                    resultsContainer.innerHTML = '<div class=\"property-item-placeholder\">Searching...</div>';
+                    resultsContainer.innerHTML = '<div class="property-item-placeholder">Searching...</div>';
 
                     const url = `index.php?option=com_bookingmanager&task=properties.get&format=raw&supplier_id=${supplierId}&search=${encodeURIComponent(searchTerm)}&${formToken}=1`;
 
@@ -84,11 +84,11 @@ class JFormFieldPropertyAssignment extends FormField
                             renderResults(json.data);
                         } else {
                             const errorMessage = json.message || 'An unknown error occurred on the server.';
-                            resultsContainer.innerHTML = `<div class=\"property-item-placeholder\">${errorMessage}</div>`;
+                            resultsContainer.innerHTML = `<div class="property-item-placeholder">${errorMessage}</div>`;
                         }
                     } catch (error) {
                         console.error('Error fetching properties:', error);
-                        resultsContainer.innerHTML = `<div class=\"property-item-placeholder\">Error: ${error.message}</div>`;
+                        resultsContainer.innerHTML = `<div class="property-item-placeholder">Error: ${error.message}</div>`;
                     }
                 };
 
@@ -97,7 +97,7 @@ class JFormFieldPropertyAssignment extends FormField
                     const existingSelectedIds = Array.from(hiddenSelect.options).map(opt => opt.value);
 
                     if (Object.keys(properties).length === 0) {
-                        resultsContainer.innerHTML = '<div class=\"property-item-placeholder\">No properties found.</div>';
+                        resultsContainer.innerHTML = '<div class="property-item-placeholder">No properties found.</div>';
                         return;
                     }
 
@@ -117,7 +117,7 @@ class JFormFieldPropertyAssignment extends FormField
                         if (property.assignment && !property.assignment.is_current) {
                             item.classList.add('assigned-other');
                             item.title = `Assigned to ${property.assignment.abbreviation}`;
-                            content += `<span class=\"supplier-abbr\">(${property.assignment.abbreviation})</span>`;
+                            content += `<span class="supplier-abbr">(${property.assignment.abbreviation})</span>`;
                         } else {
                             item.addEventListener('click', () => addSelectedItem(property));
                         }
@@ -135,7 +135,7 @@ class JFormFieldPropertyAssignment extends FormField
                     const item = document.createElement('div');
                     item.classList.add('property-item');
                     item.dataset.id = property.id;
-                    item.innerHTML = `<span>${property.title}</span><button type=\"button\" class=\"btn btn-mini btn-danger remove-property\">X</button>`;
+                    item.innerHTML = `<span>${property.title}</span><button type="button" class="btn btn-mini btn-danger remove-property">X</button>`;
                     selectedContainer.appendChild(item);
                     item.querySelector('.remove-property').addEventListener('click', (e) => {
                         e.stopPropagation();
@@ -145,19 +145,19 @@ class JFormFieldPropertyAssignment extends FormField
                     const option = new Option(property.title, property.id, true, true);
                     hiddenSelect.add(option);
 
-                    const resultItem = resultsContainer.querySelector(`.property-item[data-id=\"${property.id}\"]`);
+                    const resultItem = resultsContainer.querySelector(`.property-item[data-id="${property.id}"]`);
                     if (resultItem) {
                         resultItem.remove();
                     }
                 };
 
                 const removeSelectedItem = (id) => {
-                    const item = selectedContainer.querySelector(`.property-item[data-id=\"${id}\"]`);
+                    const item = selectedContainer.querySelector(`.property-item[data-id="${id}"]`);
                     if (item) {
                         item.remove();
                     }
 
-                    const option = hiddenSelect.querySelector(`option[value=\"${id}\"]`);
+                    const option = hiddenSelect.querySelector(`option[value="${id}"]`);
                     if (option) {
                         option.remove();
                     }
@@ -172,9 +172,9 @@ class JFormFieldPropertyAssignment extends FormField
                     if (searchTerm.length > 2) {
                         search(searchTerm);
                     } else if (searchTerm.length === 0) {
-                        resultsContainer.innerHTML = '<div class=\"property-item-placeholder\">Type to search for properties.</div>';
+                        resultsContainer.innerHTML = '<div class="property-item-placeholder">Type to search for properties.</div>';
                     } else {
-                        resultsContainer.innerHTML = '<div class=\"property-item-placeholder\">Please type more than 2 characters.</div>';
+                        resultsContainer.innerHTML = '<div class="property-item-placeholder">Please type more than 2 characters.</div>';
                     }
                 }, 300));
 
@@ -187,7 +187,7 @@ class JFormFieldPropertyAssignment extends FormField
                 });
             });
         });
-        ";
+JS;
         Factory::getDocument()->addScriptDeclaration($js);
 
         // Manually render the layout
