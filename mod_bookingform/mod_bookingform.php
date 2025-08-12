@@ -103,7 +103,7 @@ if ($pricingRules) {
         'MOD_BOOKINGFORM_SUBMIT_ERROR_NETWORK',
         'MOD_BOOKINGFORM_RECALCULATE_BUTTON_TEXT',
     ];
-    \Joomla\CMS\Language\Text::script($languageKeys);
+    \Joomla\CMS\Language\Text::script($languageKeys, 'mod_bookingform');
 
     $scriptOptions = [
         'totalAccommodationGuests' => $totalAccommodationGuests,
