@@ -185,7 +185,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const children = childAges.filter(age => age > rules.infant_max_age && age <= rules.child_max_age);
 
         if (infants.length > 0) {
-            messages.push(`A free baby cot can be provided for children up to age ${rules.infant_max_age}.`);
+            messages.push(`Free baby cot available for child up to age ${rules.infant_max_age}.`);
         }
         if (teens.length > 0) {
             messages.push(`Guests aged ${rules.child_max_age + 1}-${rules.teen_max_age} are considered adults for pricing.`);
