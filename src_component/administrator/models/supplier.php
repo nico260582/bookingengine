@@ -122,12 +122,9 @@ class BookingmanagerModelSupplier extends AdminModel
         }
     }
 
-    public function getAllPropertiesWithAssignments($options = [])
+    public function getAllPropertiesWithAssignments($currentSupplierId = 0)
     {
         $db = Factory::getDbo();
-
-        $currentSupplierId = $options['currentSupplierId'] ?? 0;
-        $searchTerm        = $options['searchTerm'] ?? '';
 
         // 1. Get all properties (Joomla articles)
         $user = Factory::getUser();
@@ -179,10 +176,6 @@ class BookingmanagerModelSupplier extends AdminModel
             $query->where('a.catid IN (' . implode(',', $allCategoryIds) . ')');
         }
 
-        if (!empty($searchTerm)) {
-            $query->where('a.title LIKE ' . $db->quote('%' . $db->escape($searchTerm, true) . '%'));
-        }
-
         $query->order('a.title');
         $allProperties = $db->setQuery($query)->loadObjectList('id');
 
@@ -205,21 +198,6 @@ class BookingmanagerModelSupplier extends AdminModel
             }
         }
         return $allProperties;
-    }
-
-    public function getAssignedProperties(array $propertyIds)
-    {
-        if (empty($propertyIds)) {
-            return [];
-        }
-
-        $db = Factory::getDbo();
-        $query = $db->getQuery(true)
-            ->select('a.id, a.title')
-            ->from($db->quoteName('#__content', 'a'))
-            ->where('a.id IN (' . implode(',', array_map('intval', $propertyIds)) . ')');
-
-        return $db->setQuery($query)->loadObjectList('id');
     }
     
     private function logChanges($supplierId, $oldData, $newData)
