@@ -237,12 +237,13 @@ document.addEventListener('DOMContentLoaded', function () {
         updateChildAgeNotification();
         const childAges = Array.from(document.querySelectorAll('.child-age-input')).map(input => parseInt(input.value, 10)).filter(age => !isNaN(age));
 
-        // Determine the number of guests in each category
+        // Determine guest counts
         const infants = childAges.filter(age => age <= rules.infant_max_age);
         const teens = childAges.filter(age => age > rules.child_max_age && age <= rules.teen_max_age);
         const children = childAges.filter(age => age > rules.infant_max_age && age <= rules.child_max_age);
         const totalAdultsAndTeens = adults + teens.length;
 
+        // Determine unit and capacity details
         let totalGuestsForCapacity = adults + teens.length + children.length;
         let mattressCost = 0;
         let requiredUnits = 1;
@@ -255,18 +256,35 @@ document.addEventListener('DOMContentLoaded', function () {
             if (extraGuests === 1) { mattressCost = (rules.extra_mattress_fee || 0) * numberOfNights; }
             else if (extraGuests > 1) { requiredUnits = Math.ceil(totalGuestsForCapacity / baseCapacity); }
         } else {
-             if (baseCapacity > 0) { requiredUnits = Math.max(1, Math.ceil(totalGuestsForCapacity / baseCapacity)); }
+            if (baseCapacity > 0) { requiredUnits = Math.max(1, Math.ceil(totalGuestsForCapacity / baseCapacity)); }
         }
 
-        // Calculate the base cost for all units
+        // Determine extra guests for supplement calculation
+        const guestsCoveredByBaseRate = 2 * requiredUnits;
+        const extraAdults = Math.max(0, totalAdultsAndTeens - guestsCoveredByBaseRate);
+        const extraChildren = Math.max(0, (totalAdultsAndTeens + children.length) - guestsCoveredByBaseRate - extraAdults);
+
+        // Calculate costs season by season
         let totalBaseCost = 0;
+        let totalSupplementCost = 0;
         let totalCommission = 0;
+
         for (const [seasonName, nightsInSeason] of Object.entries(seasonRateCounts)) {
             const nightlyRate = rules.rates[seasonName] || 0;
             const seasonBaseCost = nightlyRate * nightsInSeason * requiredUnits;
             totalBaseCost += seasonBaseCost;
 
+            let seasonSupplementCost = 0;
             const currentSeason = rules.seasons.find(s => s.name === seasonName);
+            if (rules.pricing_model === 'SupplementPerGuest' && currentSeason) {
+                seasonSupplementCost += (extraAdults * (rules.adult_supplement || 0)) * nightsInSeason;
+                if (currentSeason.apply_child_supplement == 1) {
+                    seasonSupplementCost += (extraChildren * (rules.child_supplement || 0)) * nightsInSeason;
+                }
+            }
+            totalSupplementCost += seasonSupplementCost;
+
+            const netCostForSeason = seasonBaseCost + seasonSupplementCost;
             let commissionRate = 0;
             const rateDetail = rules.rate_details ? rules.rate_details[seasonName] : null;
             if (rateDetail && rateDetail.override_admin_commission) {
@@ -275,30 +293,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 commissionRate = parseFloat(currentSeason.admin_commission) || 0;
             }
             if (commissionRate > 0) {
-                totalCommission += seasonBaseCost * (commissionRate / 100);
+                totalCommission += netCostForSeason * (commissionRate / 100);
             }
         }
 
-        // Calculate supplement costs for extra guests
-        let supplementCost = 0;
-        const totalCapacity = baseCapacity * requiredUnits;
-        const guestsCoveredByBaseRate = 2 * requiredUnits;
+        let totalCost = totalBaseCost + totalSupplementCost + mattressCost + totalCommission;
 
-        let extraAdults = Math.max(0, totalAdultsAndTeens - guestsCoveredByBaseRate);
-        let extraChildren = Math.max(0, (totalAdultsAndTeens + children.length) - guestsCoveredByBaseRate - extraAdults);
-
-        for (const [seasonName, nightsInSeason] of Object.entries(seasonRateCounts)) {
-            const currentSeason = rules.seasons.find(s => s.name === seasonName);
-            if (rules.pricing_model === 'SupplementPerGuest' && currentSeason) {
-                supplementCost += (extraAdults * (rules.adult_supplement || 0)) * nightsInSeason;
-                if (currentSeason.apply_child_supplement == 1) {
-                    supplementCost += (extraChildren * (rules.child_supplement || 0)) * nightsInSeason;
-                }
-            }
-        }
-
-        let totalCost = totalBaseCost + supplementCost + mattressCost + totalCommission;
-
+        // Apply discounts
         const selectedCountry = elements.countryResidenceSelect.value;
         let discountPercent = 0;
         let discountNote = '';
@@ -326,6 +327,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
 
+        // Update UI
         elements.unitCountInput.value = requiredUnits;
         if (requiredUnits > 1) {
             elements.unitCountDisplay.textContent = `${requiredUnits} Units (Max guests per unit: ${baseCapacity})`;
