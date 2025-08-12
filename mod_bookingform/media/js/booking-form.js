@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
     const options = Joomla.getOptions('mod_bookingform');
-    if (!options || !options.pricingRules || !options.lang) { return; }
+    if (!options || !options.pricingRules) { return; }
 
     const elements = {
         startingFromPrice: document.getElementById('starting-from-price'),
@@ -32,8 +32,6 @@ document.addEventListener('DOMContentLoaded', function () {
         dateRangeError: document.getElementById('date-range-error'),
         childAgesError: document.getElementById('child-ages-error'),
     };
-
-    const sprintf = (str, ...args) => str.replace(/%s/g, () => args.shift());
 
     function displayStartingPrice() {
         const rules = options.pricingRules;
@@ -95,7 +93,7 @@ document.addEventListener('DOMContentLoaded', function () {
             singleMode: false,
             minDate: new Date(),
             format: 'DD MMM, YYYY',
-            tooltipText: { 'one': options.lang.night_singular, 'other': options.lang.night_plural },
+            tooltipText: { 'one': 'day', 'other': 'days' },
             setup: (picker) => {
                 picker.on('selected', (date1, date2) => {
                     if (date1 && date2) {
@@ -123,7 +121,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         }
                         if (elements.minStayAlert) {
                             if (numberOfNights > 0 && numberOfNights < minStay) {
-                                elements.minStayAlert.textContent = sprintf(options.lang.min_stay_error, minStay, minStaySeason);
+                                elements.minStayAlert.textContent = `A minimum stay of ${minStay} nights is required for the selected period (${minStaySeason} season).`;
                                 elements.minStayAlert.style.display = 'block';
                             } else { elements.minStayAlert.style.display = 'none'; }
                         }
@@ -168,10 +166,10 @@ document.addEventListener('DOMContentLoaded', function () {
         const children = childAges.filter(age => age > rules.infant_max_age && age <= rules.child_max_age);
 
         if (infants.length > 0) {
-            messages.push(sprintf(options.lang.infant_cot_notice, rules.infant_max_age));
+            messages.push(`A free baby cot can be provided for children up to age ${rules.infant_max_age}.`);
         }
         if (teens.length > 0) {
-            messages.push(sprintf(options.lang.teen_as_adult_notice, rules.child_max_age + 1, rules.teen_max_age));
+            messages.push(`Guests aged ${rules.child_max_age + 1}-${rules.teen_max_age} are considered adults for pricing.`);
         }
 
         const selectedSeasonNames = Object.keys(seasonRateCounts);
@@ -181,15 +179,15 @@ document.addEventListener('DOMContentLoaded', function () {
             const freeSeasons = seasonsInBooking.filter(s => s.apply_child_supplement != 1).map(s => s.name);
             let supplementMsg = '';
             if (payableSeasons.length > 0) {
-                supplementMsg = options.lang.child_supplement_payable;
+                supplementMsg = 'A child supplement is payable for this season(s).';
             } else if (freeSeasons.length > 0) {
-                supplementMsg = options.lang.child_stay_free;
+                supplementMsg = 'Children stay free of charge during this season(s).';
             }
             if (supplementMsg) {
                 messages.push(supplementMsg);
             }
         } else if (children.length > 0) {
-            messages.push(options.lang.child_supplement_may_apply);
+            messages.push('For children, a supplement may apply depending on the seasons selected.');
         }
 
         if (messages.length > 0) {
@@ -220,14 +218,14 @@ document.addEventListener('DOMContentLoaded', function () {
             if (data.success) {
                 couponDiscount = { percent: data.discount, message: data.message };
             } else {
-                couponDiscount = { percent: 0, message: data.message || options.lang.coupon_invalid };
+                couponDiscount = { percent: 0, message: data.message || 'Invalid coupon.' };
                 alert(couponDiscount.message);
             }
             if (callback) callback();
         })
         .catch(error => {
             console.error('Coupon validation error:', error);
-            couponDiscount = { percent: 0, message: options.lang.coupon_error };
+            couponDiscount = { percent: 0, message: 'Error validating coupon.' };
             if (callback) callback();
         });
     }
@@ -310,22 +308,22 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         elements.unitCountInput.value = requiredUnits;
         if (requiredUnits > 1) {
-            elements.unitCountDisplay.textContent = sprintf(options.lang.unit_count_plural, requiredUnits, baseCapacity);
+            elements.unitCountDisplay.textContent = `${requiredUnits} Units (Max guests per unit: ${baseCapacity})`;
             elements.unitCountDisplay.classList.add('booking-form-notice');
         } else {
-            elements.unitCountDisplay.textContent = sprintf(options.lang.unit_count_singular, requiredUnits);
+            elements.unitCountDisplay.textContent = `${requiredUnits} Unit`;
             elements.unitCountDisplay.classList.remove('booking-form-notice');
         }
         if (numberOfNights > 0) {
             const formattedPrice = totalCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            elements.priceDisplay.textContent = sprintf(options.lang.price_estimate_label, options.currencySymbol, formattedPrice);
+            elements.priceDisplay.textContent = `Est. Price: ${options.currencySymbol}${formattedPrice}`;
             elements.priceInput.value = `${options.currencySymbol}${formattedPrice}`;
-            const nightText = numberOfNights > 1 ? options.lang.night_plural : options.lang.night_singular;
-            elements.nightsDisplay.textContent = sprintf(options.lang.nights_count_label, numberOfNights, nightText);
+            const nightText = numberOfNights > 1 ? 'Nights' : 'Night';
+            elements.nightsDisplay.textContent = `(${numberOfNights} ${nightText})`;
             elements.priceDisclaimer.style.display = 'block';
         } else {
-            elements.priceDisplay.textContent = sprintf(options.lang.price_estimate_label, options.currencySymbol, '-');
-            elements.priceInput.value = options.lang.price_na;
+            elements.priceDisplay.textContent = 'Est. Price: -';
+            elements.priceInput.value = 'N/A';
             elements.nightsDisplay.textContent = '';
             elements.priceDisclaimer.style.display = 'none';
         }
@@ -337,7 +335,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const spinner = elements.submitButton.querySelector('.spinner-border');
         const buttonText = elements.submitButton.querySelector('.button-text');
         elements.submitButton.disabled = true;
-        if (buttonText) buttonText.textContent = options.lang.submit_sending;
+        if (buttonText) buttonText.textContent = 'Sending...';
         if (spinner) spinner.style.display = 'inline-block';
         fetch(options.submissionUrl, { method: 'POST', body: new URLSearchParams(formData) })
         .then(response => response.json())
@@ -347,12 +345,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 const thankYouEl = document.getElementById('thank-you-message');
                 thankYouEl.style.display = 'block';
                 document.getElementById('booking-ref-display').textContent = data.bookingRef;
-            } else { alert(options.lang.submit_error_generic + (data.message || options.lang.submit_error_try_again)); }
+            } else { alert('An error occurred: ' + (data.message || 'Please try again.')); }
         })
-        .catch(error => { console.error('Submission Error:', error); alert(options.lang.submit_error_network); })
+        .catch(error => { console.error('Submission Error:', error); alert('A network error occurred.'); })
         .finally(() => {
             elements.submitButton.disabled = false;
-            if(buttonText) buttonText.textContent = options.lang.submit_button_text;
+            if(buttonText) buttonText.textContent = 'Send Booking Request';
             if (spinner) spinner.style.display = 'none';
         });
     });
@@ -377,12 +375,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
             if (numberOfNights === 0) {
-                elements.dateRangeError.textContent = options.lang.date_range_error;
+                elements.dateRangeError.textContent = 'Please select your check-in and check-out dates first.';
                 elements.datePickerEl.classList.add('is-invalid');
                 elements.dateRangeError.style.display = 'block';
                 isValid = false;
             } else if (numberOfNights < minStay) {
-                elements.dateRangeError.textContent = sprintf(options.lang.min_stay_error, minStay, minStaySeason);
+                elements.dateRangeError.textContent = `A minimum stay of ${minStay} nights is required for the selected period (${minStaySeason} season).`;
                 elements.datePickerEl.classList.add('is-invalid');
                 elements.dateRangeError.style.display = 'block';
                 isValid = false;
@@ -400,7 +398,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 }
                 if (!allAgesEntered) {
-                    elements.childAgesError.textContent = options.lang.child_ages_error;
+                    elements.childAgesError.textContent = 'Please enter the age for all children.';
                     elements.childAgesError.style.display = 'block';
                     isValid = false;
                 }
@@ -413,7 +411,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 elements.priceSummaryContainer.style.display = 'block';
                 elements.bookingStep2.style.display = 'block';
                 elements.startingFromPrice.style.display = 'none';
-                elements.getQuoteButton.textContent = options.lang.recalculate_button_text;
+                elements.getQuoteButton.textContent = 'Recalculate Price';
             });
         });
     }

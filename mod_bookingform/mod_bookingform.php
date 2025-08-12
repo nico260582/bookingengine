@@ -1,6 +1,5 @@
 <?php
 use Joomla\CMS\Factory;
-use Joomla\CMS\Language\Text;
 use Joomla\CMS\Helper\ModuleHelper;
 use Joomla\CMS\Uri\Uri;
 use Joomla\CMS\Router\Route;
@@ -77,34 +76,6 @@ if ($pricingRules) {
     $doc->addScript('https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.13/js/intlTelInput.min.js');
     $jsPath = JPATH_SITE . '/modules/mod_bookingform/media/js/booking-form.js';
     $doc->addScript(Uri::root(true) . '/modules/mod_bookingform/media/js/booking-form.js?v=' . filemtime($jsPath), ['defer' => 'true']);
-
-    // Load language strings for JS
-    $languageKeys = [
-        'MOD_BOOKINGFORM_INFANT_COT_NOTICE',
-        'MOD_BOOKINGFORM_TEEN_AS_ADULT_NOTICE',
-        'MOD_BOOKINGFORM_CHILD_SUPPLEMENT_PAYABLE',
-        'MOD_BOOKINGFORM_CHILD_STAY_FREE',
-        'MOD_BOOKINGFORM_CHILD_SUPPLEMENT_MAY_APPLY',
-        'MOD_BOOKINGFORM_MIN_STAY_ERROR',
-        'MOD_BOOKINGFORM_DATE_RANGE_ERROR',
-        'MOD_BOOKINGFORM_CHILD_AGES_ERROR',
-        'MOD_BOOKINGFORM_PRICE_ESTIMATE_LABEL',
-        'MOD_BOOKINGFORM_PRICE_NA',
-        'MOD_BOOKINGFORM_NIGHTS_COUNT_LABEL',
-        'MOD_BOOKINGFORM_NIGHT_SINGULAR',
-        'MOD_BOOKINGFORM_NIGHT_PLURAL',
-        'MOD_BOOKINGFORM_UNIT_COUNT_PLURAL',
-        'MOD_BOOKINGFORM_UNIT_COUNT_SINGULAR',
-        'MOD_BOOKINGFORM_COUPON_INVALID',
-        'MOD_BOOKINGFORM_COUPON_ERROR',
-        'MOD_BOOKINGFORM_SUBMIT_SENDING',
-        'MOD_BOOKINGFORM_SUBMIT_BUTTON_TEXT',
-        'MOD_BOOKINGFORM_SUBMIT_ERROR_GENERIC',
-        'MOD_BOOKINGFORM_SUBMIT_ERROR_TRY_AGAIN',
-        'MOD_BOOKINGFORM_SUBMIT_ERROR_NETWORK',
-        'MOD_BOOKINGFORM_RECALCULATE_BUTTON_TEXT',
-    ];
-    Text::script($languageKeys, 'mod_bookingform');
 
     $scriptOptions = [
         'totalAccommodationGuests' => $totalAccommodationGuests,
