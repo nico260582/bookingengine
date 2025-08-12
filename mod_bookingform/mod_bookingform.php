@@ -76,12 +76,12 @@ if ($pricingRules) {
     $doc->addScript('https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.13/js/intlTelInput.min.js');
     $jsPath = JPATH_SITE . '/modules/mod_bookingform/media/js/booking-form.js';
     $doc->addScript(Uri::root(true) . '/modules/mod_bookingform/media/js/booking-form.js?v=' . filemtime($jsPath), ['defer' => 'true']);
-
     $scriptOptions = [
         'totalAccommodationGuests' => $totalAccommodationGuests,
         'pricingRules'   => $pricingRules,
         'currencySymbol' => $params->get('currency_symbol', '€'),
-        'submissionUrl'  => Route::_('index.php?option=com_bookingmanager&task=submitBooking&format=json', false)
+        'submissionUrl'  => Route::_('index.php?option=com_bookingmanager&task=submitBooking&format=json', false),
+        'lang' => $langStrings
     ];
     $doc->addScriptOptions('mod_bookingform', $scriptOptions);
 
