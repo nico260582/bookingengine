@@ -26,7 +26,6 @@ $currentSupplierId = $displayData['currentSupplierId'] ?? 0;
     </div>
     <div class="controls">
         <div class="property-assignment-ajax-container"
-             id="<?php echo $displayData['id']; ?>_container"
              data-supplier-id="<?php echo $currentSupplierId; ?>"
              data-field-id="<?php echo $displayData['id']; ?>"
              data-field-name="<?php echo $displayData['name']; ?>"
@@ -78,9 +77,3 @@ $currentSupplierId = $displayData['currentSupplierId'] ?? 0;
     .property-assignment-ajax-container .remove-property { visibility: hidden; }
     .property-assignment-ajax-container .property-item:hover .remove-property { visibility: visible; }
 </style>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    initPropertyAssignment('<?php echo $displayData['id']; ?>_container');
-});
-</script>
