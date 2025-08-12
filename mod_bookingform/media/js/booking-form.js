@@ -275,7 +275,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 commissionRate = parseFloat(currentSeason.admin_commission) || 0;
             }
             if (commissionRate > 0) {
-                totalCommission += nightlyRate * nightsInSeason * (commissionRate / 100); // Commission is on base rate, not per unit
+                totalCommission += seasonBaseCost * (commissionRate / 100);
             }
         }
 
