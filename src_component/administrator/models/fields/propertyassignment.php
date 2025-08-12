@@ -12,7 +12,7 @@ class JFormFieldPropertyAssignment extends FormField
     protected function getInput()
     {
         // Attach JS with cache-busting version string.
-        HTMLHelper::_('script', 'media/com_bookingmanager/js/admin-property-assignment.js', ['version' => 'auto', 'relative' => true], ['defer' => true]);
+        HTMLHelper::_('script', 'media/com_bookingmanager/js/admin-property-assignment.js', ['version' => 'auto', 'relative' => true]);
 
         $model = AdminModel::getInstance('Supplier', 'BookingmanagerModel');
 
