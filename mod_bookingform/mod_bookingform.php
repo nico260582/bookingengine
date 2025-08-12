@@ -78,39 +78,39 @@ if ($pricingRules) {
     $jsPath = JPATH_SITE . '/modules/mod_bookingform/media/js/booking-form.js';
     $doc->addScript(Uri::root(true) . '/modules/mod_bookingform/media/js/booking-form.js?v=' . filemtime($jsPath), ['defer' => 'true']);
 
-    // Load language strings and pass them to JS
-    $langStrings = [
-        'infant_cot_notice' => Text::_('MOD_BOOKINGFORM_INFANT_COT_NOTICE'),
-        'teen_as_adult_notice' => Text::_('MOD_BOOKINGFORM_TEEN_AS_ADULT_NOTICE'),
-        'child_supplement_payable' => Text::_('MOD_BOOKINGFORM_CHILD_SUPPLEMENT_PAYABLE'),
-        'child_stay_free' => Text::_('MOD_BOOKINGFORM_CHILD_STAY_FREE'),
-        'child_supplement_may_apply' => Text::_('MOD_BOOKINGFORM_CHILD_SUPPLEMENT_MAY_APPLY'),
-        'min_stay_error' => Text::_('MOD_BOOKINGFORM_MIN_STAY_ERROR'),
-        'date_range_error' => Text::_('MOD_BOOKINGFORM_DATE_RANGE_ERROR'),
-        'child_ages_error' => Text::_('MOD_BOOKINGFORM_CHILD_AGES_ERROR'),
-        'price_estimate_label' => Text::_('MOD_BOOKINGFORM_PRICE_ESTIMATE_LABEL'),
-        'price_na' => Text::_('MOD_BOOKINGFORM_PRICE_NA'),
-        'nights_count_label' => Text::_('MOD_BOOKINGFORM_NIGHTS_COUNT_LABEL'),
-        'night_singular' => Text::_('MOD_BOOKINGFORM_NIGHT_SINGULAR'),
-        'night_plural' => Text::_('MOD_BOOKINGFORM_NIGHT_PLURAL'),
-        'unit_count_plural' => Text::_('MOD_BOOKINGFORM_UNIT_COUNT_PLURAL'),
-        'unit_count_singular' => Text::_('MOD_BOOKINGFORM_UNIT_COUNT_SINGULAR'),
-        'coupon_invalid' => Text::_('MOD_BOOKINGFORM_COUPON_INVALID'),
-        'coupon_error' => Text::_('MOD_BOOKINGFORM_COUPON_ERROR'),
-        'submit_sending' => Text::_('MOD_BOOKINGFORM_SUBMIT_SENDING'),
-        'submit_button_text' => Text::_('MOD_BOOKINGFORM_SUBMIT_BUTTON_TEXT'),
-        'submit_error_generic' => Text::_('MOD_BOOKINGFORM_SUBMIT_ERROR_GENERIC'),
-        'submit_error_try_again' => Text::_('MOD_BOOKINGFORM_SUBMIT_ERROR_TRY_AGAIN'),
-        'submit_error_network' => Text::_('MOD_BOOKINGFORM_SUBMIT_ERROR_NETWORK'),
-        'recalculate_button_text' => Text::_('MOD_BOOKINGFORM_RECALCULATE_BUTTON_TEXT'),
+    // Load language strings for JS
+    $languageKeys = [
+        'MOD_BOOKINGFORM_INFANT_COT_NOTICE',
+        'MOD_BOOKINGFORM_TEEN_AS_ADULT_NOTICE',
+        'MOD_BOOKINGFORM_CHILD_SUPPLEMENT_PAYABLE',
+        'MOD_BOOKINGFORM_CHILD_STAY_FREE',
+        'MOD_BOOKINGFORM_CHILD_SUPPLEMENT_MAY_APPLY',
+        'MOD_BOOKINGFORM_MIN_STAY_ERROR',
+        'MOD_BOOKINGFORM_DATE_RANGE_ERROR',
+        'MOD_BOOKINGFORM_CHILD_AGES_ERROR',
+        'MOD_BOOKINGFORM_PRICE_ESTIMATE_LABEL',
+        'MOD_BOOKINGFORM_PRICE_NA',
+        'MOD_BOOKINGFORM_NIGHTS_COUNT_LABEL',
+        'MOD_BOOKINGFORM_NIGHT_SINGULAR',
+        'MOD_BOOKINGFORM_NIGHT_PLURAL',
+        'MOD_BOOKINGFORM_UNIT_COUNT_PLURAL',
+        'MOD_BOOKINGFORM_UNIT_COUNT_SINGULAR',
+        'MOD_BOOKINGFORM_COUPON_INVALID',
+        'MOD_BOOKINGFORM_COUPON_ERROR',
+        'MOD_BOOKINGFORM_SUBMIT_SENDING',
+        'MOD_BOOKINGFORM_SUBMIT_BUTTON_TEXT',
+        'MOD_BOOKINGFORM_SUBMIT_ERROR_GENERIC',
+        'MOD_BOOKINGFORM_SUBMIT_ERROR_TRY_AGAIN',
+        'MOD_BOOKINGFORM_SUBMIT_ERROR_NETWORK',
+        'MOD_BOOKINGFORM_RECALCULATE_BUTTON_TEXT',
     ];
+    Text::script($languageKeys, 'mod_bookingform');
 
     $scriptOptions = [
         'totalAccommodationGuests' => $totalAccommodationGuests,
         'pricingRules'   => $pricingRules,
         'currencySymbol' => $params->get('currency_symbol', '€'),
-        'submissionUrl'  => Route::_('index.php?option=com_bookingmanager&task=submitBooking&format=json', false),
-        'lang' => $langStrings
+        'submissionUrl'  => Route::_('index.php?option=com_bookingmanager&task=submitBooking&format=json', false)
     ];
     $doc->addScriptOptions('mod_bookingform', $scriptOptions);
 
