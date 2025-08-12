@@ -123,8 +123,13 @@ document.addEventListener('DOMContentLoaded', function () {
                         let minStay = 0;
                         let minStaySeason = '';
                         if (options.pricingRules && Array.isArray(options.pricingRules.seasons)) {
-                            for (const season of options.pricingRules.seasons) {
-                                if (seasonRateCounts[season.name] && season.min_stay > minStay) { minStay = season.min_stay; minStaySeason = season.name; }
+                            const seasonsInBooking = options.pricingRules.seasons.filter(s => seasonRateCounts[s.name] && s.min_stay > 0);
+                            if (seasonsInBooking.length > 0) {
+                                minStay = Math.min(...seasonsInBooking.map(s => s.min_stay));
+                                const minStaySeasonObject = seasonsInBooking.find(s => s.min_stay == minStay);
+                                if (minStaySeasonObject) {
+                                    minStaySeason = minStaySeasonObject.name;
+                                }
                             }
                         }
                         if (elements.minStayAlert) {
@@ -176,18 +181,41 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const childAges = Array.from(document.querySelectorAll('.child-age-input')).map(input => parseInt(input.value, 10)).filter(age => !isNaN(age));
         let messages = [];
-        const hasInfant = childAges.some(age => age <= rules.infant_max_age);
-        const hasOlderChild = childAges.some(age => age > rules.infant_max_age);
 
-        if (hasInfant) {
-            messages.push(`Free baby cot provided (age ${rules.infant_max_age} or less).`);
+        const infants = childAges.filter(age => age <= rules.infant_max_age);
+        const teens = childAges.filter(age => age > rules.child_max_age && age <= rules.teen_max_age);
+        const children = childAges.filter(age => age > rules.infant_max_age && age <= rules.child_max_age);
+
+        if (infants.length > 0) {
+            messages.push(`A free baby cot can be provided for children up to age ${rules.infant_max_age}.`);
         }
-        if (hasOlderChild) {
-            messages.push(`Children older than ${rules.infant_max_age} are counted as guests.`);
+
+        if (teens.length > 0) {
+            messages.push(`Guests aged ${rules.child_max_age + 1}-${rules.teen_max_age} are considered adults for pricing.`);
+        }
+
+        const selectedSeasonNames = Object.keys(seasonRateCounts);
+        if (children.length > 0 && selectedSeasonNames.length > 0) {
+            const seasonsInBooking = rules.seasons.filter(s => selectedSeasonNames.includes(s.name));
+            const payableSeasons = seasonsInBooking.filter(s => s.apply_child_supplement == 1).map(s => s.name);
+            const freeSeasons = seasonsInBooking.filter(s => s.apply_child_supplement != 1).map(s => s.name);
+
+            let supplementMsg = '';
+            if (payableSeasons.length > 0) {
+                supplementMsg += `A child supplement is payable for the ${payableSeasons.join(', ')} season(s). `;
+            }
+            if (freeSeasons.length > 0) {
+                supplementMsg += `Children stay free of charge during the ${freeSeasons.join(', ')} season(s).`;
+            }
+            if (supplementMsg) {
+                messages.push(supplementMsg.trim());
+            }
+        } else if (children.length > 0) {
+            messages.push('For children, a supplement may apply depending on the seasons selected.');
         }
 
         if (messages.length > 0) {
-            elements.childAgeNotificationArea.textContent = messages.join(' ');
+            elements.childAgeNotificationArea.innerHTML = messages.join('<br>');
             elements.childAgeNotificationArea.style.display = 'block';
         } else {
             elements.childAgeNotificationArea.style.display = 'none';
@@ -385,10 +413,12 @@ document.addEventListener('DOMContentLoaded', function () {
             let minStay = 0;
             let minStaySeason = '';
             if (options.pricingRules && Array.isArray(options.pricingRules.seasons)) {
-                for (const season of options.pricingRules.seasons) {
-                    if (seasonRateCounts[season.name] && season.min_stay > minStay) {
-                        minStay = season.min_stay;
-                        minStaySeason = season.name;
+                const seasonsInBooking = options.pricingRules.seasons.filter(s => seasonRateCounts[s.name] && s.min_stay > 0);
+                if (seasonsInBooking.length > 0) {
+                    minStay = Math.min(...seasonsInBooking.map(s => s.min_stay));
+                    const minStaySeasonObject = seasonsInBooking.find(s => s.min_stay == minStay);
+                    if (minStaySeasonObject) {
+                        minStaySeason = minStaySeasonObject.name;
                     }
                 }
             }
