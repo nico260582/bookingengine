@@ -11,10 +11,6 @@
     <version>16.0.1</version>
     <description>A component to manage booking requests and suppliers.</description>
     <scriptfile>script.php</scriptfile>
-
-    <media destination="com_bookingmanager" folder="media">
-        <folder>js</folder>
-    </media>
     
     <files folder="site">
         <filename>bookingmanager.php</filename>
