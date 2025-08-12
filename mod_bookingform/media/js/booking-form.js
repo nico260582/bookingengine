@@ -39,17 +39,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const finalRates = Object.entries(rules.rates).map(([seasonName, baseRate]) => {
             if (baseRate <= 0) return null;
-
             const season = rules.seasons.find(s => s.name === seasonName);
             const rateDetail = rules.rate_details ? rules.rate_details[seasonName] : null;
-
             let commissionRate = 0;
             if (rateDetail && rateDetail.override_admin_commission && rateDetail.admin_commission > 0) {
                 commissionRate = parseFloat(rateDetail.admin_commission);
             } else if (season && season.admin_commission) {
                 commissionRate = parseFloat(season.admin_commission);
             }
-
             return baseRate * (1 + (commissionRate / 100));
         }).filter(rate => rate !== null);
 
@@ -64,7 +61,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     displayStartingPrice();
 
-    // Hide coupon input if no coupons are available
     if (elements.couponCodeInput && (!options.pricingRules.coupon_codes || options.pricingRules.coupon_codes.length === 0)) {
         elements.couponCodeInput.closest('.row').style.display = 'none';
     }
@@ -86,12 +82,10 @@ document.addEventListener('DOMContentLoaded', function () {
     function getSeasonForDate(date) {
         const rules = options.pricingRules;
         if (!rules || !Array.isArray(rules.seasons)) return null;
-
         const year = date.getFullYear();
         const month = (date.getMonth() + 1).toString().padStart(2, '0');
         const day = date.getDate().toString().padStart(2, '0');
         const dateStr = `${year}-${month}-${day}`;
-
         for (const season of rules.seasons) {
             if (dateStr >= season.start_date && dateStr <= season.end_date) return season;
         }
@@ -104,13 +98,12 @@ document.addEventListener('DOMContentLoaded', function () {
             singleMode: false,
             minDate: new Date(),
             format: 'DD MMM, YYYY',
-            tooltipText: { 'one': 'day', 'other': 'days' },
+            tooltipText: { 'one': Joomla.Text._('MOD_BOOKINGFORM_NIGHT_SINGULAR'), 'other': Joomla.Text._('MOD_BOOKINGFORM_NIGHT_PLURAL') },
             setup: (picker) => {
                 picker.on('selected', (date1, date2) => {
                     if (date1 && date2) {
                         elements.startDateInput.value = date1.format('YYYY-MM-DD');
                         elements.endDateInput.value = date2.format('YYYY-MM-DD');
-
                         seasonRateCounts = {};
                         let currentDate = date1.toJSDate();
                         while(currentDate < date2.toJSDate()){
@@ -134,12 +127,10 @@ document.addEventListener('DOMContentLoaded', function () {
                         }
                         if (elements.minStayAlert) {
                             if (numberOfNights > 0 && numberOfNights < minStay) {
-                                elements.minStayAlert.textContent = `A minimum stay of ${minStay} nights is required for the selected period (${minStaySeason} season).`;
+                                elements.minStayAlert.textContent = Joomla.Text.sprintf(Joomla.Text._('MOD_BOOKINGFORM_MIN_STAY_ERROR'), minStay, minStaySeason);
                                 elements.minStayAlert.style.display = 'block';
                             } else { elements.minStayAlert.style.display = 'none'; }
                         }
-                        // Defer calculation until button click
-                        // updateCalculations();
                     }
                 });
             }
@@ -149,14 +140,11 @@ document.addEventListener('DOMContentLoaded', function () {
     function updateChildAgeInputs() {
         const childrenCount = parseInt(elements.childrenSelect.value, 10);
         elements.childAgesContainer.innerHTML = '';
-
         if (childrenCount > 0) {
             elements.childAgesLabelRow.style.display = 'flex';
-
             for (let i = 1; i <= childrenCount; i++) {
                 const col = document.createElement('div');
                 col.className = 'col-md-4 col-sm-6 mb-2';
-
                 const input = document.createElement('input');
                 input.type = 'number';
                 input.min = '0';
@@ -165,7 +153,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 input.className = 'form-control child-age-input';
                 input.placeholder = `Child ${i} Age`;
                 input.required = true;
-
                 col.appendChild(input);
                 elements.childAgesContainer.appendChild(col);
             }
@@ -178,20 +165,17 @@ document.addEventListener('DOMContentLoaded', function () {
     function updateChildAgeNotification() {
         const rules = options.pricingRules;
         if (!rules || !elements.childAgeNotificationArea) return;
-
         const childAges = Array.from(document.querySelectorAll('.child-age-input')).map(input => parseInt(input.value, 10)).filter(age => !isNaN(age));
         let messages = [];
-
         const infants = childAges.filter(age => age <= rules.infant_max_age);
         const teens = childAges.filter(age => age > rules.child_max_age && age <= rules.teen_max_age);
         const children = childAges.filter(age => age > rules.infant_max_age && age <= rules.child_max_age);
 
         if (infants.length > 0) {
-            messages.push(`A free baby cot can be provided for children up to age ${rules.infant_max_age}.`);
+            messages.push(Joomla.Text.sprintf(Joomla.Text._('MOD_BOOKINGFORM_INFANT_COT_NOTICE'), rules.infant_max_age));
         }
-
         if (teens.length > 0) {
-            messages.push(`Guests aged ${rules.child_max_age + 1}-${rules.teen_max_age} are considered adults for pricing.`);
+            messages.push(Joomla.Text.sprintf(Joomla.Text._('MOD_BOOKINGFORM_TEEN_AS_ADULT_NOTICE'), rules.child_max_age + 1, rules.teen_max_age));
         }
 
         const selectedSeasonNames = Object.keys(seasonRateCounts);
@@ -199,19 +183,17 @@ document.addEventListener('DOMContentLoaded', function () {
             const seasonsInBooking = rules.seasons.filter(s => selectedSeasonNames.includes(s.name));
             const payableSeasons = seasonsInBooking.filter(s => s.apply_child_supplement == 1).map(s => s.name);
             const freeSeasons = seasonsInBooking.filter(s => s.apply_child_supplement != 1).map(s => s.name);
-
             let supplementMsg = '';
             if (payableSeasons.length > 0) {
-                supplementMsg = `A child supplement is payable for the ${payableSeasons.join(', ')} season(s).`;
+                supplementMsg = Joomla.Text._('MOD_BOOKINGFORM_CHILD_SUPPLEMENT_PAYABLE');
             } else if (freeSeasons.length > 0) {
-                supplementMsg = `Children stay free of charge during the ${freeSeasons.join(', ')} season(s).`;
+                supplementMsg = Joomla.Text._('MOD_BOOKINGFORM_CHILD_STAY_FREE');
             }
-
             if (supplementMsg) {
                 messages.push(supplementMsg);
             }
         } else if (children.length > 0) {
-            messages.push('For children, a supplement may apply depending on the seasons selected.');
+            messages.push(Joomla.Text._('MOD_BOOKINGFORM_CHILD_SUPPLEMENT_MAY_APPLY'));
         }
 
         if (messages.length > 0) {
@@ -225,18 +207,15 @@ document.addEventListener('DOMContentLoaded', function () {
     function validateCouponCode(callback) {
         const couponCode = elements.couponCodeInput.value.trim();
         const articleId = options.articleId;
-
         if (!couponCode) {
             couponDiscount = { percent: 0, message: '' };
             if (callback) callback();
             return;
         }
-
         const url = options.submissionUrl.replace('task=submitBooking', 'task=validateCoupon') + `&${Joomla.getFormToken()}=1`;
         const formData = new FormData();
         formData.append('coupon_code', couponCode);
         formData.append('article_id', articleId);
-
         fetch(url, {
             method: 'POST',
             body: new URLSearchParams(formData)
@@ -246,14 +225,14 @@ document.addEventListener('DOMContentLoaded', function () {
             if (data.success) {
                 couponDiscount = { percent: data.discount, message: data.message };
             } else {
-                couponDiscount = { percent: 0, message: data.message || 'Invalid coupon.' };
+                couponDiscount = { percent: 0, message: data.message || Joomla.Text._('MOD_BOOKINGFORM_COUPON_INVALID') };
                 alert(couponDiscount.message);
             }
             if (callback) callback();
         })
         .catch(error => {
             console.error('Coupon validation error:', error);
-            couponDiscount = { percent: 0, message: 'Error validating coupon.' };
+            couponDiscount = { percent: 0, message: Joomla.Text._('MOD_BOOKINGFORM_COUPON_ERROR') };
             if (callback) callback();
         });
     }
@@ -262,10 +241,8 @@ document.addEventListener('DOMContentLoaded', function () {
         const adults = parseInt(elements.guestSelect.value, 10);
         const rules = options.pricingRules;
         if (!rules) return;
-
         updateChildAgeNotification();
         const childAges = Array.from(document.querySelectorAll('.child-age-input')).map(input => parseInt(input.value, 10)).filter(age => !isNaN(age));
-
         let totalGuestsForCapacity = adults;
         let mattressCost = 0;
         let requiredUnits = 1;
@@ -288,7 +265,6 @@ document.addEventListener('DOMContentLoaded', function () {
         for (const [seasonName, nightsInSeason] of Object.entries(seasonRateCounts)) {
             let nightlyRate = rules.rates[seasonName] || 0;
             const currentSeason = rules.seasons.find(s => s.name === seasonName);
-
             if (rules.pricing_model === 'SupplementPerGuest' && currentSeason) {
                 let chargeableAdults = adults;
                 let chargeableChildren = 0;
@@ -299,30 +275,24 @@ document.addEventListener('DOMContentLoaded', function () {
                 const extraAdults = Math.max(0, chargeableAdults - 2);
                 nightlyRate += (extraAdults * (rules.adult_supplement || 0)) + (chargeableChildren * (rules.child_supplement || 0));
             }
-
             const seasonCost = nightlyRate * nightsInSeason;
             roomCost += seasonCost;
-
             let commissionRate = 0;
             const rateDetail = rules.rate_details ? rules.rate_details[seasonName] : null;
-
             if (rateDetail && rateDetail.override_admin_commission) {
                 commissionRate = rateDetail.admin_commission || 0;
             } else if (currentSeason && currentSeason.admin_commission) {
                 commissionRate = parseFloat(currentSeason.admin_commission) || 0;
             }
-
             if (commissionRate > 0) {
                 totalCommission += seasonCost * (commissionRate / 100);
             }
         }
 
         let totalCost = (roomCost * requiredUnits) + mattressCost + totalCommission;
-
         const selectedCountry = elements.countryResidenceSelect.value;
         let discountPercent = 0;
         let discountNote = '';
-
         if (couponDiscount.percent > 0) {
             discountPercent = couponDiscount.percent;
             discountNote = couponDiscount.message;
@@ -337,7 +307,6 @@ document.addEventListener('DOMContentLoaded', function () {
         if (discountPercent > 0) {
             totalCost *= (1 - (discountPercent / 100));
         }
-
         if (elements.discountAlert) {
             if (discountPercent > 0 && totalCost > 0) {
                 elements.discountAlert.textContent = discountNote;
@@ -351,22 +320,23 @@ document.addEventListener('DOMContentLoaded', function () {
 
         elements.unitCountInput.value = requiredUnits;
         if (requiredUnits > 1) {
-            elements.unitCountDisplay.textContent = `${requiredUnits} Units (Max guests per unit: ${baseCapacity})`;
+            elements.unitCountDisplay.textContent = Joomla.Text.sprintf(Joomla.Text._('MOD_BOOKINGFORM_UNIT_COUNT_PLURAL'), requiredUnits, baseCapacity);
             elements.unitCountDisplay.classList.add('booking-form-notice');
         } else {
-            elements.unitCountDisplay.textContent = `${requiredUnits} Unit`;
+            elements.unitCountDisplay.textContent = Joomla.Text.sprintf(Joomla.Text._('MOD_BOOKINGFORM_UNIT_COUNT_SINGULAR'), requiredUnits);
             elements.unitCountDisplay.classList.remove('booking-form-notice');
         }
 
         if (numberOfNights > 0) {
             const formattedPrice = totalCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            elements.priceDisplay.textContent = `Est. Price: ${options.currencySymbol}${formattedPrice}`;
+            elements.priceDisplay.textContent = Joomla.Text.sprintf(Joomla.Text._('MOD_BOOKINGFORM_PRICE_ESTIMATE_LABEL'), options.currencySymbol, formattedPrice);
             elements.priceInput.value = `${options.currencySymbol}${formattedPrice}`;
-            elements.nightsDisplay.textContent = `(${numberOfNights} ${numberOfNights > 1 ? 'Nights' : 'Night'})`;
+            const nightText = numberOfNights > 1 ? Joomla.Text._('MOD_BOOKINGFORM_NIGHT_PLURAL') : Joomla.Text._('MOD_BOOKINGFORM_NIGHT_SINGULAR');
+            elements.nightsDisplay.textContent = Joomla.Text.sprintf(Joomla.Text._('MOD_BOOKINGFORM_NIGHTS_COUNT_LABEL'), numberOfNights, nightText);
             elements.priceDisclaimer.style.display = 'block';
         } else {
-            elements.priceDisplay.textContent = 'Est. Price: -';
-            elements.priceInput.value = 'N/A';
+            elements.priceDisplay.textContent = Joomla.Text.sprintf(Joomla.Text._('MOD_BOOKINGFORM_PRICE_ESTIMATE_LABEL'), options.currencySymbol, '-');
+            elements.priceInput.value = Joomla.Text._('MOD_BOOKINGFORM_PRICE_NA');
             elements.nightsDisplay.textContent = '';
             elements.priceDisclaimer.style.display = 'none';
         }
@@ -378,7 +348,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const spinner = elements.submitButton.querySelector('.spinner-border');
         const buttonText = elements.submitButton.querySelector('.button-text');
         elements.submitButton.disabled = true;
-        if (buttonText) buttonText.textContent = 'Sending...';
+        if (buttonText) buttonText.textContent = Joomla.Text._('MOD_BOOKINGFORM_SUBMIT_SENDING');
         if (spinner) spinner.style.display = 'inline-block';
 
         fetch(options.submissionUrl, { method: 'POST', body: new URLSearchParams(formData) })
@@ -389,27 +359,23 @@ document.addEventListener('DOMContentLoaded', function () {
                 const thankYouEl = document.getElementById('thank-you-message');
                 thankYouEl.style.display = 'block';
                 document.getElementById('booking-ref-display').textContent = data.bookingRef;
-            } else { alert('An error occurred: ' + (data.message || 'Please try again.')); }
+            } else { alert(Joomla.Text._('MOD_BOOKINGFORM_SUBMIT_ERROR_GENERIC') + (data.message || Joomla.Text._('MOD_BOOKINGFORM_SUBMIT_ERROR_TRY_AGAIN'))); }
         })
-        .catch(error => { console.error('Submission Error:', error); alert('A network error occurred.'); })
+        .catch(error => { console.error('Submission Error:', error); alert(Joomla.Text._('MOD_BOOKINGFORM_SUBMIT_ERROR_NETWORK')); })
         .finally(() => {
             elements.submitButton.disabled = false;
-            if(buttonText) buttonText.textContent = 'Send Booking Request';
+            if(buttonText) buttonText.textContent = Joomla.Text._('MOD_BOOKINGFORM_SUBMIT_BUTTON_TEXT');
             if (spinner) spinner.style.display = 'none';
         });
     });
 
     if (elements.getQuoteButton) {
         elements.getQuoteButton.addEventListener('click', function() {
-            // Clear previous errors
             elements.datePickerEl.classList.remove('is-invalid');
             elements.dateRangeError.style.display = 'none';
             elements.childAgesError.style.display = 'none';
             elements.childAgesContainer.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
-
             let isValid = true;
-
-            // Validation for minimum stay
             let minStay = 0;
             let minStaySeason = '';
             if (options.pricingRules && Array.isArray(options.pricingRules.seasons)) {
@@ -423,18 +389,17 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
             if (numberOfNights === 0) {
-                elements.dateRangeError.textContent = 'Please select your check-in and check-out dates first.';
+                elements.dateRangeError.textContent = Joomla.Text._('MOD_BOOKINGFORM_DATE_RANGE_ERROR');
                 elements.datePickerEl.classList.add('is-invalid');
                 elements.dateRangeError.style.display = 'block';
                 isValid = false;
             } else if (numberOfNights < minStay) {
-                elements.dateRangeError.textContent = `A minimum stay of ${minStay} nights is required for the selected period (${minStaySeason} season).`;
+                elements.dateRangeError.textContent = Joomla.Text.sprintf(Joomla.Text._('MOD_BOOKINGFORM_MIN_STAY_ERROR'), minStay, minStaySeason);
                 elements.datePickerEl.classList.add('is-invalid');
                 elements.dateRangeError.style.display = 'block';
                 isValid = false;
             }
 
-            // Validation for child ages
             const childrenCount = parseInt(elements.childrenSelect.value, 10);
             const childAgeInputs = elements.childAgesContainer.querySelectorAll('.child-age-input');
             if (childrenCount > 0 && childAgeInputs.length > 0) {
@@ -448,7 +413,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 }
                 if (!allAgesEntered) {
-                    elements.childAgesError.textContent = 'Please enter the age for all children.';
+                    elements.childAgesError.textContent = Joomla.Text._('MOD_BOOKINGFORM_CHILD_AGES_ERROR');
                     elements.childAgesError.style.display = 'block';
                     isValid = false;
                 }
@@ -463,7 +428,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 elements.priceSummaryContainer.style.display = 'block';
                 elements.bookingStep2.style.display = 'block';
                 elements.startingFromPrice.style.display = 'none';
-                elements.getQuoteButton.textContent = 'Recalculate Price';
+                elements.getQuoteButton.textContent = Joomla.Text._('MOD_BOOKINGFORM_RECALCULATE_BUTTON_TEXT');
             });
         });
     }

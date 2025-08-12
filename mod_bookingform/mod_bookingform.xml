@@ -9,6 +9,7 @@
         <filename>helper.php</filename>
         <folder>tmpl</folder>
         <folder>media</folder>
+        <folder>language</folder>
     </files>
     <config>
         <fields name="params">
