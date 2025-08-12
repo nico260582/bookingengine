@@ -270,7 +270,7 @@ document.addEventListener('DOMContentLoaded', function () {
             let commissionRate = 0;
             const rateDetail = rules.rate_details ? rules.rate_details[seasonName] : null;
             if (rateDetail && rateDetail.override_admin_commission) {
-                commissionRate = rateDetail.admin_commission || 0;
+                commissionRate = parseFloat(rateDetail.admin_commission) || 0;
             } else if (currentSeason && currentSeason.admin_commission) {
                 commissionRate = parseFloat(currentSeason.admin_commission) || 0;
             }
