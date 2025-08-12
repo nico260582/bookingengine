@@ -266,7 +266,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 let chargeableChildren = 0;
                 childAges.forEach(age => {
                     if (age > rules.child_max_age) chargeableAdults++;
-                    else if (age > rules.infant_max_age && currentSeason.apply_child_supplement === "1") { chargeableChildren++; }
+                    else if (age > rules.infant_max_age && currentSeason.apply_child_supplement == 1) { chargeableChildren++; }
                 });
                 const extraAdults = Math.max(0, chargeableAdults - 2);
                 nightlyRate += (extraAdults * (rules.adult_supplement || 0)) + (chargeableChildren * (rules.child_supplement || 0));
