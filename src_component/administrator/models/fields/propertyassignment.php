@@ -68,7 +68,7 @@ class JFormFieldPropertyAssignment extends FormField
                 const search = async (searchTerm) => {
                     resultsContainer.innerHTML = '<div class="property-item-placeholder">Searching...</div>';
 
-                    const url = `index.php?option=com_bookingmanager&task=properties.get&format=raw&supplier_id=${supplierId}&search=${encodeURIComponent(searchTerm)}&${formToken}=1`;
+                    const url = `index.php?option=com_bookingmanager&task=supplier.searchProperties&format=raw&supplier_id=${supplierId}&search=${encodeURIComponent(searchTerm)}&${formToken}=1`;
 
                     try {
                         const response = await fetch(url);
