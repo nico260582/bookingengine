@@ -1,10 +1,15 @@
 <?php
 defined('_JEXEC') or die;
 
-// Ensure the helper is loaded
-JLoader::register('BookingmanagerHelper', JPATH_COMPONENT_ADMINISTRATOR . '/helpers/bookingmanager.php');
-JTable::addIncludePath(JPATH_COMPONENT_ADMINISTRATOR . '/tables');
+use Joomla\CMS\MVC\Controller\BaseController;
+use Joomla\CMS\Factory;
 
-$controller = JControllerLegacy::getInstance('Bookingmanager');
-$controller->execute(JFactory::getApplication()->input->get('task'));
+// Get the controller instance. This will automatically route to the correct
+// controller based on the 'task' variable (e.g., task=property.add loads PropertyController)
+$controller = BaseController::getInstance('Bookingmanager');
+
+// Execute the task
+$controller->execute(Factory::getApplication()->input->getCmd('task'));
+
+// Redirect if set by the controller
 $controller->redirect();
