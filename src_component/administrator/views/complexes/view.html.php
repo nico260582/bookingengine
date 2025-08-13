@@ -32,8 +32,8 @@ class BookingmanagerViewComplexes extends BaseHtmlView
     protected function addToolbar()
     {
         ToolbarHelper::title('Complexes');
-        ToolbarHelper::addNew('complex.add');
-        ToolbarHelper::editList('complex.edit');
+        ToolbarHelper::addNew('complexes.add');
+        ToolbarHelper::editList('complexes.edit');
         ToolbarHelper::deleteList('Are you sure?', 'complexes.delete');
     }
 }
