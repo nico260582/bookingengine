@@ -4,74 +4,85 @@ defined('_JEXEC') or die;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\Layout\LayoutHelper;
 use Joomla\CMS\HTML\HTMLHelper;
+use Joomla\CMS\Factory;
 
 // Load validation behavior
 HTMLHelper::_('behavior.formvalidator');
 
-// Load bootstrap tabs
-HTMLHelper::_('bootstrap.startTabSet', 'myTab', array('active' => 'details'));
+// Custom script for the rates table
+$script = "
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.override-commission-checkbox').forEach(function(checkbox) {
+        var commissionInput = checkbox.closest('tr').querySelector('.commission-value-input');
+
+        function toggleCommissionInput() {
+            commissionInput.disabled = !checkbox.checked;
+        }
+
+        checkbox.addEventListener('change', toggleCommissionInput);
+        toggleCommissionInput(); // Initial state
+    });
+});
+";
+Factory::getDocument()->addScriptDeclaration($script);
 ?>
 
 <form action="<?php echo Route::_('index.php?option=com_bookingmanager&layout=edit&id=' . (int) $this->item->id); ?>" method="post" name="adminForm" id="item-form" class="form-validate">
-    <div class="form-horizontal">
-        <?php echo HTMLHelper::_('bootstrap.addTab', 'myTab', 'details', 'Details'); ?>
-        <div class="row-fluid">
-            <div class="span9">
-                <div class="form-vertical">
-                    <?php echo $this->form->renderField('article_id'); ?>
-                    <?php echo $this->form->renderField('max_guests'); ?>
-                    <?php echo $this->form->renderField('complex_id'); ?>
-                </div>
-            </div>
-        </div>
-        <?php echo HTMLHelper::_('bootstrap.endTab'); ?>
 
-        <?php echo HTMLHelper::_('bootstrap.addTab', 'myTab', 'rates', 'Rates'); ?>
-        <div class="row-fluid">
-            <div class="span12">
-                <?php if (isset($this->item->ratesData) && !empty($this->item->ratesData->seasons)) : ?>
-                    <table class="table table-striped">
-                        <thead>
-                            <tr>
-                                <th>Season</th>
-                                <th>Base Rate</th>
-                                <th>Override Admin Commission</th>
-                                <th>Admin Commission (%)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($this->item->ratesData->seasons as $season) :
-                                $seasonName = $season->name;
-                                $rateInfo = $this->item->ratesData->rates[$seasonName] ?? null;
-                            ?>
-                                <tr>
-                                    <td><?php echo htmlspecialchars($seasonName, ENT_QUOTES, 'UTF-8'); ?></td>
-                                    <td>
-                                        <input type="text" name="jform[rates][<?php echo htmlspecialchars($seasonName, ENT_QUOTES, 'UTF-8'); ?>][base_rate]" value="<?php echo $rateInfo->base_rate ?? ''; ?>" class="input-small">
-                                    </td>
-                                    <td>
-                                        <?php $checked = ($rateInfo && !empty($rateInfo->override_admin_commission)) ? 'checked' : ''; ?>
-                                        <input type="checkbox" name="jform[rates][<?php echo htmlspecialchars($seasonName, ENT_QUOTES, 'UTF-8'); ?>][override_admin_commission]" value="1" <?php echo $checked; ?>>
-                                    </td>
-                                    <td>
-                                        <input type="text" name="jform[rates][<?php echo htmlspecialchars($seasonName, ENT_QUOTES, 'UTF-8'); ?>][admin_commission]" value="<?php echo $rateInfo->admin_commission ?? ''; ?>" class="input-small">
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                <?php elseif (isset($this->item->ratesData) && isset($this->item->ratesData->error)) : ?>
-                    <div class="alert alert-warning"><?php echo $this->item->ratesData->error; ?></div>
-                <?php else : ?>
-                    <div class="alert">No seasons found. Please define seasons for the supplier assigned to this property.</div>
-                <?php endif; ?>
-            </div>
-        </div>
-        <?php echo HTMLHelper::_('bootstrap.endTab'); ?>
-    </div>
+    <fieldset class="form-horizontal">
+        <legend>Property Details</legend>
+        <?php echo $this->form->renderField('article_id'); ?>
+        <?php echo $this->form->renderField('max_guests'); ?>
+        <?php echo $this->form->renderField('complex_id'); ?>
+    </fieldset>
+
+    <hr>
+
+    <fieldset class="form-horizontal">
+        <legend>Property Rates</legend>
+        <?php if (isset($this->item->ratesData) && !empty($this->item->ratesData->seasons)) : ?>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Season</th>
+                        <th>Base Rate (per night)</th>
+                        <th class="nowrap">Override Admin Commission?</th>
+                        <th>Admin Commission %</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($this->item->ratesData->seasons as $season) :
+                        $rate = $this->item->ratesData->rates[$season->name] ?? null;
+                        $rateValue = ($rate && isset($rate->base_rate)) ? $rate->base_rate : '';
+                        $overrideChecked = ($rate && isset($rate->override_admin_commission) && $rate->override_admin_commission) ? 'checked' : '';
+                        $commissionValue = ($rate && isset($rate->admin_commission)) ? $rate->admin_commission : '';
+                        $supplierCommission = $season->admin_commission ?? 0;
+                    ?>
+                    <tr>
+                        <td><?php echo $this->escape($season->name); ?><br/><small><?php echo $season->start_date . ' to ' . $season->end_date; ?></small></td>
+                        <td><input type="number" step="0.01" name="jform[rates][<?php echo $this->escape($season->name); ?>][base_rate]" value="<?php echo $this->escape($rateValue); ?>" class="input-small" /></td>
+                        <td><input type="checkbox" name="jform[rates][<?php echo $this->escape($season->name); ?>][override_admin_commission]" value="1" class="override-commission-checkbox" <?php echo $overrideChecked; ?> /></td>
+                        <td>
+                            <input type="number" step="0.01" name="jform[rates][<?php echo $this->escape($season->name); ?>][admin_commission]" value="<?php echo $this->escape($commissionValue); ?>" class="input-small commission-value-input" />
+                            <div class="commission-source-info" style="font-size: 0.9em; color: #666;">
+                                <?php if ($overrideChecked) : ?>
+                                    <span style="color: green;">Property Override</span>
+                                <?php else : ?>
+                                    Inherited from Supplier (<?php echo $this->escape($supplierCommission); ?>%)
+                                <?php endif; ?>
+                            </div>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php elseif (isset($this->item->ratesData) && isset($this->item->ratesData->error)) : ?>
+            <div class="alert alert-warning"><?php echo $this->item->ratesData->error; ?></div>
+        <?php else : ?>
+            <div class="alert">No seasons found. Please define seasons for the supplier assigned to this property.</div>
+        <?php endif; ?>
+    </fieldset>
+
     <input type="hidden" name="task" value="" />
     <?php echo HTMLHelper::_('form.token'); ?>
 </form>
-<?php
-HTMLHelper::_('bootstrap.endTabSet');
-?>
