@@ -37,8 +37,8 @@ class BookingmanagerModelProperties extends ListModel
             )
         )
             ->from($db->quoteName('#__bookingmanager_properties', 'a'))
-            // This INNER JOIN filters for properties assigned to a supplier
-            ->join('INNER', $db->quoteName('#__bookingmanager_property_map', 'supplier_map') . ' ON a.id = supplier_map.property_id')
+            // This LEFT JOIN now includes all properties, showing supplier where available
+            ->join('LEFT', $db->quoteName('#__bookingmanager_property_map', 'supplier_map') . ' ON a.id = supplier_map.property_id')
             ->join('LEFT', $db->quoteName('#__bookingmanager_suppliers', 'supplier') . ' ON supplier_map.supplier_id = supplier.id')
             // These joins get the article title and complex name
             ->join('LEFT', $db->quoteName('#__content', 'article') . ' ON a.article_id = article.id')
