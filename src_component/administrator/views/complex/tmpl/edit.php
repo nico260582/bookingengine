@@ -1,0 +1,22 @@
+<?php
+defined('_JEXEC') or die;
+
+use Joomla\CMS\Router\Route;
+use Joomla\CMS\Layout\LayoutHelper;
+?>
+
+<form action="<?php echo Route::_('index.php?option=com_bookingmanager&layout=edit&id=' . (int) $this->item->id); ?>" method="post" name="adminForm" id="item-form" class="form-validate">
+    <div class="form-horizontal">
+        <?php echo LayoutHelper::render('joomla.edit.title_alias', $this); ?>
+        <div class="row-fluid">
+            <div class="span9">
+                <div class="form-vertical">
+                    <?php echo $this->form->getControlGroup('name'); ?>
+                    <?php echo $this->form->getControlGroup('description'); ?>
+                </div>
+            </div>
+        </div>
+    </div>
+    <input type="hidden" name="task" value="" />
+    <?php echo JHtml::_('form.token'); ?>
+</form>

@@ -62,6 +62,7 @@ use Joomla\CMS\HTML\HTMLHelper;
             <div id="price-estimate-display" class="price-total">Est. Price: -</div>
             <div id="discount-applied-alert" class="alert alert-success" style="display: none;"></div>
             <div id="nights-count-display" class="nights-count"></div>
+            <div id="property-suggestion-alert" class="alert alert-info" style="display: none;"></div>
             <div id="unit-count-display" class="units-count">1 Unit</div>
         </div>
 

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<form>
+    <fieldset>
+        <field
+            name="id"
+            type="hidden"
+        />
+        <field
+            name="article_id"
+            type="modal_article"
+            label="COM_BOOKINGMANAGER_PROPERTY_ARTICLE_LABEL"
+            description="COM_BOOKINGMANAGER_PROPERTY_ARTICLE_DESC"
+            required="true"
+        />
+        <field
+            name="max_guests"
+            type="number"
+            label="COM_BOOKINGMANAGER_PROPERTY_MAX_GUESTS_LABEL"
+            description="COM_BOOKINGMANAGER_PROPERTY_MAX_GUESTS_DESC"
+            required="true"
+            min="1"
+            step="1"
+        />
+        <field
+            name="complex_id"
+            type="sql"
+            label="COM_BOOKINGMANAGER_PROPERTY_COMPLEX_LABEL"
+            description="COM_BOOKINGMANAGER_PROPERTY_COMPLEX_DESC"
+            query="SELECT id AS value, name AS name FROM #__bookingmanager_complexes ORDER BY name"
+            key_field="value"
+            value_field="name"
+            header="Select a Complex (optional)"
+        />
+    </fieldset>
+</form>
