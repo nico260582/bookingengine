@@ -7,6 +7,7 @@ use Joomla\CMS\Factory;
 // Setup the component's class loader
 JLoader::register('BookingmanagerHelper', __DIR__ . '/helpers/bookingmanager.php');
 JTable::addIncludePath(__DIR__ . '/tables');
+JLoader::discover('BookingmanagerController', __DIR__ . '/controllers');
 
 // Get the controller instance.
 $controller = BaseController::getInstance('Bookingmanager', ['base_path' => __DIR__]);
