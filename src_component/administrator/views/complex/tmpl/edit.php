@@ -17,8 +17,8 @@ use Joomla\CMS\Layout\LayoutHelper;
             <div class="row-fluid">
                 <div class="span9">
                     <div class="form-vertical">
-                        <?php echo $this->form->getControlGroup('name'); ?>
-                        <?php echo $this->form->getControlGroup('description'); ?>
+                        <?php echo $this->form->renderField('name'); ?>
+                        <?php echo $this->form->renderField('description'); ?>
                     </div>
                 </div>
             </div>

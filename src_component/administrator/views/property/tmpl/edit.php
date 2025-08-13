@@ -16,9 +16,9 @@ use Joomla\CMS\Layout\LayoutHelper;
             <div class="row-fluid">
                 <div class="span9">
                     <div class="form-vertical">
-                        <?php echo $this->form->getControlGroup('article_id'); ?>
-                        <?php echo $this->form->getControlGroup('max_guests'); ?>
-                        <?php echo $this->form->getControlGroup('complex_id'); ?>
+                        <?php echo $this->form->renderField('article_id'); ?>
+                        <?php echo $this->form->renderField('max_guests'); ?>
+                        <?php echo $this->form->renderField('complex_id'); ?>
                     </div>
                 </div>
             </div>

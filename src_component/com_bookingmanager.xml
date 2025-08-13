@@ -42,15 +42,7 @@
             <filename>bookingmanager.php</filename>
             <filename>controller.php</filename>
             <filename>config.xml</filename>
-            <filename>controllers/bookingrequest.php</filename>
-            <filename>controllers/bookingrequests.php</filename>
-            <filename>controllers/diagnostic.php</filename>
-            <filename>controllers/index.html</filename>
-            <filename>controllers/propertyrates.php</filename>
-            <filename>controllers/supplier.php</filename>
-            <filename>controllers/suppliers.php</filename>
-            <filename>controllers/template.php</filename>
-            <filename>controllers/templates.php</filename>
+            <folder>controllers</folder>
             <folder>forms</folder>
             <folder>helpers</folder>
             <folder>models</folder>
