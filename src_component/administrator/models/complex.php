@@ -49,4 +49,19 @@ class BookingmanagerModelComplex extends AdminModel
 
         return parent::save($data);
     }
+
+    public function delete(&$pks)
+    {
+        $db = $this->getDbo();
+        foreach ($pks as $pk) {
+            // Delete from complex map table
+            $query = $db->getQuery(true)
+                ->delete($db->quoteName('#__bookingmanager_complex_property_map'))
+                ->where('complex_id = ' . (int)$pk);
+            $db->setQuery($query)->execute();
+        }
+
+        // Call parent delete to remove from main complexes table
+        return parent::delete($pks);
+    }
 }

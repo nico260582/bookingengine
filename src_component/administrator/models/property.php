@@ -103,4 +103,25 @@ class BookingmanagerModelProperty extends AdminModel
 
         return true;
     }
+
+    public function delete(&$pks)
+    {
+        $db = $this->getDbo();
+        foreach ($pks as $pk) {
+            // Delete from complex map table
+            $query = $db->getQuery(true)
+                ->delete($db->quoteName('#__bookingmanager_complex_property_map'))
+                ->where('property_id = ' . (int)$pk);
+            $db->setQuery($query)->execute();
+
+            // Delete from rates table
+            $query->clear()
+                ->delete($db->quoteName('#__bookingmanager_rates'))
+                ->where('property_id = ' . (int)$pk);
+            $db->setQuery($query)->execute();
+        }
+
+        // Call parent delete to remove from main properties table
+        return parent::delete($pks);
+    }
 }
