@@ -3,6 +3,10 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\Layout\LayoutHelper;
+use Joomla\CMS\HTML\HTMLHelper;
+
+// Load validation behavior
+HTMLHelper::_('behavior.formvalidator');
 ?>
 
 <form action="<?php echo Route::_('index.php?option=com_bookingmanager&layout=edit&id=' . (int) $this->item->id); ?>" method="post" name="adminForm" id="item-form" class="form-validate">

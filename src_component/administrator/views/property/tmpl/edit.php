@@ -5,6 +5,9 @@ use Joomla\CMS\Router\Route;
 use Joomla\CMS\Layout\LayoutHelper;
 use Joomla\CMS\HTML\HTMLHelper;
 
+// Load validation behavior
+HTMLHelper::_('behavior.formvalidator');
+
 // Load bootstrap tabs
 HTMLHelper::_('bootstrap.startTabSet', 'myTab', array('active' => 'details'));
 ?>
