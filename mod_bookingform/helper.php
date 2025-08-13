@@ -75,50 +75,9 @@ class ModBookingFormHelper
 
     public static function getAlternativeProperties(int $currentArticleId)
     {
-        $db = Factory::getDbo();
-
-        // Find the property ID from the article ID
-        $query = $db->getQuery(true)
-            ->select('id')
-            ->from($db->quoteName('#__bookingmanager_properties'))
-            ->where('article_id = ' . (int)$currentArticleId);
-        $propertyId = $db->setQuery($query)->loadResult();
-
-        if (!$propertyId) {
-            return [];
-        }
-
-        // Find the complex ID from the property ID
-        $query->clear()
-            ->select('complex_id')
-            ->from($db->quoteName('#__bookingmanager_complex_property_map'))
-            ->where('property_id = ' . (int)$propertyId);
-        $complexId = $db->setQuery($query)->loadResult();
-
-        if (!$complexId) {
-            return [];
-        }
-
-        // Find all other properties in the same complex
-        $query->clear()
-            ->select([
-                'p.max_guests',
-                'a.title',
-                'a.id AS article_id'
-            ])
-            ->from($db->quoteName('#__bookingmanager_properties', 'p'))
-            ->join('INNER', $db->quoteName('#__bookingmanager_complex_property_map', 'map') . ' ON p.id = map.property_id')
-            ->join('INNER', $db->quoteName('#__content', 'a') . ' ON p.article_id = a.id')
-            ->where('map.complex_id = ' . (int)$complexId)
-            ->where('p.article_id != ' . (int)$currentArticleId);
-
-        $alternatives = $db->setQuery($query)->loadObjectList();
-
-        // Add the URL to each alternative
-        foreach ($alternatives as &$alt) {
-            $alt->url = Route::_('index.php?option=com_content&view=article&id=' . $alt->article_id);
-        }
-
-        return $alternatives;
+    // This feature is not fully implemented in the database schema.
+    // The tables #__bookingmanager_properties and #__bookingmanager_complex_property_map do not exist.
+    // Returning an empty array to prevent a fatal database error.
+    return [];
     }
 }
