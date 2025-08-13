@@ -42,7 +42,7 @@ use Joomla\CMS\Layout\LayoutHelper;
                                 </a>
                             </td>
                             <td>
-                                <?php echo $this->escape($item->description); ?>
+                                <?php echo $this->escape($item->description ?? ''); ?>
                             </td>
                             <td>
                                 <?php echo (int) $item->id; ?>
