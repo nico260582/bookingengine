@@ -7,10 +7,14 @@
         />
         <field
             name="article_id"
-            type="modal_article"
+            type="sql"
+            query="SELECT id AS value, title AS title FROM #__content WHERE id NOT IN (SELECT article_id FROM #__bookingmanager_properties) ORDER BY title"
+            key_field="value"
+            value_field="title"
             label="COM_BOOKINGMANAGER_PROPERTY_ARTICLE_LABEL"
             description="COM_BOOKINGMANAGER_PROPERTY_ARTICLE_DESC"
             required="true"
+            header="Select an Article"
         />
         <field
             name="max_guests"
