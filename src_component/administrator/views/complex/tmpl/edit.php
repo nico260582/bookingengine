@@ -17,7 +17,6 @@ HTMLHelper::_('behavior.formvalidator');
     <?php endif; ?>
     <div id="j-main-container" class="j-main-container <?php if (!empty($this->sidebar)) : ?>span10<?php endif; ?>">
         <div class="form-horizontal">
-            <?php echo LayoutHelper::render('joomla.edit.title_alias', $this); ?>
             <div class="row-fluid">
                 <div class="span9">
                     <div class="form-vertical">
