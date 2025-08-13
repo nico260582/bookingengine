@@ -1,21 +1,20 @@
 <?php
 defined('_JEXEC') or die;
 
-use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\Factory;
+use Joomla\CMS\MVC\Controller\LegacyController;
+use Joomla\CMS\Language\Text;
 
-// Setup the component's class loader
-JLoader::register('BookingmanagerHelper', __DIR__ . '/helpers/bookingmanager.php');
-JLoader::register('BookingmanagerControllerProperties', __DIR__ . '/controllers/properties.php');
-JLoader::register('BookingmanagerControllerProperty', __DIR__ . '/controllers/property.php');
-JLoader::register('BookingmanagerControllerComplexes', __DIR__ . '/controllers/complexes.php');
-JLoader::register('BookingmanagerControllerComplex', __DIR__ . '/controllers/complex.php');
-JTable::addIncludePath(__DIR__ . '/tables');
+// Access check.
+if (!Factory::getUser()->authorise('core.manage', 'com_bookingmanager'))
+{
+	throw new \Exception(Text::_('JERROR_ALERTNOAUTHOR'), 403);
+}
 
-// Get the controller instance.
-$controller = BaseController::getInstance('Bookingmanager', ['base_path' => __DIR__]);
+// Get an instance of the controller prefixed by Bookingmanager
+$controller = LegacyController::getInstance('Bookingmanager');
 
-// Execute the task
+// Perform the Request task
 $controller->execute(Factory::getApplication()->input->getCmd('task'));
 
 // Redirect if set by the controller
