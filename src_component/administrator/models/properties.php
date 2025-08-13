@@ -13,7 +13,7 @@ class BookingmanagerModelProperties extends ListModel
                 'article_title', 'article.title',
                 'max_guests', 'a.max_guests',
                 'complex_name', 'complex.name',
-                'supplier_name', 'supplier.name',
+                'supplier_abbreviation', 'supplier.abbreviation',
                 'published', 'a.published'
             );
         }
@@ -34,12 +34,12 @@ class BookingmanagerModelProperties extends ListModel
         $query->select(
             $this->getState(
                 'list.select',
-                'a.*, article.title AS article_title, complex.name AS complex_name, supplier.name AS supplier_name'
+                'a.*, article.title AS article_title, complex.name AS complex_name, supplier.abbreviation AS supplier_abbreviation'
             )
         )
             ->from($db->quoteName('#__bookingmanager_properties', 'a'))
             // This LEFT JOIN now includes all properties, showing supplier where available
-            ->join('LEFT', $db->quoteName('#__bookingmanager_property_map', 'supplier_map') . ' ON a.id = supplier_map.property_id')
+            ->join('LEFT', $db->quoteName('#__bookingmanager_property_map', 'supplier_map') . ' ON a.article_id = supplier_map.property_id')
             ->join('LEFT', $db->quoteName('#__bookingmanager_suppliers', 'supplier') . ' ON supplier_map.supplier_id = supplier.id')
             // These joins get the article title and complex name
             ->join('LEFT', $db->quoteName('#__content', 'article') . ' ON a.article_id = article.id')

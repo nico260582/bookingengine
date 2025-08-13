@@ -25,7 +25,7 @@ use Joomla\CMS\Layout\LayoutHelper;
                         <?php echo JHtml::_('grid.sort', 'Complex', 'complex.name', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
                     </th>
                     <th width="15%">
-                        <?php echo JHtml::_('grid.sort', 'Supplier', 'supplier.name', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
+                        <?php echo JHtml::_('grid.sort', 'Supplier', 'supplier.abbreviation', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
                     </th>
                     <th width="5%">
                         <?php echo JHtml::_('grid.sort', 'JSTATUS', 'a.published', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
@@ -54,10 +54,10 @@ use Joomla\CMS\Layout\LayoutHelper;
                                 <?php echo $this->escape($item->complex_name) ?: 'N/A'; ?>
                             </td>
                             <td>
-                                <?php echo $this->escape($item->supplier_name) ?: 'N/A'; ?>
+                                <?php echo $this->escape($item->supplier_abbreviation) ?: 'N/A'; ?>
                             </td>
                             <td class="center">
-                                <?php echo JHtml::_('jgrid.published', $item->published, $i, 'properties.', true, 'cb'); ?>
+                                <?php echo JHtml::_('jgrid.published', $item->published ?? 0, $i, 'properties.', true, 'cb'); ?>
                             </td>
                             <td>
                                 <?php echo (int) $item->max_guests; ?>
