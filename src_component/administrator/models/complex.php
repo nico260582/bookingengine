@@ -3,6 +3,7 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\MVC\Model\AdminModel;
 use Joomla\CMS\Factory;
+use Joomla\CMS\Filter\OutputFilter;
 
 class BookingmanagerModelComplex extends AdminModel
 {
@@ -42,6 +43,11 @@ class BookingmanagerModelComplex extends AdminModel
 
     public function save($data)
     {
+        // Generate an alias from the name if it's not present.
+        if (empty($data['alias']) && !empty($data['name'])) {
+            $data['alias'] = OutputFilter::stringURLSafe($data['name']);
+        }
+
         // Add created_at on new records
         if (empty($data['id'])) {
             $data['created_at'] = Factory::getDate()->toSql();
