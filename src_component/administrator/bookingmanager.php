@@ -3,6 +3,7 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
+use Joomla\CMS\MVC\Controller\BaseController;
 
 // Access check.
 if (!Factory::getUser()->authorise('core.manage', 'com_bookingmanager'))
@@ -12,8 +13,6 @@ if (!Factory::getUser()->authorise('core.manage', 'com_bookingmanager'))
 
 // Register the helper
 JLoader::register('BookingmanagerHelper', __DIR__ . '/helpers/bookingmanager.php');
-
-use Joomla\CMS\MVC\Controller\BaseController;
 
 // Get an instance of the controller prefixed by Bookingmanager
 $controller = BaseController::getInstance('Bookingmanager');
