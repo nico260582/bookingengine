@@ -124,4 +124,41 @@ class BookingmanagerModelProperty extends AdminModel
         // Call parent delete to remove from main properties table
         return parent::delete($pks);
     }
+
+    public function publish(&$pks, $value = 1)
+    {
+        $pks = (array) $pks;
+        $db = $this->getDbo();
+
+        // Validation: Only check if we are trying to publish
+        if ($value == 1) {
+            // Get the rates model to reuse its logic
+            AdminModel::addIncludePath(JPATH_COMPONENT_ADMINISTRATOR . '/models');
+            $ratesModel = AdminModel::getInstance('Propertyrates', 'BookingmanagerModel');
+
+            if (!$ratesModel) {
+                $this->setError('Could not load rates model.');
+                return false;
+            }
+
+            foreach ($pks as $pk) {
+                $ratesData = $ratesModel->getRateData($pk);
+                if (empty($ratesData) || isset($ratesData->error) || empty($ratesData->seasons)) {
+                    $this->setError('Property ID ' . $pk . ' cannot be published. It may not be assigned to a supplier with seasons defined.');
+                    return false;
+                }
+
+                foreach ($ratesData->seasons as $season) {
+                    $seasonName = $season->name;
+                    if (!isset($ratesData->rates[$seasonName]) || !isset($ratesData->rates[$seasonName]->base_rate) || $ratesData->rates[$seasonName]->base_rate === '') {
+                        $this->setError('Property ID ' . $pk . ' cannot be published. Please fill in the base rate for all seasons first.');
+                        return false;
+                    }
+                }
+            }
+        }
+
+        // If validation passes or we are unpublishing, proceed.
+        return parent::publish($pks, $value);
+    }
 }

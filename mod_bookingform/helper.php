@@ -110,7 +110,8 @@ class ModBookingFormHelper
         ->join('INNER', $db->quoteName('#__bookingmanager_complex_property_map', 'map') . ' ON p.id = map.property_id')
         ->join('INNER', $db->quoteName('#__content', 'a') . ' ON p.article_id = a.id')
         ->where('map.complex_id = ' . (int)$complexId)
-        ->where('p.article_id != ' . (int)$currentArticleId);
+        ->where('p.article_id != ' . (int)$currentArticleId)
+        ->where('p.published = 1');
 
     $alternatives = $db->setQuery($query)->loadObjectList();
 
