@@ -19,6 +19,11 @@ class BookingmanagerModelProperties extends ListModel
         parent::__construct($config);
     }
 
+    protected function populateState($ordering = 'article.title', $direction = 'asc')
+    {
+        parent::populateState($ordering, $direction);
+    }
+
     protected function getListQuery()
     {
         $db = $this->getDbo();

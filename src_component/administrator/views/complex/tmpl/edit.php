@@ -6,13 +6,20 @@ use Joomla\CMS\Layout\LayoutHelper;
 ?>
 
 <form action="<?php echo Route::_('index.php?option=com_bookingmanager&layout=edit&id=' . (int) $this->item->id); ?>" method="post" name="adminForm" id="item-form" class="form-validate">
-    <div class="form-horizontal">
-        <?php echo LayoutHelper::render('joomla.edit.title_alias', $this); ?>
-        <div class="row-fluid">
-            <div class="span9">
-                <div class="form-vertical">
-                    <?php echo $this->form->getControlGroup('name'); ?>
-                    <?php echo $this->form->getControlGroup('description'); ?>
+    <?php if (!empty($this->sidebar)) : ?>
+    <div id="j-sidebar-container" class="span2">
+        <?php echo $this->sidebar; ?>
+    </div>
+    <?php endif; ?>
+    <div id="j-main-container" class="j-main-container <?php if (!empty($this->sidebar)) : ?>span10<?php endif; ?>">
+        <div class="form-horizontal">
+            <?php echo LayoutHelper::render('joomla.edit.title_alias', $this); ?>
+            <div class="row-fluid">
+                <div class="span9">
+                    <div class="form-vertical">
+                        <?php echo $this->form->getControlGroup('name'); ?>
+                        <?php echo $this->form->getControlGroup('description'); ?>
+                    </div>
                 </div>
             </div>
         </div>
