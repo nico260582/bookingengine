@@ -102,8 +102,34 @@ class BookingmanagerModelSupplier extends AdminModel
     private function updatePropertyAssignments(int $supplierId, array $assignedProperties)
     {
         $db = Factory::getDbo();
+
+        // First, ensure a property record exists for each assigned article
+        if (!empty($assignedProperties)) {
+            // Get all article IDs that are already properties
+            $existingQuery = $db->getQuery(true)
+                ->select('p.article_id')
+                ->from($db->quoteName('#__bookingmanager_properties', 'p'))
+                ->where('p.article_id IN (' . implode(',', $assignedProperties) . ')');
+            $existingPropertyArticleIds = $db->setQuery($existingQuery)->loadColumn();
+
+            $newPropertyArticleIds = array_diff($assignedProperties, $existingPropertyArticleIds);
+
+            if (!empty($newPropertyArticleIds)) {
+                $insertPropQuery = $db->getQuery(true)
+                    ->insert($db->quoteName('#__bookingmanager_properties'))
+                    ->columns($db->quoteName('article_id'));
+
+                foreach ($newPropertyArticleIds as $articleId) {
+                    $insertPropQuery->values((int)$articleId);
+                }
+                $db->setQuery($insertPropQuery)->execute();
+            }
+        }
+
+        // Now, update the supplier-to-property mapping.
+        // The mapping table uses the Joomla Article ID as the 'property_id'.
         
-        // Delete existing assignments
+        // Delete existing assignments for this supplier
         $query = $db->getQuery(true)
             ->delete($db->quoteName('#__bookingmanager_property_map'))
             ->where($db->quoteName('supplier_id') . ' = ' . $supplierId);
