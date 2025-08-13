@@ -29,6 +29,8 @@
         <menu link="option=com_bookingmanager">Booking Manager</menu>
         <submenu>
             <menu view="bookingrequests" link="option=com_bookingmanager&amp;view=bookingrequests">Booking Requests</menu>
+            <menu view="properties" link="option=com_bookingmanager&amp;view=properties">Properties</menu>
+            <menu view="complexes" link="option=com_bookingmanager&amp;view=complexes">Complexes</menu>
             <menu view="suppliers" link="option=com_bookingmanager&amp;view=suppliers">Suppliers</menu>
             <menu view="propertyrates" link="option=com_bookingmanager&amp;view=propertyrates">Property Rates</menu>
             <menu view="templates" link="option=com_bookingmanager&amp;view=templates">Email Templates</menu>
