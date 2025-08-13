@@ -43,6 +43,13 @@ class BookingmanagerModelProperty extends AdminModel
                     ->from('#__bookingmanager_complex_property_map')
                     ->where('property_id = ' . (int)$data->id);
                 $data->complex_id = $db->setQuery($query)->loadResult();
+
+                // Load the rates data
+                AdminModel::addIncludePath(JPATH_COMPONENT_ADMINISTRATOR . '/models');
+                $ratesModel = AdminModel::getInstance('Propertyrates', 'BookingmanagerModel');
+                if ($ratesModel) {
+                    $data->ratesData = $ratesModel->getRateData($data->id);
+                }
             }
         }
 
