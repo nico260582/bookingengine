@@ -71,6 +71,9 @@ class com_bookingmanagerInstallerScript
         $queries[] = "CREATE TABLE IF NOT EXISTS `#__bookingmanager_property_map` ( `property_id` int(11) NOT NULL, `supplier_id` int(11) NOT NULL, PRIMARY KEY (`property_id`), KEY `idx_supplier_id` (`supplier_id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
         $queries[] = "CREATE TABLE IF NOT EXISTS `#__bookingmanager_rates` ( `property_id` int(11) NOT NULL, `season_name` varchar(255) NOT NULL, `base_rate` decimal(10,2) NOT NULL, PRIMARY KEY (`property_id`, `season_name`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
         $queries[] = "CREATE TABLE IF NOT EXISTS `#__bookingmanager_templates` (`id` int(11) NOT NULL AUTO_INCREMENT, `title` varchar(255) NOT NULL, `type` varchar(50) NOT NULL, `subject` varchar(255) DEFAULT NULL, `body` text, PRIMARY KEY (`id`), UNIQUE KEY `idx_type` (`type`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
+        $queries[] = "CREATE TABLE IF NOT EXISTS `#__bookingmanager_complexes` ( `id` int(11) NOT NULL AUTO_INCREMENT, `name` varchar(255) NOT NULL, `alias` varchar(255) NOT NULL, `published` tinyint(1) NOT NULL DEFAULT '1', PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
+        $queries[] = "CREATE TABLE IF NOT EXISTS `#__bookingmanager_properties` ( `id` int(11) NOT NULL AUTO_INCREMENT, `article_id` int(11) NOT NULL, `max_guests` int(11) NOT NULL DEFAULT '2', PRIMARY KEY (`id`), KEY `idx_article_id` (`article_id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
+        $queries[] = "CREATE TABLE IF NOT EXISTS `#__bookingmanager_complex_property_map` ( `complex_id` int(11) NOT NULL, `property_id` int(11) NOT NULL, PRIMARY KEY (`complex_id`,`property_id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
         
         foreach ($queries as $query) {
             $db->setQuery($query);
