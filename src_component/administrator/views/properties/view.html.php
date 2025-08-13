@@ -31,7 +31,6 @@ class BookingmanagerViewProperties extends BaseHtmlView
     protected function addToolbar()
     {
         ToolbarHelper::title('Properties');
-        ToolbarHelper::addNew('property.add');
         ToolbarHelper::editList('property.edit');
         ToolbarHelper::deleteList('Are you sure?', 'properties.delete');
     }

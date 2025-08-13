@@ -27,6 +27,9 @@ use Joomla\CMS\Layout\LayoutHelper;
                     <th width="15%">
                         <?php echo JHtml::_('grid.sort', 'Supplier', 'supplier.name', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
                     </th>
+                    <th width="5%">
+                        <?php echo JHtml::_('grid.sort', 'JSTATUS', 'a.published', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
+                    </th>
                     <th width="10%">
                         <?php echo JHtml::_('grid.sort', 'Max Guests', 'a.max_guests', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
                     </th>
@@ -53,6 +56,9 @@ use Joomla\CMS\Layout\LayoutHelper;
                             <td>
                                 <?php echo $this->escape($item->supplier_name) ?: 'N/A'; ?>
                             </td>
+                            <td class="center">
+                                <?php echo JHtml::_('jgrid.published', $item->published, $i, 'properties.', true, 'cb'); ?>
+                            </td>
                             <td>
                                 <?php echo (int) $item->max_guests; ?>
                             </td>
@@ -63,7 +69,7 @@ use Joomla\CMS\Layout\LayoutHelper;
                     <?php endforeach; ?>
                 <?php else : ?>
                     <tr>
-                        <td colspan="6" class="text-center">
+                        <td colspan="7" class="text-center">
                             No properties found.
                         </td>
                     </tr>
@@ -71,7 +77,7 @@ use Joomla\CMS\Layout\LayoutHelper;
             </tbody>
             <tfoot>
                 <tr>
-                    <td colspan="6">
+                    <td colspan="7">
                         <?php echo $this->pagination->getListFooter(); ?>
                     </td>
                 </tr>

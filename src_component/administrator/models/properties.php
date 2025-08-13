@@ -13,7 +13,8 @@ class BookingmanagerModelProperties extends ListModel
                 'article_title', 'article.title',
                 'max_guests', 'a.max_guests',
                 'complex_name', 'complex.name',
-                'supplier_name', 'supplier.name'
+                'supplier_name', 'supplier.name',
+                'published', 'a.published'
             );
         }
 
