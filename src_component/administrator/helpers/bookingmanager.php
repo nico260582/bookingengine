@@ -14,6 +14,8 @@ abstract class BookingmanagerHelper
     public static function addSubmenu($vName)
     {
         JHtmlSidebar::addEntry('Booking Requests', 'index.php?option=com_bookingmanager&view=bookingrequests', $vName == 'bookingrequests' || $vName == 'bookingrequest');
+        JHtmlSidebar::addEntry('Properties', 'index.php?option=com_bookingmanager&view=properties', $vName == 'properties' || $vName == 'property');
+        JHtmlSidebar::addEntry('Complexes', 'index.php?option=com_bookingmanager&view=complexes', $vName == 'complexes' || $vName == 'complex');
         JHtmlSidebar::addEntry('Suppliers', 'index.php?option=com_bookingmanager&view=suppliers', $vName == 'suppliers' || $vName == 'supplier');
         JHtmlSidebar::addEntry('Property Rates', 'index.php?option=com_bookingmanager&view=propertyrates', $vName == 'propertyrates');
         JHtmlSidebar::addEntry('Email Templates', 'index.php?option=com_bookingmanager&view=templates', $vName == 'templates' || $vName == 'template');

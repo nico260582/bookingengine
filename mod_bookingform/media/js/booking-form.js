@@ -31,6 +31,7 @@ document.addEventListener('DOMContentLoaded', function () {
         priceSummaryContainer: document.getElementById('price-summary-container'),
         dateRangeError: document.getElementById('date-range-error'),
         childAgesError: document.getElementById('child-ages-error'),
+        propertySuggestionAlert: document.getElementById('property-suggestion-alert'),
     };
 
     function displayStartingPrice() {
@@ -234,20 +235,40 @@ document.addEventListener('DOMContentLoaded', function () {
         const adults = parseInt(elements.guestSelect.value, 10);
         const rules = options.pricingRules;
         if (!rules) return;
+
+        // Always reset suggestion alerts
+        elements.propertySuggestionAlert.style.display = 'none';
+        elements.unitCountDisplay.style.display = 'block';
+
         updateChildAgeNotification();
         const childAges = Array.from(document.querySelectorAll('.child-age-input')).map(input => parseInt(input.value, 10)).filter(age => !isNaN(age));
 
-        // Determine guest counts
         const infants = childAges.filter(age => age <= rules.infant_max_age);
         const teens = childAges.filter(age => age > rules.child_max_age && age <= rules.teen_max_age);
         const children = childAges.filter(age => age > rules.infant_max_age && age <= rules.child_max_age);
         const totalAdultsAndTeens = adults + teens.length;
 
-        // Determine unit and capacity details
         let totalGuestsForCapacity = adults + teens.length + children.length;
         let mattressCost = 0;
         let requiredUnits = 1;
-        const baseCapacity = options.totalAccommodationGuests || 2;
+        const baseCapacity = options.totalAccommodationGuests || 1;
+
+        // Handle property suggestion logic first
+        if (totalGuestsForCapacity > baseCapacity && Array.isArray(rules.alternative_properties) && rules.alternative_properties.length > 0) {
+            const suitableAlternatives = rules.alternative_properties
+                .filter(p => p.max_guests >= totalGuestsForCapacity)
+                .sort((a, b) => a.max_guests - b.max_guests);
+
+            if (suitableAlternatives.length > 0) {
+                const bestFit = suitableAlternatives[0];
+                elements.propertySuggestionAlert.innerHTML = `This property may be too small. For your group size, we suggest our <a href="${bestFit.url}">${bestFit.title}</a>.`;
+                elements.propertySuggestionAlert.style.display = 'block';
+                elements.unitCountDisplay.style.display = 'none'; // Hide the unit count
+                elements.priceDisplay.textContent = 'Est. Price: -'; // Reset price
+                elements.priceInput.value = 'N/A';
+                return; // Stop further calculation
+            }
+        }
 
         if (rules.pricing_model === 'CapacityBased') {
             let childrenCounting = childAges.filter(age => age > rules.free_with_parents_age).length;
@@ -259,12 +280,10 @@ document.addEventListener('DOMContentLoaded', function () {
             if (baseCapacity > 0) { requiredUnits = Math.max(1, Math.ceil(totalGuestsForCapacity / baseCapacity)); }
         }
 
-        // Determine extra guests for supplement calculation
         const guestsCoveredByBaseRate = 2 * requiredUnits;
         const extraAdults = Math.max(0, totalAdultsAndTeens - guestsCoveredByBaseRate);
         const extraChildren = Math.max(0, (totalAdultsAndTeens + children.length) - guestsCoveredByBaseRate - extraAdults);
 
-        // Calculate costs season by season
         let totalBaseCost = 0;
         let totalSupplementCost = 0;
         let totalCommission = 0;
@@ -299,7 +318,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         let totalCost = totalBaseCost + totalSupplementCost + mattressCost + totalCommission;
 
-        // Apply discounts
         const selectedCountry = elements.countryResidenceSelect.value;
         let discountPercent = 0;
         let discountNote = '';
@@ -327,7 +345,6 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
 
-        // Update UI
         elements.unitCountInput.value = requiredUnits;
         if (requiredUnits > 1) {
             elements.unitCountDisplay.textContent = `${requiredUnits} Units (Max guests per unit: ${baseCapacity})`;

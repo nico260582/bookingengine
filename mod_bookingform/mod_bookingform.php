@@ -44,13 +44,11 @@ if ($articleId && $view === 'article') {
         $articleTitle = $article->title;
         $pricingRules = ModBookingFormHelper::getPricingDataForArticle($articleId);
 
-        $fieldsQuery = $db->getQuery(true)
-            ->select('fv.value')
-            ->from($db->quoteName('#__fields_values', 'fv'))
-            ->join('INNER', $db->quoteName('#__fields', 'f') . ' ON fv.field_id = f.id')
-            ->where('fv.item_id = ' . (int)$articleId)
-            ->where('f.name = ' . $db->quote('accommodation-guests'));
-        $totalAccommodationGuests = (int)$db->setQuery($fieldsQuery)->loadResult();
+        $propQuery = $db->getQuery(true)
+            ->select('max_guests')
+            ->from($db->quoteName('#__bookingmanager_properties'))
+            ->where('article_id = ' . (int)$articleId);
+        $totalAccommodationGuests = (int)$db->setQuery($propQuery)->loadResult();
     }
 }
 
