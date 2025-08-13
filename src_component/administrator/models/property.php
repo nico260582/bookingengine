@@ -26,6 +26,27 @@ class BookingmanagerModelProperty extends AdminModel
             return false;
         }
 
+        $item = $this->getItem();
+
+        // If we are editing an existing item, make the article field readonly
+        // and display the article title instead of a dropdown.
+        if ($item && !empty($item->id)) {
+            $form->setFieldAttribute('article_id', 'type', 'text');
+            $form->setFieldAttribute('article_id', 'readonly', 'true');
+            $form->setFieldAttribute('article_id', 'class', 'readonly'); // For styling
+
+            // We need to get the article title to display it
+            $db = Factory::getDbo();
+            $query = $db->getQuery(true)
+                ->select($db->quoteName('title'))
+                ->from($db->quoteName('#__content'))
+                ->where($db->quoteName('id') . ' = ' . (int)$item->article_id);
+            $articleTitle = $db->setQuery($query)->loadResult();
+
+            // Set the value of the field to the article title
+            $form->setValue('article_id', null, $articleTitle);
+        }
+
         return $form;
     }
 
