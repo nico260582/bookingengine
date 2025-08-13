@@ -58,16 +58,16 @@ class BookingmanagerModelProperty extends AdminModel
 
     public function save($data)
     {
-        $propertyId = $data['id'];
-        $complexId  = $data['complex_id'] ?? 0;
-
-        // Save the main property data
+        // Save the main property data using the parent AdminModel's save
         if (!parent::save($data)) {
             return false;
         }
 
-        // Now handle the complex mapping
+        // Get the ID of the saved property
         $propertyId = (int)$this->getState($this->getName() . '.id');
+
+        // --- Complex Mapping Logic ---
+        $complexId  = $data['complex_id'] ?? 0;
         $db = Factory::getDbo();
 
         // First, remove existing mapping for this property
@@ -82,6 +82,23 @@ class BookingmanagerModelProperty extends AdminModel
             $map->property_id = $propertyId;
             $map->complex_id = (int)$complexId;
             $db->insertObject('#__bookingmanager_complex_property_map', $map);
+        }
+
+        // --- Rates Saving Logic ---
+        if (isset($data['rates'])) {
+            AdminModel::addIncludePath(JPATH_COMPONENT_ADMINISTRATOR . '/models');
+            $ratesModel = AdminModel::getInstance('Propertyrates', 'BookingmanagerModel');
+
+            if ($ratesModel) {
+                $ratesData = [
+                    'property_id' => $propertyId,
+                    'rates' => $data['rates']
+                ];
+                if (!$ratesModel->save($ratesData)) {
+                    $this->setError($ratesModel->getError());
+                    return false;
+                }
+            }
         }
 
         return true;
