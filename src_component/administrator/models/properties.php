@@ -12,7 +12,8 @@ class BookingmanagerModelProperties extends ListModel
                 'id', 'a.id',
                 'article_title', 'article.title',
                 'max_guests', 'a.max_guests',
-                'complex_name', 'complex.name'
+                'complex_name', 'complex.name',
+                'supplier_name', 'supplier.name'
             );
         }
 
@@ -29,11 +30,21 @@ class BookingmanagerModelProperties extends ListModel
         $db = $this->getDbo();
         $query = $db->getQuery(true);
 
-        $query->select($this->getState('list.select', 'a.*, article.title AS article_title, complex.name AS complex_name'))
+        $query->select(
+            $this->getState(
+                'list.select',
+                'a.*, article.title AS article_title, complex.name AS complex_name, supplier.name AS supplier_name'
+            )
+        )
             ->from($db->quoteName('#__bookingmanager_properties', 'a'))
+            // This INNER JOIN filters for properties assigned to a supplier
+            ->join('INNER', $db->quoteName('#__bookingmanager_property_map', 'supplier_map') . ' ON a.id = supplier_map.property_id')
+            ->join('LEFT', $db->quoteName('#__bookingmanager_suppliers', 'supplier') . ' ON supplier_map.supplier_id = supplier.id')
+            // These joins get the article title and complex name
             ->join('LEFT', $db->quoteName('#__content', 'article') . ' ON a.article_id = article.id')
             ->join('LEFT', $db->quoteName('#__bookingmanager_complex_property_map', 'map') . ' ON a.id = map.property_id')
             ->join('LEFT', $db->quoteName('#__bookingmanager_complexes', 'complex') . ' ON map.complex_id = complex.id');
+
 
         // Add sorting
         $orderCol = $this->state->get('list.ordering', 'article.title');
