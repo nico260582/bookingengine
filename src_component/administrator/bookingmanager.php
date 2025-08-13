@@ -4,8 +4,11 @@ defined('_JEXEC') or die;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\Factory;
 
-// Get the controller instance. This will automatically route to the correct
-// controller based on the 'task' variable (e.g., task=property.add loads PropertyController)
+// Setup the component's class loader
+JLoader::register('BookingmanagerHelper', __DIR__ . '/helpers/bookingmanager.php');
+JTable::addIncludePath(__DIR__ . '/tables');
+
+// Get the controller instance.
 $controller = BaseController::getInstance('Bookingmanager');
 
 // Execute the task
