@@ -1,24 +1,6 @@
 <?php
 defined('_JEXEC') or die;
 ?>
-<?php
-// Temporary debug output
-if (isset($this->rateData)) {
-    echo '<div class="alert alert-info">';
-    echo '<strong>RAW DATA DUMP:</strong><br/><pre>';
-    var_dump($this->rateData);
-    echo '</pre>';
-    echo '<strong>Debug Info from Model:</strong><br/>';
-    echo 'Seasons Count: ' . ($this->rateData->debug_seasons_count ?? 'N/A') . '<br/>';
-    echo 'Rules JSON: ' . ($this->rateData->debug_rules_json ?? 'Not set') . '<br/>';
-    if (!empty($this->rateData->error)) {
-        echo 'Error: ' . $this->rateData->error;
-    }
-    echo '</div>';
-} else {
-    echo '<div class="alert alert-danger">Debug: $this->rateData is NOT SET.</div>';
-}
-?>
 
 <div id="j-sidebar-container" class="span2">
     <?php echo JHtmlSidebar::render(); ?>
