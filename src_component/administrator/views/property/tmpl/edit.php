@@ -79,7 +79,51 @@ Factory::getDocument()->addScriptDeclaration($script);
         <?php elseif (isset($this->item->ratesData) && isset($this->item->ratesData->error)) : ?>
             <div class="alert alert-warning"><?php echo $this->item->ratesData->error; ?></div>
         <?php else : ?>
-            <div class="alert">No seasons found. Please define seasons for the supplier assigned to this property.</div>
+            <?php
+            // The model failed to load seasons. As a fallback, directly load rates from the DB based on article ID.
+            $db = Factory::getDbo();
+            $articleId = $this->item->article_id;
+            $rates = [];
+            if ($articleId) {
+                $query = $db->getQuery(true)
+                    ->select('*')
+                    ->from($db->quoteName('#__bookingmanager_rates'))
+                    ->where($db->quoteName('property_id') . ' = ' . (int)$articleId);
+                $rates = $db->setQuery($query)->loadObjectList();
+            }
+
+            if (!empty($rates)) :
+            ?>
+                <div class="alert alert-info">Note: The supplier for this property does not have seasons defined. Displaying manually saved rates.</div>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Season</th>
+                            <th>Base Rate (per night)</th>
+                            <th class="nowrap">Override Admin Commission?</th>
+                            <th>Admin Commission %</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($rates as $rate) :
+                            $rateValue = isset($rate->base_rate) ? $rate->base_rate : '';
+                            $overrideChecked = (isset($rate->override_admin_commission) && $rate->override_admin_commission) ? 'checked' : '';
+                            $commissionValue = isset($rate->admin_commission) ? $rate->admin_commission : '';
+                        ?>
+                        <tr>
+                            <td><?php echo $this->escape($rate->season_name); ?></td>
+                            <td><input type="number" step="0.01" name="jform[rates][<?php echo $this->escape(trim($rate->season_name)); ?>][base_rate]" value="<?php echo $this->escape($rateValue); ?>" class="input-small" /></td>
+                            <td><input type="checkbox" name="jform[rates][<?php echo $this->escape(trim($rate->season_name)); ?>][override_admin_commission]" value="1" class="override-commission-checkbox" <?php echo $overrideChecked; ?> /></td>
+                            <td>
+                                <input type="number" step="0.01" name="jform[rates][<?php echo $this->escape(trim($rate->season_name)); ?>][admin_commission]" value="<?php echo $this->escape($commissionValue); ?>" class="input-small commission-value-input" />
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            <?php else : ?>
+                <div class="alert">No seasons found. Please define seasons for the supplier assigned to this property.</div>
+            <?php endif; ?>
         <?php endif; ?>
     </fieldset>
 
