@@ -40,17 +40,17 @@ Factory::getDocument()->addScriptDeclaration($script);
 
     <fieldset class="form-horizontal">
         <legend>Property Rates</legend>
-        <?php if (isset($this->item->ratesData) && !empty($this->item->ratesData->seasons)) : ?>
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Season</th>
-                        <th>Base Rate (per night)</th>
-                        <th class="nowrap">Override Admin Commission?</th>
-                        <th>Admin Commission %</th>
-                    </tr>
-                </thead>
-                <tbody>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Season</th>
+                    <th>Base Rate (per night)</th>
+                    <th class="nowrap">Override Admin Commission?</th>
+                    <th>Admin Commission %</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if (isset($this->item->ratesData) && !empty($this->item->ratesData->seasons)) : ?>
                     <?php foreach ($this->item->ratesData->seasons as $season) :
                         $rate = $this->item->ratesData->rates[$season->name] ?? null;
                         $rateValue = ($rate && isset($rate->base_rate)) ? $rate->base_rate : '';
@@ -74,13 +74,21 @@ Factory::getDocument()->addScriptDeclaration($script);
                         </td>
                     </tr>
                     <?php endforeach; ?>
-                </tbody>
-            </table>
-        <?php elseif (isset($this->item->ratesData) && isset($this->item->ratesData->error)) : ?>
-            <div class="alert alert-warning"><?php echo $this->item->ratesData->error; ?></div>
-        <?php else : ?>
-            <div class="alert">No seasons found. Please define seasons for the supplier assigned to this property.</div>
-        <?php endif; ?>
+                <?php elseif (isset($this->item->ratesData) && isset($this->item->ratesData->error)) : ?>
+                    <tr>
+                        <td colspan="4">
+                            <div class="alert alert-warning"><?php echo $this->item->ratesData->error; ?></div>
+                        </td>
+                    </tr>
+                <?php else : ?>
+                    <tr>
+                        <td colspan="4">
+                            <div class="alert alert-info">No seasons found. Please define seasons for the supplier assigned to this property before you can add rates here.</div>
+                        </td>
+                    </tr>
+                <?php endif; ?>
+            </tbody>
+        </table>
     </fieldset>
 
     <input type="hidden" name="task" value="" />
