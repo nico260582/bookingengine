@@ -1,6 +1,17 @@
 <?php
 defined('_JEXEC') or die;
 
+// --- Special Test Code ---
+// Manually load the rates data to bypass the standard model loading process.
+if (isset($this->item) && !empty($this->item->article_id)) {
+    \Joomla\CMS\MVC\Model\LegacyModel::addIncludePath(JPATH_COMPONENT_ADMINISTRATOR . '/models');
+    $ratesModel = \Joomla\CMS\MVC\Model\LegacyModel::getInstance('Propertyrates', 'BookingmanagerModel');
+    if ($ratesModel) {
+        $this->item->ratesData = $ratesModel->getRateData($this->item->article_id);
+    }
+}
+// --- End Special Test Code ---
+
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\Layout\LayoutHelper;
 use Joomla\CMS\HTML\HTMLHelper;
