@@ -74,7 +74,7 @@ class BookingmanagerModelProperty extends AdminModel
             AdminModel::addIncludePath(JPATH_COMPONENT_ADMINISTRATOR . '/models');
             $ratesModel = AdminModel::getInstance('Propertyrates', 'BookingmanagerModel');
             if ($ratesModel) {
-                $data->ratesData = $ratesModel->getRateData($data->id);
+                $data->ratesData = $ratesModel->getRateData($data->article_id);
             }
         }
 
