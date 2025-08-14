@@ -20,7 +20,7 @@ class BookingmanagerModelPropertyrates extends BaseDatabaseModel
         $db = $this->getDbo();
         $data = new stdClass();
 
-        // 1. Get existing rates for the property (using article_id, which is $propertyId)
+        // 1. Get existing rates for the property
         $query = $db->getQuery(true)
             ->select('*')
             ->from($db->quoteName('#__bookingmanager_rates'))
@@ -28,22 +28,12 @@ class BookingmanagerModelPropertyrates extends BaseDatabaseModel
         $data->rates = $db->setQuery($query)->loadObjectList('season_name');
 
         // 2. Get seasons from the assigned supplier
-        // First, we need the internal property ID to query the mapping table.
-        $internalIdQuery = $db->getQuery(true)
-            ->select($db->quoteName('id'))
-            ->from($db->quoteName('#__bookingmanager_properties'))
-            ->where($db->quoteName('article_id') . ' = ' . (int)$propertyId);
-        $internalId = $db->setQuery($internalIdQuery)->loadResult();
-
-        $rulesJson = null;
-        if ($internalId) {
-            $query->clear()
-                ->select('s.rules')
-                ->from($db->quoteName('#__bookingmanager_property_map', 'm'))
-                ->join('INNER', $db->quoteName('#__bookingmanager_suppliers', 's') . ' ON m.supplier_id = s.id')
-                ->where('m.property_id = ' . (int)$internalId);
-            $rulesJson = $db->setQuery($query)->loadResult();
-        }
+        $query->clear()
+            ->select('s.rules')
+            ->from($db->quoteName('#__bookingmanager_property_map', 'm'))
+            ->join('INNER', $db->quoteName('#__bookingmanager_suppliers', 's') . ' ON m.supplier_id = s.id')
+            ->where('m.property_id = ' . (int)$propertyId);
+        $rulesJson = $db->setQuery($query)->loadResult();
 
         $supplierSeasons = [];
         if ($rulesJson) {
