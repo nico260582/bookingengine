@@ -74,7 +74,7 @@ class BookingmanagerModelProperty extends AdminModel
             AdminModel::addIncludePath(JPATH_COMPONENT_ADMINISTRATOR . '/models');
             $ratesModel = AdminModel::getInstance('Propertyrates', 'BookingmanagerModel');
             if ($ratesModel) {
-                $data->ratesData = $ratesModel->getRateData($data->id);
+                $data->ratesData = $ratesModel->getRateData($data->article_id);
             }
         }
 
@@ -96,6 +96,19 @@ class BookingmanagerModelProperty extends AdminModel
         // Get the ID of the saved property
         $propertyId = (int)$this->getState($this->getName() . '.id');
 
+        // We need the article_id for saving rates.
+        $articleId = 0;
+        if (!empty($data['article_id'])) { // Case when creating a new property
+            $articleId = (int)$data['article_id'];
+        } else { // Case when editing an existing property
+            $db = Factory::getDbo();
+            $query = $db->getQuery(true)
+                ->select($db->quoteName('article_id'))
+                ->from($db->quoteName('#__bookingmanager_properties'))
+                ->where($db->quoteName('id') . ' = ' . $propertyId);
+            $articleId = (int)$db->setQuery($query)->loadResult();
+        }
+
         // --- Complex Mapping Logic ---
         $complexId  = $data['complex_id'] ?? 0;
         $db = Factory::getDbo();
@@ -115,13 +128,13 @@ class BookingmanagerModelProperty extends AdminModel
         }
 
         // --- Rates Saving Logic ---
-        if (isset($data['rates'])) {
+        if (isset($data['rates']) && $articleId > 0) {
             AdminModel::addIncludePath(JPATH_COMPONENT_ADMINISTRATOR . '/models');
             $ratesModel = AdminModel::getInstance('Propertyrates', 'BookingmanagerModel');
 
             if ($ratesModel) {
                 $ratesData = [
-                    'property_id' => $propertyId,
+                    'property_id' => $articleId, // Use article_id to save rates
                     'rates' => $data['rates']
                 ];
                 if (!$ratesModel->save($ratesData)) {
@@ -138,17 +151,26 @@ class BookingmanagerModelProperty extends AdminModel
     {
         $db = $this->getDbo();
         foreach ($pks as $pk) {
-            // Delete from complex map table
+            // Get article_id before deleting the property
             $query = $db->getQuery(true)
+                ->select($db->quoteName('article_id'))
+                ->from($db->quoteName('#__bookingmanager_properties'))
+                ->where($db->quoteName('id') . ' = ' . (int)$pk);
+            $articleId = (int)$db->setQuery($query)->loadResult();
+
+            // Delete from complex map table
+            $query->clear()
                 ->delete($db->quoteName('#__bookingmanager_complex_property_map'))
                 ->where('property_id = ' . (int)$pk);
             $db->setQuery($query)->execute();
 
-            // Delete from rates table
-            $query->clear()
-                ->delete($db->quoteName('#__bookingmanager_rates'))
-                ->where('property_id = ' . (int)$pk);
-            $db->setQuery($query)->execute();
+            // Delete from rates table using article_id
+            if ($articleId > 0) {
+                $query->clear()
+                    ->delete($db->quoteName('#__bookingmanager_rates'))
+                    ->where('property_id = ' . $articleId);
+                $db->setQuery($query)->execute();
+            }
         }
 
         // Call parent delete to remove from main properties table
@@ -172,16 +194,28 @@ class BookingmanagerModelProperty extends AdminModel
             }
 
             foreach ($pks as $pk) {
-                $ratesData = $ratesModel->getRateData($pk);
+                // Get article_id for the property
+                $query = $db->getQuery(true)
+                    ->select($db->quoteName('article_id'))
+                    ->from($db->quoteName('#__bookingmanager_properties'))
+                    ->where($db->quoteName('id') . ' = ' . (int)$pk);
+                $articleId = (int)$db->setQuery($query)->loadResult();
+
+                if (!$articleId) {
+                    $this->setError('Property ID ' . $pk . ' cannot be published as it is not linked to a Joomla Article.');
+                    return false;
+                }
+
+                $ratesData = $ratesModel->getRateData($articleId); // Use article_id
                 if (empty($ratesData) || isset($ratesData->error) || empty($ratesData->seasons)) {
-                    $this->setError('Property ID ' . $pk . ' cannot be published. It may not be assigned to a supplier with seasons defined.');
+                    $this->setError('Property with Article ID ' . $articleId . ' cannot be published. It may not be assigned to a supplier with seasons defined.');
                     return false;
                 }
 
                 foreach ($ratesData->seasons as $season) {
                     $seasonName = $season->name;
                     if (!isset($ratesData->rates[$seasonName]) || !isset($ratesData->rates[$seasonName]->base_rate) || $ratesData->rates[$seasonName]->base_rate === '') {
-                        $this->setError('Property ID ' . $pk . ' cannot be published. Please fill in the base rate for all seasons first.');
+                        $this->setError('Property with Article ID ' . $articleId . ' cannot be published. Please fill in the base rate for all seasons first.');
                         return false;
                     }
                 }
