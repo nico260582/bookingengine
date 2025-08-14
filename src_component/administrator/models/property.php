@@ -52,25 +52,29 @@ class BookingmanagerModelProperty extends AdminModel
 
     protected function loadFormData()
     {
+        // Load the data from the session.
         $data = Factory::getApplication()->getUserState('com_bookingmanager.edit.property.data', array());
 
         if (empty($data)) {
+            // If no session data, load from the database
             $data = $this->getItem();
-            if ($data->id) {
-                // Load the complex ID from the mapping table
-                $db = Factory::getDbo();
-                $query = $db->getQuery(true)
-                    ->select('complex_id')
-                    ->from('#__bookingmanager_complex_property_map')
-                    ->where('property_id = ' . (int)$data->id);
-                $data->complex_id = $db->setQuery($query)->loadResult();
+        }
 
-                // Load the rates data
-                AdminModel::addIncludePath(JPATH_COMPONENT_ADMINISTRATOR . '/models');
-                $ratesModel = AdminModel::getInstance('Propertyrates', 'BookingmanagerModel');
-                if ($ratesModel) {
-                    $data->ratesData = $ratesModel->getRateData($data->id);
-                }
+        // Always load the related data for an existing item
+        if ($data && !empty($data->id)) {
+            // Load the complex ID from the mapping table
+            $db = Factory::getDbo();
+            $query = $db->getQuery(true)
+                ->select($db->quoteName('complex_id'))
+                ->from($db->quoteName('#__bookingmanager_complex_property_map'))
+                ->where($db->quoteName('property_id') . ' = ' . (int)$data->id);
+            $data->complex_id = $db->setQuery($query)->loadResult();
+
+            // Load the rates data
+            AdminModel::addIncludePath(JPATH_COMPONENT_ADMINISTRATOR . '/models');
+            $ratesModel = AdminModel::getInstance('Propertyrates', 'BookingmanagerModel');
+            if ($ratesModel) {
+                $data->ratesData = $ratesModel->getRateData($data->id);
             }
         }
 
@@ -79,6 +83,11 @@ class BookingmanagerModelProperty extends AdminModel
 
     public function save($data)
     {
+        // If we are editing an existing property, don't allow the article_id to be changed.
+        if (!empty($data['id'])) {
+            unset($data['article_id']);
+        }
+
         // Save the main property data using the parent AdminModel's save
         if (!parent::save($data)) {
             return false;
