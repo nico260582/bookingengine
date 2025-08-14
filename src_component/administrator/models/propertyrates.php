@@ -24,12 +24,10 @@ class BookingmanagerModelPropertyrates extends BaseDatabaseModel
             ->join('INNER', $db->quoteName('#__bookingmanager_suppliers', 's') . ' ON m.supplier_id = s.id')
             ->where('m.property_id = ' . (int)$propertyId);
         $rulesJson = $db->setQuery($query)->loadResult();
-        
-        if (empty($rulesJson)) {
-            $data->error = 'This property (Article ID: ' . $propertyId . ') is not assigned to a supplier with defined seasons.';
-            return $data;
-        }
-        
+
+        // Always set the debug JSON
+        $data->debug_rules_json = $rulesJson;
+
         $seasons = [];
         if ($rulesJson) {
             $rules = json_decode($rulesJson);
@@ -39,9 +37,14 @@ class BookingmanagerModelPropertyrates extends BaseDatabaseModel
                 $seasons = (array) $rules->seasons;
             }
         }
+
         $data->seasons = $seasons;
         $data->debug_seasons_count = count($seasons);
-        $data->debug_rules_json = $rulesJson;
+
+        if (empty($rulesJson)) {
+            $data->error = 'This property (Article ID: ' . $propertyId . ') is not assigned to a supplier with defined seasons.';
+            return $data;
+        }
         
         $query->clear()->select('*')->from($db->quoteName('#__bookingmanager_rates'))
             ->where('property_id = ' . (int)$propertyId);
