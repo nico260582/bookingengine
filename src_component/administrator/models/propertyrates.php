@@ -25,8 +25,8 @@ class BookingmanagerModelPropertyrates extends BaseDatabaseModel
             ->where('m.property_id = ' . (int)$propertyId);
         $rulesJson = $db->setQuery($query)->loadResult();
 
-        // Always set the debug JSON
-        $data->debug_rules_json = $rulesJson;
+        // Always set the debug JSON, ensure it's a string
+        $data->debug_rules_json = (string) $rulesJson;
 
         $seasons = [];
         if ($rulesJson) {
