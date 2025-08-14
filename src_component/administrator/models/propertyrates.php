@@ -16,22 +16,41 @@ class BookingmanagerModelPropertyrates extends BaseDatabaseModel
 
     public function getRateData($propertyId)
     {
-        // --- Start of temporary debug code ---
-        $debug_data = new stdClass();
-        $debug_data->debug_seasons_count = 999;
-        $debug_data->debug_rules_json = 'This is a hardcoded debug string from the test.';
-        $debug_data->seasons = [];
-        $debug_data->rates = [];
-        $debug_data->error = 'Forced debug mode is ON in getRateData.';
+        if (!$propertyId) { return null; }
+        $db = $this->getDbo();
+        $data = new stdClass();
 
-        echo "<h1>DIED IN MODEL</h1>";
-        echo "<pre>";
-        var_dump($debug_data);
-        echo "</pre>";
-        die(); // Stop all execution
+        $query = $db->getQuery(true)->select('s.rules')->from($db->quoteName('#__bookingmanager_property_map', 'm'))
+            ->join('INNER', $db->quoteName('#__bookingmanager_suppliers', 's') . ' ON m.supplier_id = s.id')
+            ->where('m.property_id = ' . (int)$propertyId);
+        $rulesJson = $db->setQuery($query)->loadResult();
 
-        return $debug_data;
-        // --- End of temporary debug code ---
+        // Always set the debug JSON, ensure it's a string
+        $data->debug_rules_json = (string) $rulesJson;
+
+        $seasons = [];
+        if ($rulesJson) {
+            $rules = json_decode($rulesJson);
+            if (isset($rules->seasons) && is_string($rules->seasons)) {
+                $seasons = json_decode($rules->seasons);
+            } elseif (isset($rules->seasons) && (is_array($rules->seasons) || is_object($rules->seasons))) {
+                $seasons = (array) $rules->seasons;
+            }
+        }
+
+        $data->seasons = $seasons;
+        $data->debug_seasons_count = count($seasons);
+
+        if (empty($rulesJson)) {
+            $data->error = 'This property (Article ID: ' . $propertyId . ') is not assigned to a supplier with defined seasons.';
+            return $data;
+        }
+
+        $query->clear()->select('*')->from($db->quoteName('#__bookingmanager_rates'))
+            ->where('property_id = ' . (int)$propertyId);
+        $data->rates = $db->setQuery($query)->loadObjectList('season_name');
+
+        return $data;
     }
 
     public function save($data)
