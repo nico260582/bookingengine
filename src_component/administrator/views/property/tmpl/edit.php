@@ -40,10 +40,6 @@ Factory::getDocument()->addScriptDeclaration($script);
 
     <fieldset class="form-horizontal">
         <legend>Property Rates</legend>
-        <div class="alert alert-info">
-            DEBUG: Seasons Count: <?php echo $this->item->ratesData->debug_seasons_count ?? 'N/A'; ?><br>
-            <pre>DEBUG: Rules JSON: <?php echo htmlspecialchars($this->item->ratesData->debug_rules_json ?? 'Not set'); ?></pre>
-        </div>
         <?php if (isset($this->item->ratesData) && !empty($this->item->ratesData->seasons)) : ?>
             <table class="table table-striped">
                 <thead>
