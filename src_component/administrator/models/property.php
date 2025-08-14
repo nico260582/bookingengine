@@ -28,9 +28,9 @@ class BookingmanagerModelProperty extends AdminModel
 
         $item = $this->getItem();
 
-        // If we are editing an existing item, make the article field readonly
-        // and display the article title instead of a dropdown.
-        if ($item && !empty($item->id)) {
+        // If we are editing an existing item and it is already linked to an article,
+        // make the article field readonly and display the article title.
+        if ($item && !empty($item->id) && !empty($item->article_id)) {
             $form->setFieldAttribute('article_id', 'type', 'text');
             $form->setFieldAttribute('article_id', 'readonly', 'true');
             $form->setFieldAttribute('article_id', 'class', 'readonly'); // For styling
@@ -137,21 +137,33 @@ class BookingmanagerModelProperty extends AdminModel
     public function delete(&$pks)
     {
         $db = $this->getDbo();
+
+        // Get the article_ids for all properties being deleted before we delete them
+        $query = $db->getQuery(true)
+            ->select('article_id')
+            ->from($db->quoteName('#__bookingmanager_properties'))
+            ->where('id IN (' . implode(',', array_map('int', $pks)) . ')');
+        $articleIds = $db->setQuery($query)->loadColumn();
+        $articleIds = array_filter($articleIds); // Remove any nulls or zeros
+
+        // Clean up related data first
         foreach ($pks as $pk) {
             // Delete from complex map table
-            $query = $db->getQuery(true)
-                ->delete($db->quoteName('#__bookingmanager_complex_property_map'))
-                ->where('property_id = ' . (int)$pk);
-            $db->setQuery($query)->execute();
-
-            // Delete from rates table
             $query->clear()
-                ->delete($db->quoteName('#__bookingmanager_rates'))
+                ->delete($db->quoteName('#__bookingmanager_complex_property_map'))
                 ->where('property_id = ' . (int)$pk);
             $db->setQuery($query)->execute();
         }
 
-        // Call parent delete to remove from main properties table
+        // If there were any linked articles, delete their associated rates
+        if (!empty($articleIds)) {
+            $query->clear()
+                ->delete($db->quoteName('#__bookingmanager_rates'))
+                ->where('property_id IN (' . implode(',', $articleIds) . ')');
+            $db->setQuery($query)->execute();
+        }
+
+        // Finally, call parent delete to remove from the main properties table
         return parent::delete($pks);
     }
 
