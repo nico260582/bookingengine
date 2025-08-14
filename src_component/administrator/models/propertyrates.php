@@ -20,30 +20,32 @@ class BookingmanagerModelPropertyrates extends BaseDatabaseModel
         $db = $this->getDbo();
         $data = new stdClass();
 
-        // 1. Get existing rates for the property (using article_id, which is $propertyId)
+        // Get the article_id for this property, as rates and supplier maps are linked to it.
+        $articleIdQuery = $db->getQuery(true)
+            ->select($db->quoteName('article_id'))
+            ->from($db->quoteName('#__bookingmanager_properties'))
+            ->where($db->quoteName('id') . ' = ' . (int)$propertyId);
+        $articleId = $db->setQuery($articleIdQuery)->loadResult();
+
+        if (!$articleId) {
+            $data->error = 'This property (Internal ID: ' . $propertyId . ') is not linked to a Joomla Article.';
+            return $data;
+        }
+
+        // 1. Get existing rates for the property using the article_id
         $query = $db->getQuery(true)
             ->select('*')
             ->from($db->quoteName('#__bookingmanager_rates'))
-            ->where('property_id = ' . (int)$propertyId);
+            ->where('property_id = ' . (int)$articleId);
         $data->rates = $db->setQuery($query)->loadObjectList('season_name');
 
-        // 2. Get seasons from the assigned supplier
-        // First, we need the internal property ID to query the mapping table.
-        $internalIdQuery = $db->getQuery(true)
-            ->select($db->quoteName('id'))
-            ->from($db->quoteName('#__bookingmanager_properties'))
-            ->where($db->quoteName('article_id') . ' = ' . (int)$propertyId);
-        $internalId = $db->setQuery($internalIdQuery)->loadResult();
-
-        $rulesJson = null;
-        if ($internalId) {
-            $query->clear()
-                ->select('s.rules')
-                ->from($db->quoteName('#__bookingmanager_property_map', 'm'))
-                ->join('INNER', $db->quoteName('#__bookingmanager_suppliers', 's') . ' ON m.supplier_id = s.id')
-                ->where('m.property_id = ' . (int)$internalId);
-            $rulesJson = $db->setQuery($query)->loadResult();
-        }
+        // 2. Get seasons from the assigned supplier, using the article_id
+        $query->clear()
+            ->select('s.rules')
+            ->from($db->quoteName('#__bookingmanager_property_map', 'm'))
+            ->join('INNER', $db->quoteName('#__bookingmanager_suppliers', 's') . ' ON m.supplier_id = s.id')
+            ->where('m.property_id = ' . (int)$articleId);
+        $rulesJson = $db->setQuery($query)->loadResult();
 
         $supplierSeasons = [];
         if ($rulesJson) {
@@ -93,7 +95,7 @@ class BookingmanagerModelPropertyrates extends BaseDatabaseModel
 
     public function save($data)
     {
-        $propertyId = (int)($data['property_id'] ?? 0);
+        $propertyId = (int)($data['property_id'] ?? 0); // This is the internal property ID
         $ratesData = $data['rates'] ?? [];
 
         if (!$propertyId) {
@@ -103,11 +105,23 @@ class BookingmanagerModelPropertyrates extends BaseDatabaseModel
 
         $db = $this->getDbo();
 
+        // Get the article_id for this property, as rates are keyed to it.
+        $articleIdQuery = $db->getQuery(true)
+            ->select($db->quoteName('article_id'))
+            ->from($db->quoteName('#__bookingmanager_properties'))
+            ->where($db->quoteName('id') . ' = ' . (int)$propertyId);
+        $articleId = $db->setQuery($articleIdQuery)->loadResult();
+
+        if (!$articleId) {
+            $this->setError('Could not find article ID for property ID ' . $propertyId);
+            return false;
+        }
+
         // Get existing rates to determine if we need to UPDATE or INSERT for each season
         $existingRatesQuery = $db->getQuery(true)
             ->select('season_name')
             ->from($db->quoteName('#__bookingmanager_rates'))
-            ->where('property_id = ' . $propertyId);
+            ->where('property_id = ' . $articleId);
         $existingRates = $db->setQuery($existingRatesQuery)->loadColumn();
         $existingRates = array_flip($existingRates); // Flip for easy key checking
 
@@ -120,7 +134,7 @@ class BookingmanagerModelPropertyrates extends BaseDatabaseModel
             }
 
             $rateObj = new stdClass();
-            $rateObj->property_id = $propertyId;
+            $rateObj->property_id = $articleId; // Use article_id to save rates
             $rateObj->season_name = $seasonName;
 
             // Sanitize and validate base rate
