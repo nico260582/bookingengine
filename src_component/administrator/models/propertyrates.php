@@ -36,7 +36,7 @@ class BookingmanagerModelPropertyrates extends BaseDatabaseModel
         $query = $db->getQuery(true)
             ->select('*')
             ->from($db->quoteName('#__bookingmanager_rates'))
-            ->where('property_id = ' . (int)$articleId);
+            ->where($db->quoteName('property_id') . ' = ' . (int)$articleId);
         $ratesList = $db->setQuery($query)->loadObjectList();
 
         $data->rates = [];
