@@ -74,7 +74,9 @@ class BookingmanagerModelProperty extends AdminModel
             AdminModel::addIncludePath(JPATH_COMPONENT_ADMINISTRATOR . '/models');
             $ratesModel = AdminModel::getInstance('Propertyrates', 'BookingmanagerModel');
             if ($ratesModel) {
-                $data->ratesData = $ratesModel->getRateData($data->id);
+                // TEST 2: See what ID is being passed
+                $data->ratesData = new stdClass();
+                $data->ratesData->error = 'DEBUG: The ID being passed is: ' . $data->id;
             }
         }
 
