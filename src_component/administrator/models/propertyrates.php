@@ -25,7 +25,13 @@ class BookingmanagerModelPropertyrates extends BaseDatabaseModel
             ->select('*')
             ->from($db->quoteName('#__bookingmanager_rates'))
             ->where('property_id = ' . (int)$propertyId);
-        $data->rates = $db->setQuery($query)->loadObjectList('season_name');
+        $ratesList = $db->setQuery($query)->loadObjectList();
+
+        $data->rates = [];
+        foreach ($ratesList as $rate) {
+            $trimmedSeasonName = trim($rate->season_name);
+            $data->rates[$trimmedSeasonName] = $rate;
+        }
 
         // 2. Get seasons from the assigned supplier
         $query->clear()
