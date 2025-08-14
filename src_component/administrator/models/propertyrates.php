@@ -14,17 +14,17 @@ class BookingmanagerModelPropertyrates extends BaseDatabaseModel
         return $db->setQuery($query)->loadObjectList();
     }
 
-    public function getRateData($propertyId)
+    public function getRateData($propertyId) // This is the Article ID
     {
         if (!$propertyId) { return null; }
         $db = $this->getDbo();
         $data = new stdClass();
 
-        // 1. Get existing rates for the property
+        // 1. Get existing rates for the property using the article_id
         $query = $db->getQuery(true)
             ->select('*')
             ->from($db->quoteName('#__bookingmanager_rates'))
-            ->where('property_id = ' . (int)$propertyId);
+            ->where($db->quoteName('property_id') . ' = ' . (int)$propertyId);
         $ratesList = $db->setQuery($query)->loadObjectList();
 
         $data->rates = [];
@@ -33,12 +33,12 @@ class BookingmanagerModelPropertyrates extends BaseDatabaseModel
             $data->rates[$trimmedSeasonName] = $rate;
         }
 
-        // 2. Get seasons from the assigned supplier
+        // 2. Get seasons from the assigned supplier, using the article_id
         $query->clear()
             ->select('s.rules')
             ->from($db->quoteName('#__bookingmanager_property_map', 'm'))
             ->join('INNER', $db->quoteName('#__bookingmanager_suppliers', 's') . ' ON m.supplier_id = s.id')
-            ->where('m.property_id = ' . (int)$propertyId);
+            ->where($db->quoteName('m.property_id') . ' = ' . (int)$propertyId);
         $rulesJson = $db->setQuery($query)->loadResult();
 
         $supplierSeasons = [];
@@ -55,7 +55,6 @@ class BookingmanagerModelPropertyrates extends BaseDatabaseModel
         $finalSeasons = [];
         $seasonNames = []; // To track unique season names
 
-        // Add seasons from supplier first to maintain their order and dates
         foreach ($supplierSeasons as $season) {
             if (!in_array($season->name, $seasonNames)) {
                 $finalSeasons[] = $season;
@@ -63,20 +62,18 @@ class BookingmanagerModelPropertyrates extends BaseDatabaseModel
             }
         }
 
-        // Add any seasons from existing rates that weren't in the supplier list
         if(is_array($data->rates)) {
             foreach ($data->rates as $rate) {
                 if (!in_array($rate->season_name, $seasonNames)) {
                     $season = new stdClass();
                     $season->name = $rate->season_name;
-                    $season->start_date = ''; // Dates are not available
+                    $season->start_date = '';
                     $season->end_date = '';
                     $finalSeasons[] = $season;
                     $seasonNames[] = $rate->season_name;
                 }
             }
         }
-
 
         $data->seasons = $finalSeasons;
 
@@ -89,7 +86,7 @@ class BookingmanagerModelPropertyrates extends BaseDatabaseModel
 
     public function save($data)
     {
-        $propertyId = (int)($data['property_id'] ?? 0);
+        $propertyId = (int)($data['property_id'] ?? 0); // This is the Article ID
         $ratesData = $data['rates'] ?? [];
 
         if (!$propertyId) {
@@ -99,17 +96,14 @@ class BookingmanagerModelPropertyrates extends BaseDatabaseModel
 
         $db = $this->getDbo();
 
-        // Get existing rates to determine if we need to UPDATE or INSERT for each season
         $existingRatesQuery = $db->getQuery(true)
             ->select('season_name')
             ->from($db->quoteName('#__bookingmanager_rates'))
             ->where('property_id = ' . $propertyId);
         $existingRates = $db->setQuery($existingRatesQuery)->loadColumn();
-        $existingRates = array_flip($existingRates); // Flip for easy key checking
+        $existingRates = array_flip($existingRates);
 
-        // Loop through the submitted rates data from the form
         foreach ($ratesData as $seasonName => $seasonData) {
-            // Sanitize season name just in case
             $seasonName = trim($seasonName);
             if (empty($seasonName)) {
                 continue;
@@ -119,12 +113,10 @@ class BookingmanagerModelPropertyrates extends BaseDatabaseModel
             $rateObj->property_id = $propertyId;
             $rateObj->season_name = $seasonName;
 
-            // Sanitize and validate base rate
             $baseRateInput = $seasonData['base_rate'] ?? '';
             $sanitizedRate = preg_replace('/[^\d\.]/', '', $baseRateInput);
             $rateObj->base_rate = ($sanitizedRate !== '' && is_numeric($sanitizedRate)) ? (float)$sanitizedRate : null;
 
-            // Handle commission override
             $rateObj->override_admin_commission = (isset($seasonData['override_admin_commission']) && $seasonData['override_admin_commission'] == '1') ? 1 : 0;
 
             if ($rateObj->override_admin_commission) {
@@ -134,17 +126,11 @@ class BookingmanagerModelPropertyrates extends BaseDatabaseModel
                 $rateObj->admin_commission = null;
             }
 
-            // We should only save a rate if it contains some data.
-            // An empty row in the form should not result in a database entry unless it exists.
-            $hasData = $rateObj->base_rate !== null || $rateObj->override_admin_commission == 1 || ($rateObj->override_admin_commission == 1 && $rateObj->admin_commission !== null);
+            $hasData = $rateObj->base_rate !== null || $rateObj->override_admin_commission == 1;
 
             if (isset($existingRates[$seasonName])) {
-                // This season already has a rate record, so we UPDATE it.
-                // Even if the user cleared the fields, we update with nulls.
                 $db->updateObject('#__bookingmanager_rates', $rateObj, ['property_id', 'season_name']);
             } else {
-                // This is a new season for this property.
-                // Only INSERT if the user has actually entered some data.
                 if ($hasData) {
                    $db->insertObject('#__bookingmanager_rates', $rateObj);
                 }
