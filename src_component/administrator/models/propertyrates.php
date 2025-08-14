@@ -40,6 +40,8 @@ class BookingmanagerModelPropertyrates extends BaseDatabaseModel
             }
         }
         $data->seasons = $seasons;
+        $data->debug_seasons_count = count($seasons);
+        $data->debug_rules_json = $rulesJson;
         
         $query->clear()->select('*')->from($db->quoteName('#__bookingmanager_rates'))
             ->where('property_id = ' . (int)$propertyId);
