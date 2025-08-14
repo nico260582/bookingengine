@@ -11,7 +11,6 @@ class BookingmanagerModelProperties extends ListModel
             $config['filter_fields'] = array(
                 'id', 'a.id',
                 'article_title', 'article.title',
-                'article_id', 'a.article_id',
                 'max_guests', 'a.max_guests',
                 'complex_name', 'complex.name',
                 'supplier_abbreviation', 'supplier.abbreviation',

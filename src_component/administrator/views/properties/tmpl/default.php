@@ -34,7 +34,7 @@ use Joomla\CMS\Layout\LayoutHelper;
                         <?php echo JHtml::_('grid.sort', 'Max Guests', 'a.max_guests', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
                     </th>
                     <th width="5%">
-                        <?php echo JHtml::_('grid.sort', 'ID', 'a.article_id', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
+                        <?php echo JHtml::_('grid.sort', 'ID', 'a.id', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
                     </th>
                 </tr>
             </thead>
@@ -63,7 +63,7 @@ use Joomla\CMS\Layout\LayoutHelper;
                                 <?php echo (int) $item->max_guests; ?>
                             </td>
                             <td>
-                                <?php echo (int) $item->article_id; ?>
+                                <?php echo (int) $item->id; ?>
                             </td>
                         </tr>
                     <?php endforeach; ?>
