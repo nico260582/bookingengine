@@ -74,7 +74,14 @@ class BookingmanagerModelProperty extends AdminModel
             AdminModel::addIncludePath(JPATH_COMPONENT_ADMINISTRATOR . '/models');
             $ratesModel = AdminModel::getInstance('Propertyrates', 'BookingmanagerModel');
             if ($ratesModel) {
-                $data->ratesData = $ratesModel->getRateData($data->id);
+                // Pass the article_id to getRateData, not the internal property id.
+                if (!empty($data->article_id)) {
+                    $data->ratesData = $ratesModel->getRateData($data->article_id);
+                } else {
+                    // If there's no article linked, we can't get rates.
+                    $data->ratesData = new stdClass();
+                    $data->ratesData->error = 'This property is not linked to a Joomla Article. Please link an article to manage rates.';
+                }
             }
         }
 
