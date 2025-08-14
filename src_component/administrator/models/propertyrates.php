@@ -26,7 +26,7 @@ class BookingmanagerModelPropertyrates extends BaseDatabaseModel
         $rulesJson = $db->setQuery($query)->loadResult();
         
         if (empty($rulesJson)) {
-            $data->error = 'This property is not assigned to a supplier with defined seasons.';
+            $data->error = 'This property (Article ID: ' . $propertyId . ') is not assigned to a supplier with defined seasons.';
             return $data;
         }
         
