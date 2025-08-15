@@ -88,51 +88,67 @@ class ModBookingFormHelper
 
     public static function getAlternativeProperties(int $currentArticleId)
     {
-    $db = Factory::getDbo();
+        $db = Factory::getDbo();
 
-    // Find the property ID from the article ID
-    $query = $db->getQuery(true)
-        ->select('id')
-        ->from($db->quoteName('#__bookingmanager_properties'))
-        ->where('article_id = ' . (int)$currentArticleId);
-    $propertyId = $db->setQuery($query)->loadResult();
+        // Find the property ID from the article ID
+        $query = $db->getQuery(true)
+            ->select('id')
+            ->from($db->quoteName('#__bookingmanager_properties'))
+            ->where('article_id = ' . (int)$currentArticleId);
+        $propertyId = $db->setQuery($query)->loadResult();
 
-    if (!$propertyId) {
-        return [];
-    }
+        if (!$propertyId) {
+            return [];
+        }
 
-    // Find the complex ID from the property ID
-    $query->clear()
-        ->select('complex_id')
-        ->from($db->quoteName('#__bookingmanager_complex_property_map'))
-        ->where('property_id = ' . (int)$propertyId);
-    $complexId = $db->setQuery($query)->loadResult();
+        // Find all assigned complexes for the property, ordered by priority
+        $query->clear()
+            ->select('complex_id')
+            ->from($db->quoteName('#__bookingmanager_complex_property_map'))
+            ->where('property_id = ' . (int)$propertyId)
+            ->order('priority ASC');
+        $complexIds = $db->setQuery($query)->loadColumn();
 
-    if (!$complexId) {
-        return [];
-    }
+        if (empty($complexIds)) {
+            return [];
+        }
 
-    // Find all other properties in the same complex
-    $query->clear()
-        ->select([
-            'p.max_guests',
-            'a.title',
-            'a.id AS article_id'
-        ])
-        ->from($db->quoteName('#__bookingmanager_properties', 'p'))
-        ->join('INNER', $db->quoteName('#__bookingmanager_complex_property_map', 'map') . ' ON p.id = map.property_id')
-        ->join('INNER', $db->quoteName('#__content', 'a') . ' ON p.article_id = a.id')
-        ->where('map.complex_id = ' . (int)$complexId)
-        ->where('p.article_id != ' . (int)$currentArticleId)
-        ->where('p.published = 1');
+        $alternatives = [];
+        $added_properties = [];
 
-    $alternatives = $db->setQuery($query)->loadObjectList();
+        foreach ($complexIds as $complexId) {
+            // Find all other properties in the same complex
+            $query->clear()
+                ->select([
+                    'p.max_guests',
+                    'a.title',
+                    'a.id AS article_id',
+                    'a.images'
+                ])
+                ->from($db->quoteName('#__bookingmanager_properties', 'p'))
+                ->join('INNER', $db->quoteName('#__bookingmanager_complex_property_map', 'map') . ' ON p.id = map.property_id')
+                ->join('INNER', $db->quoteName('#__content', 'a') . ' ON p.article_id = a.id')
+                ->where('map.complex_id = ' . (int)$complexId)
+                ->where('p.article_id != ' . (int)$currentArticleId)
+                ->where('a.state = 1');
 
-    // Add the URL to each alternative
-    foreach ($alternatives as &$alt) {
-        $alt->url = Route::_('index.php?option=com_content&view=article&id=' . $alt->article_id);
-    }
+            $results = $db->setQuery($query)->loadObjectList();
 
-    return $alternatives;
+            // Add the URL and intro image to each alternative
+            foreach ($results as $alt) {
+                if (in_array($alt->article_id, $added_properties)) {
+                    continue;
+                }
+
+                $images = json_decode($alt->images);
+                $alt->intro_image = $images->image_intro ?? '';
+                $alt->url = Route::_('index.php?option=com_content&view=article&id=' . $alt->article_id);
+                unset($alt->images);
+                $alternatives[] = $alt;
+                $added_properties[] = $alt->article_id;
+            }
+        }
+
+        return $alternatives;
     }
 }

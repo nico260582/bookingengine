@@ -62,10 +62,10 @@ class BookingmanagerModelProperty extends AdminModel
             }
 
             $query->clear()
-                ->select($db->quoteName('complex_id'))
-                ->from($db->quoteName('#__bookingmanager_complex_property_map'))
-                ->where($db->quoteName('property_id') . ' = ' . (int) $item->id);
-            $item->complex_id = $db->setQuery($query)->loadResult();
+                ->select('complex_id, priority')
+                ->from('#__bookingmanager_complex_property_map')
+                ->where('property_id = ' . (int) $item->id);
+            $item->complexes = $db->setQuery($query)->loadObjectList('complex_id');
 
             if (!empty($item->article_id)) {
                 $ratesData = new stdClass();
@@ -137,7 +137,8 @@ class BookingmanagerModelProperty extends AdminModel
 
         $propertyId = (int)$this->getState($this->getName() . '.id');
 
-        $complexId  = $data['complex_id'] ?? 0;
+        // Handle complex assignments
+        $complexes = $data['complexes'] ?? [];
         $db = Factory::getDbo();
 
         $query = $db->getQuery(true)
@@ -145,11 +146,14 @@ class BookingmanagerModelProperty extends AdminModel
             ->where('property_id = ' . $propertyId);
         $db->setQuery($query)->execute();
 
-        if (!empty($complexId)) {
-            $map = new stdClass();
-            $map->property_id = $propertyId;
-            $map->complex_id = (int)$complexId;
-            $db->insertObject('#__bookingmanager_complex_property_map', $map);
+        foreach ($complexes as $complexId => $complexData) {
+            if (!empty($complexData['assign'])) {
+                $map = new stdClass();
+                $map->property_id = $propertyId;
+                $map->complex_id = (int)$complexId;
+                $map->priority = (int)($complexData['priority'] ?? 0);
+                $db->insertObject('#__bookingmanager_complex_property_map', $map);
+            }
         }
 
         if (isset($data['rates'])) {

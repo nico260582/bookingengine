@@ -80,6 +80,33 @@ class com_bookingmanagerInstallerScript
             try { $db->execute(); } catch (Exception $e) {}
         }
 
+        // Add priority column to complex_property_map table
+        if (!$this->columnExists('#__bookingmanager_complex_property_map', 'priority')) {
+            $db->setQuery("ALTER TABLE `#__bookingmanager_complex_property_map` ADD COLUMN `priority` INT(11) NOT NULL DEFAULT 0");
+            try {
+                $db->execute();
+                JFactory::getApplication()->enqueueMessage('Table #__bookingmanager_complex_property_map updated with priority column.', 'message');
+            } catch (Exception $e) {
+                // Ignore error
+            }
+        }
+
+        // Check and modify the primary key of complex_property_map table
+        $query = "SHOW KEYS FROM `#__bookingmanager_complex_property_map` WHERE Key_name = 'PRIMARY'";
+        $db->setQuery($query);
+        try {
+            $keys = $db->loadObjectList('Column_name');
+            $keys = array_keys($keys);
+
+            if (count($keys) == 2 && $keys[0] == 'complex_id' && $keys[1] == 'property_id') {
+                $db->setQuery("ALTER TABLE `#__bookingmanager_complex_property_map` DROP PRIMARY KEY, ADD PRIMARY KEY (`property_id`, `complex_id`)");
+                $db->execute();
+                JFactory::getApplication()->enqueueMessage('Primary key of #__bookingmanager_complex_property_map updated.', 'message');
+            }
+        } catch (Exception $e) {
+            // Ignore error if the table doesn't exist yet or other issues.
+        }
+
         // Add columns for commission override if they don't exist
         if (!$this->columnExists('#__bookingmanager_rates', 'override_admin_commission')) {
             $db->setQuery("ALTER TABLE `#__bookingmanager_rates` ADD COLUMN `override_admin_commission` TINYINT(1) NOT NULL DEFAULT 0");
