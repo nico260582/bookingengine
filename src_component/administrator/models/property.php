@@ -147,15 +147,11 @@ class BookingmanagerModelProperty extends AdminModel
         $query = $db->getQuery(true)
             ->delete('#__bookingmanager_complex_property_map')
             ->where('property_id = ' . $propertyId);
-        $db->setQuery($query)->execute();
 
-        foreach ($complexes as $complexId => $complexData) {
-            if (!empty($complexData['assign'])) {
-                $map = new stdClass();
-                $map->property_id = $propertyId;
-                $map->complex_id = (int)$complexId;
-                $map->priority = (int)($complexData['priority'] ?? 0);
-                $db->insertObject('#__bookingmanager_complex_property_map', $map);
+        if (!$db->setQuery($query)->execute()) {
+            $this->setError($db->getErrorMsg());
+            return false;
+        }
             }
         }
 
