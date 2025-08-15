@@ -22,6 +22,65 @@ abstract class BookingmanagerHelper
         JHtmlSidebar::addEntry('Diagnostic', 'index.php?option=com_bookingmanager&view=diagnostic', $vName == 'diagnostic');
     }
 
+    public static function getRateStatus($articleId)
+    {
+        if (!$articleId) {
+            return ['status' => 'error', 'reason' => 'Invalid Article ID'];
+        }
+
+        $db = Factory::getDbo();
+
+        // 1. Get the supplier's seasons for this property
+        $query = $db->getQuery(true)
+            ->select('s.rules')
+            ->from($db->quoteName('#__bookingmanager_property_map', 'm'))
+            ->join('INNER', $db->quoteName('#__bookingmanager_suppliers', 's') . ' ON m.supplier_id = s.id')
+            ->where('m.property_id = ' . (int) $articleId);
+        $rulesJson = $db->setQuery($query)->loadResult();
+
+        if (empty($rulesJson)) {
+            return ['status' => 'empty', 'reason' => 'Property not assigned to a supplier.'];
+        }
+
+        $rules = json_decode($rulesJson);
+        $seasons = [];
+        if (isset($rules->seasons)) {
+            $seasons = array_values((array) $rules->seasons);
+        }
+
+        if (empty($seasons)) {
+            return ['status' => 'empty', 'reason' => 'Supplier has no seasons defined.'];
+        }
+
+        // 2. Get the saved rates for this property
+        $query->clear()
+            ->select('season_name, base_rate')
+            ->from($db->quoteName('#__bookingmanager_rates'))
+            ->where($db->quoteName('property_id') . ' = ' . (int) $articleId);
+        $rates = $db->setQuery($query)->loadObjectList('season_name');
+
+        // 3. Check for completeness
+        $missingSeasons = [];
+        $filledSeasons = 0;
+        foreach ($seasons as $season) {
+            if (empty($rates[$season->name]->base_rate) || !is_numeric($rates[$season->name]->base_rate) || $rates[$season->name]->base_rate <= 0) {
+                $missingSeasons[] = $season->name;
+            } else {
+                $filledSeasons++;
+            }
+        }
+
+        if (count($missingSeasons) === 0) {
+            return ['status' => 'complete', 'reason' => 'All rates are filled.'];
+        }
+
+        if ($filledSeasons === 0) {
+            return ['status' => 'empty', 'reason' => 'All rates are missing.'];
+        }
+
+        return ['status' => 'partial', 'reason' => 'Missing rates for: ' . implode(', ', $missingSeasons)];
+    }
+
     public static function getPlaceholders()
     {
         return [
