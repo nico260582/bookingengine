@@ -35,5 +35,10 @@
             value_field="name"
             header="Select a Complex (optional)"
         />
+        <!-- This field tells Joomla to allow the 'rates' data to pass validation -->
+        <field
+            name="rates"
+            type="hidden"
+        />
     </fieldset>
 </form>
