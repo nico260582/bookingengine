@@ -189,10 +189,18 @@ public function getItem($pk = null)
                     'property_id' => $articleId, // Use the article_id
                     'rates' => $data['rates']
                 ];
+
+                // --- AGGRESSIVE DIAGNOSTIC STEP ---
+                // Use die() to halt execution and confirm this code block is being reached.
+                die("DIAGNOSTIC: The Article ID being used to save rates is: " . (int) $articleId);
+
+                // The original code is left here for reference.
+                /*
                 if (!$ratesModel->save($ratesData)) {
                     $this->setError($ratesModel->getError());
                     return false;
                 }
+                */
             }
         }
 
