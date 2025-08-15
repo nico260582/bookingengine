@@ -189,10 +189,18 @@ public function getItem($pk = null)
                     'property_id' => $articleId, // Use the article_id
                     'rates' => $data['rates']
                 ];
+
+                // --- DIAGNOSTIC STEP ---
+                // Display the article ID to verify it's correct before saving rates.
+                $this->setError("DIAGNOSTIC: The Article ID being used to save rates is: " . (int) $articleId);
+                return false; // Stop execution so the user can see the message.
+
+                /*
                 if (!$ratesModel->save($ratesData)) {
                     $this->setError($ratesModel->getError());
                     return false;
                 }
+                */
             }
         }
 
