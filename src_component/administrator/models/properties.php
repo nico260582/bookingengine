@@ -58,4 +58,47 @@ class BookingmanagerModelProperties extends ListModel
 
         return $query;
     }
+
+    public function getItems()
+    {
+        // Get the raw list from the parent, which will have duplicates
+        $items = parent::getItems();
+
+        if (empty($items)) {
+            return [];
+        }
+
+        $processedItems = [];
+        $complexNamesByProperty = [];
+
+        // First pass: group complex names by property ID
+        foreach ($items as $item) {
+            if (!isset($complexNamesByProperty[$item->id])) {
+                $complexNamesByProperty[$item->id] = [];
+            }
+            if (!empty($item->complex_name)) {
+                // Avoid adding the same complex name twice if there are other joins causing duplicates
+                if (!in_array($item->complex_name, $complexNamesByProperty[$item->id])) {
+                    $complexNamesByProperty[$item->id][] = $item->complex_name;
+                }
+            }
+        }
+
+        // Second pass: create the final, de-duplicated list
+        foreach ($items as $item) {
+            if (!isset($processedItems[$item->id])) {
+                // If we haven't added this property yet, add it now
+
+                // Set the concatenated complex names
+                if (isset($complexNamesByProperty[$item->id])) {
+                    $item->complex_name = implode(', ', $complexNamesByProperty[$item->id]);
+                }
+
+                $processedItems[$item->id] = $item;
+            }
+        }
+
+        // Return the de-duplicated list, re-indexed from 0
+        return array_values($processedItems);
+    }
 }
