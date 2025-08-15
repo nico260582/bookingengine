@@ -203,8 +203,8 @@ class BookingmanagerModelProperty extends AdminModel
     public function publish(&$pks, $value = 1)
     {
         $pks = (array) $pks;
-        $db = $this->getDbo();
 
+        // Validation only runs on publish, not unpublish
         if ($value == 1) {
             AdminModel::addIncludePath(JPATH_COMPONENT_ADMINISTRATOR . '/models');
             $ratesModel = AdminModel::getInstance('Propertyrates', 'BookingmanagerModel');
@@ -215,7 +215,6 @@ class BookingmanagerModelProperty extends AdminModel
             }
 
             foreach ($pks as $pk) {
-                // We need the article_id, not the property's internal ID, for rate checks.
                 $table = $this->getTable();
                 $table->load($pk);
                 $articleId = $table->article_id;
@@ -225,7 +224,6 @@ class BookingmanagerModelProperty extends AdminModel
                     return false;
                 }
 
-                // Call getRateData with the correct ID
                 $ratesData = $ratesModel->getRateData($articleId);
 
                 if (empty($ratesData) || isset($ratesData->error) || empty($ratesData->seasons)) {
@@ -243,6 +241,31 @@ class BookingmanagerModelProperty extends AdminModel
             }
         }
 
-        return parent::publish($pks, $value);
+        // If validation passes (or we are unpublishing), publish the associated Joomla articles.
+        try {
+            foreach ($pks as $pk) {
+                $table = $this->getTable();
+                $table->load($pk);
+                $articleId = $table->article_id;
+
+                if ($articleId) {
+                    $articleTable = JTable::getInstance('Content', 'JTable');
+                    $articleTable->load($articleId);
+
+                    if ($articleTable->state != $value) {
+                        $articleTable->state = $value;
+                        if (!$articleTable->store()) {
+                            $this->setError($articleTable->getError());
+                            return false;
+                        }
+                    }
+                }
+            }
+        } catch (Exception $e) {
+            $this->setError($e->getMessage());
+            return false;
+        }
+
+        return true;
     }
 }

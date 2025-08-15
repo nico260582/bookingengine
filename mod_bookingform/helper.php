@@ -70,6 +70,19 @@ class ModBookingFormHelper
             'alternative_properties' => self::getAlternativeProperties($articleId) // Add alternatives
         ];
 
+        // If there are no seasons defined for the property's supplier, do not show the form.
+        if (empty($cleanRules['seasons'])) {
+            return null;
+        }
+
+        // Check if a valid rate is defined for every season.
+        foreach ($cleanRules['seasons'] as $season) {
+            if (empty($cleanRules['rates'][$season['name']]) || !is_numeric($cleanRules['rates'][$season['name']]) || $cleanRules['rates'][$season['name']] <= 0) {
+                // If any season is missing a valid rate, do not show the booking form.
+                return null;
+            }
+        }
+
         return $cleanRules;
     }
 
