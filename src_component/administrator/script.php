@@ -73,38 +73,53 @@ class com_bookingmanagerInstallerScript
         $queries[] = "CREATE TABLE IF NOT EXISTS `#__bookingmanager_templates` (`id` int(11) NOT NULL AUTO_INCREMENT, `title` varchar(255) NOT NULL, `type` varchar(50) NOT NULL, `subject` varchar(255) DEFAULT NULL, `body` text, PRIMARY KEY (`id`), UNIQUE KEY `idx_type` (`type`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
         $queries[] = "CREATE TABLE IF NOT EXISTS `#__bookingmanager_complexes` ( `id` int(11) NOT NULL AUTO_INCREMENT, `name` varchar(255) NOT NULL, `alias` varchar(255) NOT NULL, `published` tinyint(1) NOT NULL DEFAULT '1', PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
         $queries[] = "CREATE TABLE IF NOT EXISTS `#__bookingmanager_properties` ( `id` int(11) NOT NULL AUTO_INCREMENT, `article_id` int(11) NOT NULL, `max_guests` int(11) NOT NULL DEFAULT '2', PRIMARY KEY (`id`), KEY `idx_article_id` (`article_id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
-        $queries[] = "CREATE TABLE IF NOT EXISTS `#__bookingmanager_complex_property_map` ( `complex_id` int(11) NOT NULL, `property_id` int(11) NOT NULL, PRIMARY KEY (`complex_id`,`property_id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
         
         foreach ($queries as $query) {
             $db->setQuery($query);
             try { $db->execute(); } catch (Exception $e) {}
         }
 
-        // Add priority column to complex_property_map table
-        if (!$this->columnExists('#__bookingmanager_complex_property_map', 'priority')) {
-            $db->setQuery("ALTER TABLE `#__bookingmanager_complex_property_map` ADD COLUMN `priority` INT(11) NOT NULL DEFAULT 0");
-            try {
+        // Manage #__bookingmanager_complex_property_map table
+        $tableName = '#__bookingmanager_complex_property_map';
+        $tableExists = $db->getSchema()->tableExists($db->replacePrefix($tableName));
+
+        if (!$tableExists) {
+            // Create the table for new installations
+            $query = "CREATE TABLE `#__bookingmanager_complex_property_map` (
+              `property_id` int(11) NOT NULL,
+              `complex_id` int(11) NOT NULL,
+              `priority` int(11) NOT NULL DEFAULT 0,
+              PRIMARY KEY (`property_id`, `complex_id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
+            $db->setQuery($query);
+            $db->execute();
+            JFactory::getApplication()->enqueueMessage('Table #__bookingmanager_complex_property_map created.', 'message');
+        } else {
+            // Update the table for existing installations
+            if (!$this->columnExists($tableName, 'priority')) {
+                $db->setQuery("ALTER TABLE `#__bookingmanager_complex_property_map` ADD COLUMN `priority` INT(11) NOT NULL DEFAULT 0");
                 $db->execute();
                 JFactory::getApplication()->enqueueMessage('Table #__bookingmanager_complex_property_map updated with priority column.', 'message');
-            } catch (Exception $e) {
-                // Ignore error
             }
-        }
 
-        // Check and modify the primary key of complex_property_map table
-        $query = "SHOW KEYS FROM `#__bookingmanager_complex_property_map` WHERE Key_name = 'PRIMARY'";
-        $db->setQuery($query);
-        try {
+            // Check and modify the primary key
+            $query = "SHOW KEYS FROM `#__bookingmanager_complex_property_map` WHERE Key_name = 'PRIMARY'";
+            $db->setQuery($query);
             $keys = $db->loadObjectList('Column_name');
             $keys = array_keys($keys);
 
-            if (count($keys) == 2 && $keys[0] == 'complex_id' && $keys[1] == 'property_id') {
-                $db->setQuery("ALTER TABLE `#__bookingmanager_complex_property_map` DROP PRIMARY KEY, ADD PRIMARY KEY (`property_id`, `complex_id`)");
+            if (count($keys) < 2 || $keys[0] !== 'property_id' || $keys[1] !== 'complex_id') {
+                try {
+                    // Try to drop the primary key if it exists.
+                    $db->setQuery("ALTER TABLE `#__bookingmanager_complex_property_map` DROP PRIMARY KEY");
+                    $db->execute();
+                } catch (Exception $e) {
+                    // Primary key might not exist, which is fine.
+                }
+                $db->setQuery("ALTER TABLE `#__bookingmanager_complex_property_map` ADD PRIMARY KEY (`property_id`, `complex_id`)");
                 $db->execute();
                 JFactory::getApplication()->enqueueMessage('Primary key of #__bookingmanager_complex_property_map updated.', 'message');
             }
-        } catch (Exception $e) {
-            // Ignore error if the table doesn't exist yet or other issues.
         }
 
         // Add columns for commission override if they don't exist
