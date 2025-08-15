@@ -160,13 +160,17 @@ class BookingmanagerModelProperty extends AdminModel
             }
         }
 
-        // 2. Sort the assigned complexes by their priority
+        // 2. Sort the assigned complexes
         usort($assignedComplexes, function ($a, $b) {
             $priorityA = $a['priority'];
             $priorityB = $b['priority'];
+
+            // Treat 0 as a high number to push it to the end of user-prioritized items
             if ($priorityA === 0) $priorityA = 9999;
             if ($priorityB === 0) $priorityB = 9999;
+
             if ($priorityA == $priorityB) {
+                // If priorities are the same, maintain original order (or sort by id for stability)
                 return $a['complex_id'] - $b['complex_id'];
             }
             return ($priorityA < $priorityB) ? -1 : 1;
