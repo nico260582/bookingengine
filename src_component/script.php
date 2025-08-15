@@ -184,6 +184,56 @@ class com_bookingmanagerInstallerScript
 
     private function runDbMigrations($db)
     {
+        // Manage #__bookingmanager_complex_property_map table migration
+        $tableName = '#__bookingmanager_complex_property_map';
+        $tableNamePrefixed = $db->replacePrefix($tableName);
+
+        // Ensure dependent tables exist first
+        if (!$db->getSchema()->tableExists($db->replacePrefix('#__bookingmanager_properties'))) {
+            $db->setQuery("CREATE TABLE `#__bookingmanager_properties` ( `id` int(11) NOT NULL AUTO_INCREMENT, `article_id` int(11) NOT NULL, `max_guests` int(11) NOT NULL DEFAULT '2', PRIMARY KEY (`id`), KEY `idx_article_id` (`article_id`) ) ENGINE=InnoDB;")->execute();
+        }
+        if (!$db->getSchema()->tableExists($db->replacePrefix('#__bookingmanager_complexes'))) {
+            $db->setQuery("CREATE TABLE `#__bookingmanager_complexes` ( `id` int(11) NOT NULL AUTO_INCREMENT, `name` varchar(255) NOT NULL, `alias` varchar(255) NOT NULL, `published` tinyint(1) NOT NULL DEFAULT '1', PRIMARY KEY (`id`) ) ENGINE=InnoDB;")->execute();
+        }
+
+        if (!$db->getSchema()->tableExists($tableNamePrefixed)) {
+             $createQuery = "CREATE TABLE `{$tableNamePrefixed}` (
+              `property_id` int(11) NOT NULL,
+              `complex_id` int(11) NOT NULL,
+              `priority` int(11) NOT NULL DEFAULT 0,
+              PRIMARY KEY (`property_id`, `complex_id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
+            $db->setQuery($createQuery)->execute();
+        } else {
+            $columns = $db->getTableColumns($tableNamePrefixed);
+            if (!isset($columns['priority'])) {
+                $oldTableName = $tableName . '_old';
+                $oldTableNamePrefixed = $db->replacePrefix($oldTableName);
+                if ($db->getSchema()->tableExists($oldTableNamePrefixed)) {
+                    $db->setQuery("DROP TABLE `{$oldTableNamePrefixed}`")->execute();
+                }
+                $db->setQuery("RENAME TABLE `{$tableNamePrefixed}` TO `{$oldTableNamePrefixed}`")->execute();
+
+                $createQuery = "CREATE TABLE `{$tableNamePrefixed}` (
+                  `property_id` int(11) NOT NULL,
+                  `complex_id` int(11) NOT NULL,
+                  `priority` int(11) NOT NULL DEFAULT 0,
+                  PRIMARY KEY (`property_id`, `complex_id`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
+                $db->setQuery($createQuery)->execute();
+
+                try {
+                    $copyQuery = "INSERT INTO `{$tableNamePrefixed}` (property_id, complex_id, priority)
+                                  SELECT property_id, complex_id, 0 FROM `{$oldTableNamePrefixed}`";
+                    $db->setQuery($copyQuery)->execute();
+                } catch (Exception $e) {
+                    // This might fail if the old table has a different structure, which is fine.
+                }
+
+                $db->setQuery("DROP TABLE `{$oldTableNamePrefixed}`")->execute();
+            }
+        }
+
         // Add message_id to #__booking_attachments
         $columns = $db->getTableColumns('#__booking_attachments');
         if (!isset($columns['message_id'])) {

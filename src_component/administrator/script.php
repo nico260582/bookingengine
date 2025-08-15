@@ -73,60 +73,11 @@ class com_bookingmanagerInstallerScript
         $queries[] = "CREATE TABLE IF NOT EXISTS `#__bookingmanager_templates` (`id` int(11) NOT NULL AUTO_INCREMENT, `title` varchar(255) NOT NULL, `type` varchar(50) NOT NULL, `subject` varchar(255) DEFAULT NULL, `body` text, PRIMARY KEY (`id`), UNIQUE KEY `idx_type` (`type`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
         $queries[] = "CREATE TABLE IF NOT EXISTS `#__bookingmanager_complexes` ( `id` int(11) NOT NULL AUTO_INCREMENT, `name` varchar(255) NOT NULL, `alias` varchar(255) NOT NULL, `published` tinyint(1) NOT NULL DEFAULT '1', PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
         $queries[] = "CREATE TABLE IF NOT EXISTS `#__bookingmanager_properties` ( `id` int(11) NOT NULL AUTO_INCREMENT, `article_id` int(11) NOT NULL, `max_guests` int(11) NOT NULL DEFAULT '2', PRIMARY KEY (`id`), KEY `idx_article_id` (`article_id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
+        $queries[] = "CREATE TABLE IF NOT EXISTS `#__bookingmanager_complex_property_map` ( `complex_id` int(11) NOT NULL, `property_id` int(11) NOT NULL, PRIMARY KEY (`complex_id`,`property_id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
         
         foreach ($queries as $query) {
             $db->setQuery($query);
             try { $db->execute(); } catch (Exception $e) {}
-        }
-
-        // Manage #__bookingmanager_complex_property_map table
-        $tableName = '#__bookingmanager_complex_property_map';
-        $tableNamePrefixed = $db->replacePrefix($tableName);
-        $oldTableName = $tableName . '_old';
-        $oldTableNamePrefixed = $db->replacePrefix($oldTableName);
-
-        if ($db->getSchema()->tableExists($tableNamePrefixed)) {
-            // Table exists, check if it needs migration
-            if (!$this->columnExists($tableName, 'priority')) {
-                // It's the old schema, so we migrate
-
-                // 1. Rename old table
-                if ($db->getSchema()->tableExists($oldTableNamePrefixed)) {
-                    $db->setQuery("DROP TABLE `{$oldTableNamePrefixed}`")->execute();
-                }
-                $query = "RENAME TABLE `{$tableNamePrefixed}` TO `{$oldTableNamePrefixed}`";
-                $db->setQuery($query)->execute();
-
-                // 2. Create new table with correct schema
-                $createQuery = "CREATE TABLE `{$tableNamePrefixed}` (
-                  `property_id` int(11) NOT NULL,
-                  `complex_id` int(11) NOT NULL,
-                  `priority` int(11) NOT NULL DEFAULT 0,
-                  PRIMARY KEY (`property_id`, `complex_id`)
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
-                $db->setQuery($createQuery)->execute();
-
-                // 3. Copy data from old table to new table
-                $copyQuery = "INSERT INTO `{$tableNamePrefixed}` (property_id, complex_id, priority)
-                              SELECT property_id, complex_id, 0 FROM `{$oldTableNamePrefixed}`";
-                $db->setQuery($copyQuery)->execute();
-
-                // 4. Drop old table
-                $dropQuery = "DROP TABLE `{$oldTableNamePrefixed}`";
-                $db->setQuery($dropQuery)->execute();
-
-                JFactory::getApplication()->enqueueMessage('Table #__bookingmanager_complex_property_map has been migrated to the new structure.', 'message');
-            }
-        } else {
-            // Table does not exist, create it with the new schema
-            $createQuery = "CREATE TABLE `{$tableNamePrefixed}` (
-              `property_id` int(11) NOT NULL,
-              `complex_id` int(11) NOT NULL,
-              `priority` int(11) NOT NULL DEFAULT 0,
-              PRIMARY KEY (`property_id`, `complex_id`)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
-            $db->setQuery($createQuery)->execute();
-            JFactory::getApplication()->enqueueMessage('Table #__bookingmanager_complex_property_map created.', 'message');
         }
 
         // Add columns for commission override if they don't exist
