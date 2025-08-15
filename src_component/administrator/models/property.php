@@ -180,8 +180,7 @@ class BookingmanagerModelProperty extends AdminModel
         $query = $db->getQuery(true)
             ->delete('#__bookingmanager_complex_property_map')
             ->where('property_id = ' . $propertyId);
-
-        if (!$db->setQuery($query)->execute()) {
+if (!$db->setQuery($query)->execute()) {
             $this->setError($db->getErrorMsg());
             return false;
         }
@@ -197,6 +196,7 @@ class BookingmanagerModelProperty extends AdminModel
                 $this->setError($db->getErrorMsg());
                 return false;
             }
+        }
         }
 
         // --- Rates Saving Logic ---
