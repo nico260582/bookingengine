@@ -187,16 +187,21 @@ class com_bookingmanagerInstallerScript
         // Manage #__bookingmanager_complex_property_map table migration
         $tableName = '#__bookingmanager_complex_property_map';
         $tableNamePrefixed = $db->replacePrefix($tableName);
+        $allTables = $db->getTableList();
 
         // Ensure dependent tables exist first
-        if (!$db->getSchema()->tableExists($db->replacePrefix('#__bookingmanager_properties'))) {
-            $db->setQuery("CREATE TABLE `#__bookingmanager_properties` ( `id` int(11) NOT NULL AUTO_INCREMENT, `article_id` int(11) NOT NULL, `max_guests` int(11) NOT NULL DEFAULT '2', PRIMARY KEY (`id`), KEY `idx_article_id` (`article_id`) ) ENGINE=InnoDB;")->execute();
+        $propertiesTablePrefixed = $db->replacePrefix('#__bookingmanager_properties');
+        if (!in_array($propertiesTablePrefixed, $allTables)) {
+            $db->setQuery("CREATE TABLE `{$propertiesTablePrefixed}` ( `id` int(11) NOT NULL AUTO_INCREMENT, `article_id` int(11) NOT NULL, `max_guests` int(11) NOT NULL DEFAULT '2', PRIMARY KEY (`id`), KEY `idx_article_id` (`article_id`) ) ENGINE=InnoDB;")->execute();
+            $allTables = $db->getTableList(); // Refresh table list
         }
-        if (!$db->getSchema()->tableExists($db->replacePrefix('#__bookingmanager_complexes'))) {
-            $db->setQuery("CREATE TABLE `#__bookingmanager_complexes` ( `id` int(11) NOT NULL AUTO_INCREMENT, `name` varchar(255) NOT NULL, `alias` varchar(255) NOT NULL, `published` tinyint(1) NOT NULL DEFAULT '1', PRIMARY KEY (`id`) ) ENGINE=InnoDB;")->execute();
+        $complexesTablePrefixed = $db->replacePrefix('#__bookingmanager_complexes');
+        if (!in_array($complexesTablePrefixed, $allTables)) {
+            $db->setQuery("CREATE TABLE `{$complexesTablePrefixed}` ( `id` int(11) NOT NULL AUTO_INCREMENT, `name` varchar(255) NOT NULL, `alias` varchar(255) NOT NULL, `published` tinyint(1) NOT NULL DEFAULT '1', PRIMARY KEY (`id`) ) ENGINE=InnoDB;")->execute();
+            $allTables = $db->getTableList(); // Refresh table list
         }
 
-        if (!$db->getSchema()->tableExists($tableNamePrefixed)) {
+        if (!in_array($tableNamePrefixed, $allTables)) {
              $createQuery = "CREATE TABLE `{$tableNamePrefixed}` (
               `property_id` int(11) NOT NULL,
               `complex_id` int(11) NOT NULL,
@@ -209,7 +214,9 @@ class com_bookingmanagerInstallerScript
             if (!isset($columns['priority'])) {
                 $oldTableName = $tableName . '_old';
                 $oldTableNamePrefixed = $db->replacePrefix($oldTableName);
-                if ($db->getSchema()->tableExists($oldTableNamePrefixed)) {
+
+                $oldTableExists = in_array($oldTableNamePrefixed, $db->getTableList());
+                if ($oldTableExists) {
                     $db->setQuery("DROP TABLE `{$oldTableNamePrefixed}`")->execute();
                 }
                 $db->setQuery("RENAME TABLE `{$tableNamePrefixed}` TO `{$oldTableNamePrefixed}`")->execute();
