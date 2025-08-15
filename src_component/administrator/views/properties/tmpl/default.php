@@ -15,6 +15,7 @@ require_once JPATH_ADMINISTRATOR . '/components/com_bookingmanager/helpers/booki
     </div>
     <?php endif; ?>
     <div id="j-main-container" class="j-main-container <?php if (!empty($this->sidebar)) : ?>span10<?php endif; ?>">
+        <?php echo LayoutHelper::render('joomla.searchtools.default', ['view' => $this]); ?>
         <table class="table table-striped table-hover">
             <thead>
                 <tr>
@@ -107,6 +108,8 @@ require_once JPATH_ADMINISTRATOR . '/components/com_bookingmanager/helpers/booki
         </table>
         <input type="hidden" name="task" value="" />
         <input type="hidden" name="boxchecked" value="0" />
+        <input type="hidden" name="filter_order" value="<?php echo $this->state->get('list.ordering'); ?>" />
+        <input type="hidden" name="filter_order_Dir" value="<?php echo $this->state->get('list.direction'); ?>" />
         <?php echo JHtml::_('form.token'); ?>
     </div>
 </form>
