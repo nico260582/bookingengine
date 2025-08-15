@@ -140,9 +140,11 @@ public function getItem($pk = null)
     public function save($data)
     {
         // If we are editing an existing property, don't allow the article_id to be changed.
-        if (!empty($data['id'])) {
-            unset($data['article_id']);
-        }
+        // This is handled by making the field readonly in the form.
+        // Unsetting it here causes validation to fail in the check() method.
+        // if (!empty($data['id'])) {
+        //     unset($data['article_id']);
+        // }
 
         // Save the main property data using the parent AdminModel's save
         if (!parent::save($data)) {
