@@ -14,72 +14,54 @@ class BookingmanagerModelPropertyrates extends BaseDatabaseModel
         return $db->setQuery($query)->loadObjectList();
     }
 
-    public function getRateData($propertyId) // This is the Article ID
+    public function getRateData($propertyId)
     {
-        if (!$propertyId) { return null; }
+        if (!$propertyId) {
+            return null;
+        }
         $db = $this->getDbo();
         $data = new stdClass();
 
-        // 1. Get existing rates for the property using the article_id
+        // This query correctly uses the property_id (which is the article_id) from the map table
         $query = $db->getQuery(true)
-            ->select('*')
-            ->from($db->quoteName('#__bookingmanager_rates'))
-            ->where($db->quoteName('property_id') . ' = ' . (int)$propertyId);
-        $ratesList = $db->setQuery($query)->loadObjectList();
-
-        $data->rates = [];
-        foreach ($ratesList as $rate) {
-            $trimmedSeasonName = trim($rate->season_name);
-            $data->rates[$trimmedSeasonName] = $rate;
-        }
-
-        // 2. Get seasons from the assigned supplier, using the article_id
-        $query->clear()
             ->select('s.rules')
             ->from($db->quoteName('#__bookingmanager_property_map', 'm'))
             ->join('INNER', $db->quoteName('#__bookingmanager_suppliers', 's') . ' ON m.supplier_id = s.id')
-            ->where($db->quoteName('m.property_id') . ' = ' . (int)$propertyId);
+            ->where('m.property_id = ' . (int) $propertyId);
+
         $rulesJson = $db->setQuery($query)->loadResult();
 
-        $supplierSeasons = [];
-        if ($rulesJson) {
-            $rules = json_decode($rulesJson);
-            if (isset($rules->seasons) && is_string($rules->seasons)) {
-                $supplierSeasons = json_decode($rules->seasons);
-            } elseif (isset($rules->seasons) && (is_array($rules->seasons) || is_object($rules->seasons))) {
-                $supplierSeasons = (array) $rules->seasons;
+        if (empty($rulesJson)) {
+            $data->error = 'This property (Article ID: ' . $propertyId . ') is not assigned to a supplier. Please assign it to a supplier to manage rates.';
+            return $data;
+        }
+
+        $rules = json_decode($rulesJson);
+        $seasons = [];
+
+        if (isset($rules->seasons)) {
+            if (is_string($rules->seasons)) {
+                // Handles the case where seasons are a JSON string within the JSON
+                $seasons = json_decode($rules->seasons);
+            } elseif (is_object($rules->seasons) || is_array($rules->seasons)) {
+                // Handles the case where seasons are an object from a subform field
+                $seasons = array_values((array) $rules->seasons);
             }
         }
 
-        // 3. Combine them
-        $finalSeasons = [];
-        $seasonNames = []; // To track unique season names
-
-        foreach ($supplierSeasons as $season) {
-            if (!in_array($season->name, $seasonNames)) {
-                $finalSeasons[] = $season;
-                $seasonNames[] = $season->name;
-            }
-        }
-
-        if(is_array($data->rates)) {
-            foreach ($data->rates as $rate) {
-                if (!in_array($rate->season_name, $seasonNames)) {
-                    $season = new stdClass();
-                    $season->name = $rate->season_name;
-                    $season->start_date = '';
-                    $season->end_date = '';
-                    $finalSeasons[] = $season;
-                    $seasonNames[] = $rate->season_name;
-                }
-            }
-        }
-
-        $data->seasons = $finalSeasons;
+        $data->seasons = $seasons;
 
         if (empty($data->seasons)) {
-            $data->error = 'No rates or seasons found for this property. Please assign a supplier with defined seasons to begin.';
+            $data->error = 'The assigned supplier does not have any seasons defined. Please define seasons for the supplier first.';
+            return $data;
         }
+
+        $query->clear()
+            ->select('*')
+            ->from($db->quoteName('#__bookingmanager_rates'))
+            ->where('property_id = ' . (int) $propertyId);
+
+        $data->rates = $db->setQuery($query)->loadObjectList('season_name');
 
         return $data;
     }
