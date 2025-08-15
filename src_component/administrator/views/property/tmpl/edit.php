@@ -33,7 +33,7 @@ Factory::getDocument()->addScriptDeclaration($script);
         <legend>Property Details</legend>
         <?php echo $this->form->renderField('article_id'); ?>
         <?php echo $this->form->renderField('max_guests'); ?>
-        <?php echo $this->form->renderField('complexes'); ?>
+        <?php echo $this->form->renderField('complex_id'); ?>
     </fieldset>
 
     <hr>

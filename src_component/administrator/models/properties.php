@@ -39,7 +39,7 @@ class BookingmanagerModelProperties extends ListModel
         $query->select(
             $this->getState(
                 'list.select',
-                'a.*, article.title AS article_title, GROUP_CONCAT(complex.name SEPARATOR \', \') AS complex_name, supplier.name AS supplier_name'
+                'a.*, article.title AS article_title, complex.name AS complex_name, supplier.name AS supplier_name'
             )
         )
             ->from($db->quoteName('#__bookingmanager_properties', 'a'))
@@ -55,9 +55,6 @@ class BookingmanagerModelProperties extends ListModel
             $like = $db->quote('%' . $db->escape($search, true) . '%');
             $query->where('(article.title LIKE ' . $like . ' OR supplier.name LIKE ' . $like . ')');
         }
-
-        // Group by property ID to avoid duplicates
-        $query->group('a.id');
 
         // Add sorting
         $orderCol = $this->state->get('list.ordering', 'article.title');

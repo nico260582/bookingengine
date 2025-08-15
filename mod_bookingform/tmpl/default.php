@@ -62,27 +62,7 @@ use Joomla\CMS\HTML\HTMLHelper;
             <div id="price-estimate-display" class="price-total">Est. Price: -</div>
             <div id="discount-applied-alert" class="alert alert-success" style="display: none;"></div>
             <div id="nights-count-display" class="nights-count"></div>
-            <div id="property-suggestion-alert" class="alert alert-info" style="display: none;">
-                <div id="alternative-properties-container" class="row">
-                    <h6>Alternative Properties</h6>
-                    <?php if (!empty($pricingData['alternative_properties'])) : ?>
-                        <?php foreach ($pricingData['alternative_properties'] as $alt_property) : ?>
-                            <div class="col-md-4 mb-2">
-                                <div class="card">
-                                    <a href="<?php echo $alt_property->url; ?>" target="_blank">
-                                        <?php if (!empty($alt_property->intro_image)) : ?>
-                                            <img src="<?php echo JUri::root() . $alt_property->intro_image; ?>" class="card-img-top" alt="<?php echo htmlspecialchars($alt_property->title, ENT_QUOTES, 'UTF-8'); ?>">
-                                        <?php endif; ?>
-                                        <div class="card-body">
-                                            <h6 class="card-title"><?php echo htmlspecialchars($alt_property->title, ENT_QUOTES, 'UTF-8'); ?></h6>
-                                        </div>
-                                    </a>
-                                </div>
-                            </div>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
-                </div>
-            </div>
+            <div id="property-suggestion-alert" class="alert alert-info" style="display: none;"></div>
             <div id="unit-count-display" class="units-count">1 Unit</div>
         </div>
 

@@ -256,9 +256,12 @@ document.addEventListener('DOMContentLoaded', function () {
         // Handle property suggestion logic first
         if (totalGuestsForCapacity > baseCapacity && Array.isArray(rules.alternative_properties) && rules.alternative_properties.length > 0) {
             const suitableAlternatives = rules.alternative_properties
-                .filter(p => p.max_guests >= totalGuestsForCapacity);
+                .filter(p => p.max_guests >= totalGuestsForCapacity)
+                .sort((a, b) => a.max_guests - b.max_guests);
 
             if (suitableAlternatives.length > 0) {
+                const bestFit = suitableAlternatives[0];
+                elements.propertySuggestionAlert.innerHTML = `This property may be too small. For your group size, we suggest our <a href="${bestFit.url}">${bestFit.title}</a>.`;
                 elements.propertySuggestionAlert.style.display = 'block';
                 elements.unitCountDisplay.style.display = 'none'; // Hide the unit count
                 elements.priceDisplay.textContent = 'Est. Price: -'; // Reset price
