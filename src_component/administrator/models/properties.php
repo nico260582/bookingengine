@@ -23,11 +23,6 @@ class BookingmanagerModelProperties extends ListModel
 
     protected function populateState($ordering = 'article.title', $direction = 'asc')
     {
-        // Get the search term from the request and set it in the state.
-        $search = $this->getUserStateFromRequest($this->context . '.filter.search', 'filter_search');
-        $this->setState('filter.search', $search);
-
-        // Let the parent class do the rest.
         parent::populateState($ordering, $direction);
     }
 
