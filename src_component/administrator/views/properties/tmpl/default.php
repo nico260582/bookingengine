@@ -3,6 +3,9 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\Layout\LayoutHelper;
+
+// Ensure the helper is loaded
+require_once JPATH_ADMINISTRATOR . '/components/com_bookingmanager/helpers/bookingmanager.php';
 ?>
 
 <form action="<?php echo Route::_('index.php?option=com_bookingmanager&view=properties'); ?>" method="post" name="adminForm" id="adminForm">
@@ -25,10 +28,10 @@ use Joomla\CMS\Layout\LayoutHelper;
                         <?php echo JHtml::_('grid.sort', 'Complex', 'complex.name', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
                     </th>
                     <th width="15%">
-                        <?php echo JHtml::_('grid.sort', 'Supplier', 'supplier.abbreviation', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
+                        <?php echo JHtml::_('grid.sort', 'Supplier', 'supplier.name', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
                     </th>
-                    <th width="5%">
-                        <?php echo JHtml::_('grid.sort', 'JSTATUS', 'a.published', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
+                    <th width="5%" class="nowrap center">
+                        Rate Status
                     </th>
                     <th width="10%">
                         <?php echo JHtml::_('grid.sort', 'Max Guests', 'a.max_guests', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
@@ -40,7 +43,9 @@ use Joomla\CMS\Layout\LayoutHelper;
             </thead>
             <tbody>
                 <?php if (!empty($this->items)) : ?>
-                    <?php foreach ($this->items as $i => $item) : ?>
+                    <?php foreach ($this->items as $i => $item) :
+                        $rateStatus = BookingmanagerHelper::getRateStatus($item->article_id);
+                        ?>
                         <tr class="row<?php echo $i % 2; ?>">
                             <td>
                                 <?php echo JHtml::_('grid.id', $i, $item->id); ?>
@@ -54,10 +59,27 @@ use Joomla\CMS\Layout\LayoutHelper;
                                 <?php echo $this->escape($item->complex_name) ?: 'N/A'; ?>
                             </td>
                             <td>
-                                <?php echo $this->escape($item->supplier_abbreviation) ?: 'N/A'; ?>
+                                <?php echo $this->escape($item->supplier_name) ?: 'N/A'; ?>
                             </td>
                             <td class="center">
-                                <?php echo JHtml::_('jgrid.published', $item->published ?? 0, $i, 'properties.', true, 'cb'); ?>
+                                <?php
+                                $status = $rateStatus['status'] ?? 'error';
+                                $reason = $rateStatus['reason'] ?? 'Error checking status.';
+                                switch ($status) {
+                                    case 'complete':
+                                        echo '<span class="icon-publish" style="color: green;" title="' . $this->escape($reason) . '"></span>';
+                                        break;
+                                    case 'partial':
+                                        echo '<span class="icon-warning" style="color: orange;" title="' . $this->escape($reason) . '"></span>';
+                                        break;
+                                    case 'empty':
+                                        echo '<span class="icon-unpublish" style="color: red;" title="' . $this->escape($reason) . '"></span>';
+                                        break;
+                                    default:
+                                        echo '<span class="icon-question" title="' . $this->escape($reason) . '"></span>';
+                                        break;
+                                }
+                                ?>
                             </td>
                             <td>
                                 <?php echo (int) $item->max_guests; ?>
