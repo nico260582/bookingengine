@@ -3,6 +3,7 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\MVC\Model\AdminModel;
 use Joomla\CMS\Factory;
+use Joomla\CMS\Form\Form;
 
 class BookingmanagerModelProperty extends AdminModel
 {
@@ -13,7 +14,8 @@ class BookingmanagerModelProperty extends AdminModel
 
     public function getForm($data = array(), $loadData = true)
     {
-        \Joomla\CMS\Form\Form::addFieldPath(JPATH_COMPONENT_ADMINISTRATOR . '/models/fields');
+        Form::addFieldPath(JPATH_COMPONENT_ADMINISTRATOR . '/models/fields');
+
         $form = $this->loadForm(
             'com_bookingmanager.property',
             'property',
