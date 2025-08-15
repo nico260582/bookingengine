@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <form>
-    <fieldset addfieldpath="/administrator/components/com_bookingmanager/models/fields">
+    <fieldset>
         <field
             name="id"
             type="hidden"
@@ -26,10 +26,14 @@
             step="1"
         />
         <field
-            name="complexes"
-            type="complexassignment"
-            label="COM_BOOKINGMANAGER_PROPERTY_COMPLEX_ASSIGNMENT_LABEL"
-            description="COM_BOOKINGMANAGER_PROPERTY_COMPLEX_ASSIGNMENT_DESC"
+            name="complex_id"
+            type="sql"
+            label="COM_BOOKINGMANAGER_PROPERTY_COMPLEX_LABEL"
+            description="COM_BOOKINGMANAGER_PROPERTY_COMPLEX_DESC"
+            query="SELECT id AS value, name AS name FROM #__bookingmanager_complexes ORDER BY name"
+            key_field="value"
+            value_field="name"
+            header="Select a Complex (optional)"
         />
         <!-- This field tells Joomla to allow the 'rates' data to pass validation -->
         <field

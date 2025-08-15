@@ -53,7 +53,7 @@ class BookingmanagerModelProperty extends AdminModel
     {
         $item = parent::getItem($pk);
 
-        if ($item && !empty($item->id) && !isset($item->ratesData)) {
+        if ($item && !empty($item->id)) {
             $db = Factory::getDbo();
             $query = $db->getQuery(true);
 
@@ -64,48 +64,53 @@ class BookingmanagerModelProperty extends AdminModel
                 $item->article_id = $db->setQuery($query)->loadResult();
             }
 
+            // Get all assigned complexes for this property
             $query->clear()
                 ->select('complex_id, priority')
                 ->from('#__bookingmanager_complex_property_map')
                 ->where('property_id = ' . (int) $item->id);
             $item->complexes = $db->setQuery($query)->loadObjectList('complex_id');
 
-            if (!empty($item->article_id)) {
-                $ratesData = new stdClass();
-                $propertyId = (int) $item->article_id;
+            // Get rates data if not already loaded
+            if (!isset($item->ratesData))
+            {
+                if (!empty($item->article_id)) {
+                    $ratesData = new stdClass();
+                    $propertyId = (int) $item->article_id;
 
-                $query->clear()
-                    ->select('s.rules')
-                    ->from($db->quoteName('#__bookingmanager_property_map', 'm'))
-                    ->join('INNER', $db->quoteName('#__bookingmanager_suppliers', 's') . ' ON m.supplier_id = s.id')
-                    ->where('m.property_id = ' . $propertyId);
-                $rulesJson = $db->setQuery($query)->loadResult();
+                    $query->clear()
+                        ->select('s.rules')
+                        ->from($db->quoteName('#__bookingmanager_property_map', 'm'))
+                        ->join('INNER', $db->quoteName('#__bookingmanager_suppliers', 's') . ' ON m.supplier_id = s.id')
+                        ->where('m.property_id = ' . $propertyId);
+                    $rulesJson = $db->setQuery($query)->loadResult();
 
-                if (empty($rulesJson)) {
-                    $ratesData->error = 'This property is not assigned to a supplier.';
-                } else {
-                    $rules = json_decode($rulesJson);
-                    $seasons = [];
-                    if (isset($rules->seasons)) {
-                        $seasons = array_values((array) $rules->seasons);
-                    }
-                    $ratesData->seasons = $seasons;
-
-                    if (empty($ratesData->seasons)) {
-                        $ratesData->error = 'The assigned supplier has no seasons defined.';
+                    if (empty($rulesJson)) {
+                        $ratesData->error = 'This property is not assigned to a supplier.';
                     } else {
-                        $query->clear()
-                            ->select('*')
-                            ->from($db->quoteName('#__bookingmanager_rates'))
-                            ->where($db->quoteName('property_id') . ' = ' . $propertyId);
-                        $ratesList = $db->setQuery($query)->loadObjectList('season_name');
-                        $ratesData->rates = $ratesList;
+                        $rules = json_decode($rulesJson);
+                        $seasons = [];
+                        if (isset($rules->seasons)) {
+                            $seasons = array_values((array) $rules->seasons);
+                        }
+                        $ratesData->seasons = $seasons;
+
+                        if (empty($ratesData->seasons)) {
+                            $ratesData->error = 'The assigned supplier has no seasons defined.';
+                        } else {
+                            $query->clear()
+                                ->select('*')
+                                ->from($db->quoteName('#__bookingmanager_rates'))
+                                ->where($db->quoteName('property_id') . ' = ' . $propertyId);
+                            $ratesList = $db->setQuery($query)->loadObjectList('season_name');
+                            $ratesData->rates = $ratesList;
+                        }
                     }
+                    $item->ratesData = $ratesData;
+                } else {
+                    $item->ratesData = new stdClass();
+                    $item->ratesData->error = 'This property is not linked to a Joomla Article.';
                 }
-                $item->ratesData = $ratesData;
-            } else {
-                $item->ratesData = new stdClass();
-                $item->ratesData->error = 'This property is not linked to a Joomla Article.';
             }
         } elseif (!$item) {
             $item = $this->getTable();
@@ -175,8 +180,26 @@ class BookingmanagerModelProperty extends AdminModel
         $query = $db->getQuery(true)
             ->delete('#__bookingmanager_complex_property_map')
             ->where('property_id = ' . $propertyId);
+if (!$db->setQuery($query)->execute()) {
+            $this->setError($db->getErrorMsg());
+            return false;
         }
 
+        // 4. Insert new assignments with re-calculated sequential priorities
+        $newPriority = 1;
+        foreach ($assignedComplexes as $assignment) {
+            $map = new stdClass();
+            $map->property_id = $propertyId;
+            $map->complex_id = $assignment['complex_id'];
+            $map->priority = $newPriority++;
+            if (!$db->insertObject('#__bookingmanager_complex_property_map', $map)) {
+                $this->setError($db->getErrorMsg());
+                return false;
+            }
+        }
+        }
+
+        // --- Rates Saving Logic ---
         if (isset($data['rates'])) {
             AdminModel::addIncludePath(JPATH_COMPONENT_ADMINISTRATOR . '/models');
             $ratesModel = AdminModel::getInstance('Propertyrates', 'BookingmanagerModel');
@@ -229,7 +252,6 @@ class BookingmanagerModelProperty extends AdminModel
     {
         $pks = (array) $pks;
 
-        // Validation only runs on publish, not unpublish
         if ($value == 1) {
             AdminModel::addIncludePath(JPATH_COMPONENT_ADMINISTRATOR . '/models');
             $ratesModel = AdminModel::getInstance('Propertyrates', 'BookingmanagerModel');
@@ -266,7 +288,6 @@ class BookingmanagerModelProperty extends AdminModel
             }
         }
 
-        // If validation passes (or we are unpublishing), publish the associated Joomla articles.
         try {
             foreach ($pks as $pk) {
                 $table = $this->getTable();
