@@ -139,24 +139,52 @@ class BookingmanagerModelProperty extends AdminModel
         }
 
         $propertyId = (int)$this->getState($this->getName() . '.id');
-
-        // Handle complex assignments
-        $complexes = $data['complexes'] ?? [];
         $db = Factory::getDbo();
 
+        // Handle complex assignments with priority re-ordering
+        $complexes = $data['complexes'] ?? [];
+
+        // 1. Filter for assigned complexes and store their user-defined priorities
+        $assignedComplexes = [];
+        foreach ($complexes as $complexId => $complexData) {
+            if (!empty($complexData['assign'])) {
+                $assignedComplexes[] = [
+                    'complex_id' => (int)$complexId,
+                    'priority'   => (int)($complexData['priority'] ?? 0)
+                ];
+            }
+        }
+
+        // 2. Sort the assigned complexes
+        usort($assignedComplexes, function ($a, $b) {
+            $priorityA = $a['priority'];
+            $priorityB = $b['priority'];
+
+            // Treat 0 as a high number to push it to the end of user-prioritized items
+            if ($priorityA === 0) $priorityA = 9999;
+            if ($priorityB === 0) $priorityB = 9999;
+
+            if ($priorityA == $priorityB) {
+                // If priorities are the same, maintain original order (or sort by id for stability)
+                return $a['complex_id'] - $b['complex_id'];
+            }
+            return ($priorityA < $priorityB) ? -1 : 1;
+        });
+
+        // 3. Delete old assignments
         $query = $db->getQuery(true)
             ->delete('#__bookingmanager_complex_property_map')
             ->where('property_id = ' . $propertyId);
         $db->setQuery($query)->execute();
 
-        foreach ($complexes as $complexId => $complexData) {
-            if (!empty($complexData['assign'])) {
-                $map = new stdClass();
-                $map->property_id = $propertyId;
-                $map->complex_id = (int)$complexId;
-                $map->priority = (int)($complexData['priority'] ?? 0);
-                $db->insertObject('#__bookingmanager_complex_property_map', $map);
-            }
+        // 4. Insert new assignments with re-calculated sequential priorities
+        $newPriority = 1;
+        foreach ($assignedComplexes as $assignment) {
+            $map = new stdClass();
+            $map->property_id = $propertyId;
+            $map->complex_id = $assignment['complex_id'];
+            $map->priority = $newPriority++;
+            $db->insertObject('#__bookingmanager_complex_property_map', $map);
         }
 
         if (isset($data['rates'])) {
