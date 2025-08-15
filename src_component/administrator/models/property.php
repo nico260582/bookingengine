@@ -3,6 +3,7 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\MVC\Model\AdminModel;
 use Joomla\CMS\Factory;
+use Joomla\CMS\Form\Form;
 
 class BookingmanagerModelProperty extends AdminModel
 {
@@ -13,6 +14,8 @@ class BookingmanagerModelProperty extends AdminModel
 
     public function getForm($data = array(), $loadData = true)
     {
+        Form::addFieldPath(JPATH_COMPONENT_ADMINISTRATOR . '/models/fields');
+
         $form = $this->loadForm(
             'com_bookingmanager.property',
             'property',
@@ -62,10 +65,10 @@ class BookingmanagerModelProperty extends AdminModel
             }
 
             $query->clear()
-                ->select($db->quoteName('complex_id'))
-                ->from($db->quoteName('#__bookingmanager_complex_property_map'))
-                ->where($db->quoteName('property_id') . ' = ' . (int) $item->id);
-            $item->complex_id = $db->setQuery($query)->loadResult();
+                ->select('complex_id, priority')
+                ->from('#__bookingmanager_complex_property_map')
+                ->where('property_id = ' . (int) $item->id);
+            $item->complexes = $db->setQuery($query)->loadObjectList('complex_id');
 
             if (!empty($item->article_id)) {
                 $ratesData = new stdClass();
@@ -136,19 +139,51 @@ class BookingmanagerModelProperty extends AdminModel
         }
 
         $propertyId = (int)$this->getState($this->getName() . '.id');
-
-        $complexId  = $data['complex_id'] ?? 0;
         $db = Factory::getDbo();
 
+        // Handle complex assignments with priority re-ordering
+        $complexes = $data['complexes'] ?? [];
+
+        // 1. Filter for assigned complexes and store their user-defined priorities
+        $assignedComplexes = [];
+        foreach ($complexes as $complexId => $complexData) {
+            if (!empty($complexData['assign'])) {
+                $assignedComplexes[] = [
+                    'complex_id' => (int)$complexId,
+                    'priority'   => (int)($complexData['priority'] ?? 0)
+                ];
+            }
+        }
+
+        // 2. Sort the assigned complexes
+        usort($assignedComplexes, function ($a, $b) {
+            $priorityA = $a['priority'];
+            $priorityB = $b['priority'];
+
+            // Treat 0 as a high number to push it to the end of user-prioritized items
+            if ($priorityA === 0) $priorityA = 9999;
+            if ($priorityB === 0) $priorityB = 9999;
+
+            if ($priorityA == $priorityB) {
+                // If priorities are the same, maintain original order (or sort by id for stability)
+                return $a['complex_id'] - $b['complex_id'];
+            }
+            return ($priorityA < $priorityB) ? -1 : 1;
+        });
+
+        // 3. Delete old assignments
         $query = $db->getQuery(true)
             ->delete('#__bookingmanager_complex_property_map')
             ->where('property_id = ' . $propertyId);
         $db->setQuery($query)->execute();
 
-        if (!empty($complexId)) {
+        // 4. Insert new assignments with re-calculated sequential priorities
+        $newPriority = 1;
+        foreach ($assignedComplexes as $assignment) {
             $map = new stdClass();
             $map->property_id = $propertyId;
-            $map->complex_id = (int)$complexId;
+            $map->complex_id = $assignment['complex_id'];
+            $map->priority = $newPriority++;
             $db->insertObject('#__bookingmanager_complex_property_map', $map);
         }
 
