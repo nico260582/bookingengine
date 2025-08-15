@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<form>
+    <fields name="filter">
+        <field
+            name="search"
+            type="text"
+            label="Search"
+            description="Search in title or supplier name."
+            hint="Search..."
+        />
+    </fields>
+</form>
