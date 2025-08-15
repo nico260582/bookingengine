@@ -190,11 +190,11 @@ public function getItem($pk = null)
                     'rates' => $data['rates']
                 ];
 
-                // --- DIAGNOSTIC STEP ---
-                // Display the article ID to verify it's correct before saving rates.
-                $this->setError("DIAGNOSTIC: The Article ID being used to save rates is: " . (int) $articleId);
-                return false; // Stop execution so the user can see the message.
+                // --- AGGRESSIVE DIAGNOSTIC STEP ---
+                // Use die() to halt execution and confirm this code block is being reached.
+                die("DIAGNOSTIC: The Article ID being used to save rates is: " . (int) $articleId);
 
+                // The original code is left here for reference.
                 /*
                 if (!$ratesModel->save($ratesData)) {
                     $this->setError($ratesModel->getError());
