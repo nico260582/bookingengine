@@ -8,21 +8,11 @@ defined('_JEXEC') or die;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Router\Route;
 
-// Ensure the administrator helper is available for the rate status check
-require_once JPATH_ADMINISTRATOR . '/components/com_bookingmanager/helpers/bookingmanager.php';
-
 class ModBookingFormHelper
 {
     public static function getPricingDataForArticle(int $articleId)
     {
         if (!$articleId) {
-            return null;
-        }
-
-        // First, check the rate status using the centralized helper.
-        // If the status is not 'complete', we don't need to do anything else.
-        $rateStatus = BookingmanagerHelper::getRateStatus($articleId);
-        if ($rateStatus['status'] !== 'complete') {
             return null;
         }
 
@@ -79,6 +69,19 @@ class ModBookingFormHelper
             'coupon_codes' => isset($rules['coupon_codes']) && is_array($rules['coupon_codes']) ? array_values($rules['coupon_codes']) : [],
             'alternative_properties' => self::getAlternativeProperties($articleId) // Add alternatives
         ];
+
+        // If there are no seasons defined for the property's supplier, do not show the form.
+        if (empty($cleanRules['seasons'])) {
+            return null;
+        }
+
+        // Check if a valid rate is defined for every season.
+        foreach ($cleanRules['seasons'] as $season) {
+            if (empty($cleanRules['rates'][$season['name']]) || !is_numeric($cleanRules['rates'][$season['name']]) || $cleanRules['rates'][$season['name']] <= 0) {
+                // If any season is missing a valid rate, do not show the booking form.
+                return null;
+            }
+        }
 
         return $cleanRules;
     }

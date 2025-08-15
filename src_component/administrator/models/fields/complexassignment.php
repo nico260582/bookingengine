@@ -46,7 +46,7 @@ class JFormFieldComplexassignment extends FormField
 
                 $html .= '<tr>';
                 $html .= '<td>' . $complex->name . '</td>';
-                $html .= '<td><input type="checkbox" name="' . $this->name . '[' . $complex->id . '][assign]" value="1"' . $checked . ' /></td>';
+                $html .= '<td><input type="checkbox" class="bm-complex-assign" data-complex-id="' . $complex->id . '" name="' . $this->name . '[' . $complex->id . '][assign]" value="1"' . $checked . ' /></td>';
                 $html .= '<td><input type="number" name="' . $this->name . '[' . $complex->id . '][priority]" value="' . $priority . '" class="input-mini" /></td>';
                 $html .= '</tr>';
             }
