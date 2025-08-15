@@ -127,8 +127,13 @@ class BookingmanagerModelProperty extends AdminModel
             $ratesModel = AdminModel::getInstance('Propertyrates', 'BookingmanagerModel');
 
             if ($ratesModel) {
+                // Get the article_id for the property
+                $table = $this->getTable();
+                $table->load($propertyId);
+                $articleId = $table->article_id;
+
                 $ratesData = [
-                    'property_id' => $propertyId,
+                    'property_id' => $articleId, // Use the article_id
                     'rates' => $data['rates']
                 ];
                 if (!$ratesModel->save($ratesData)) {
@@ -145,17 +150,24 @@ class BookingmanagerModelProperty extends AdminModel
     {
         $db = $this->getDbo();
         foreach ($pks as $pk) {
+            // Get the article_id for this property before deleting
+            $table = $this->getTable();
+            $table->load($pk);
+            $articleId = $table->article_id;
+
             // Delete from complex map table
             $query = $db->getQuery(true)
                 ->delete($db->quoteName('#__bookingmanager_complex_property_map'))
                 ->where('property_id = ' . (int)$pk);
             $db->setQuery($query)->execute();
 
-            // Delete from rates table
-            $query->clear()
-                ->delete($db->quoteName('#__bookingmanager_rates'))
-                ->where('property_id = ' . (int)$pk);
-            $db->setQuery($query)->execute();
+            // Delete from rates table using the article_id
+            if ($articleId) {
+                $query->clear()
+                    ->delete($db->quoteName('#__bookingmanager_rates'))
+                    ->where('property_id = ' . (int)$articleId);
+                $db->setQuery($query)->execute();
+            }
         }
 
         // Call parent delete to remove from main properties table
