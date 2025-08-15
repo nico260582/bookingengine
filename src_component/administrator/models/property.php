@@ -215,7 +215,19 @@ class BookingmanagerModelProperty extends AdminModel
             }
 
             foreach ($pks as $pk) {
-                $ratesData = $ratesModel->getRateData($pk);
+                // We need the article_id, not the property's internal ID, for rate checks.
+                $table = $this->getTable();
+                $table->load($pk);
+                $articleId = $table->article_id;
+
+                if (!$articleId) {
+                    $this->setError('Property ID ' . $pk . ' is not linked to an article and cannot be published.');
+                    return false;
+                }
+
+                // Call getRateData with the correct ID
+                $ratesData = $ratesModel->getRateData($articleId);
+
                 if (empty($ratesData) || isset($ratesData->error) || empty($ratesData->seasons)) {
                     $this->setError('Property ID ' . $pk . ' cannot be published. It may not be assigned to a supplier with seasons defined.');
                     return false;
