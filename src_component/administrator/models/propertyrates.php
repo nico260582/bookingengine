@@ -111,10 +111,16 @@ class BookingmanagerModelPropertyrates extends BaseDatabaseModel
             $hasData = $rateObj->base_rate !== null || $rateObj->override_admin_commission == 1;
 
             if (isset($existingRates[$seasonName])) {
-                $db->updateObject('#__bookingmanager_rates', $rateObj, ['property_id', 'season_name']);
+                if (!$db->updateObject('#__bookingmanager_rates', $rateObj, ['property_id', 'season_name'])) {
+                    $this->setError($db->getErrorMsg());
+                    return false;
+                }
             } else {
                 if ($hasData) {
-                   $db->insertObject('#__bookingmanager_rates', $rateObj);
+                    if (!$db->insertObject('#__bookingmanager_rates', $rateObj)) {
+                        $this->setError($db->getErrorMsg());
+                        return false;
+                    }
                 }
             }
         }
