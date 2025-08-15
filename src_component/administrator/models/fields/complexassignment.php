@@ -1,15 +1,17 @@
 <?php
 defined('JPATH_BASE') or die;
 
-jimport('joomla.form.formfield');
+use Joomla\CMS\Factory;
+use Joomla\CMS\Form\FormField;
+use Joomla\CMS\Language\Text;
 
-class JFormFieldComplexassignment extends JFormField
+class JFormFieldComplexassignment extends FormField
 {
     protected $type = 'Complexassignment';
 
     protected function getInput()
     {
-        $db = JFactory::getDbo();
+        $db = Factory::getDbo();
 
         // Get all complexes
         $query = $db->getQuery(true)
@@ -32,11 +34,11 @@ class JFormFieldComplexassignment extends JFormField
         }
 
         $html = '<table class="table table-striped">';
-        $html .= '<thead><tr><th>' . JText::_('COM_BOOKINGMANAGER_COMPLEX_NAME') . '</th><th>' . JText::_('COM_BOOKINGMANAGER_ASSIGNED') . '</th><th>' . JText::_('COM_BOOKINGMANAGER_PRIORITY') . '</th></tr></thead>';
+        $html .= '<thead><tr><th>' . Text::_('COM_BOOKINGMANAGER_COMPLEX_NAME') . '</th><th>' . Text::_('COM_BOOKINGMANAGER_ASSIGNED') . '</th><th>' . Text::_('COM_BOOKINGMANAGER_PRIORITY') . '</th></tr></thead>';
         $html .= '<tbody>';
 
         if (empty($allComplexes)) {
-            $html .= '<tr><td colspan="3">' . JText::_('COM_BOOKINGMANAGER_NO_COMPLEXES_FOUND') . '</td></tr>';
+            $html .= '<tr><td colspan="3">' . Text::_('COM_BOOKINGMANAGER_NO_COMPLEXES_FOUND') . '</td></tr>';
         } else {
             foreach ($allComplexes as $complex) {
                 $checked = array_key_exists($complex->id, $assignedComplexes) ? ' checked="checked"' : '';

@@ -13,6 +13,7 @@ class BookingmanagerModelProperty extends AdminModel
 
     public function getForm($data = array(), $loadData = true)
     {
+        \Joomla\CMS\Form\Form::addFieldPath(JPATH_COMPONENT_ADMINISTRATOR . '/models/fields');
         $form = $this->loadForm(
             'com_bookingmanager.property',
             'property',
