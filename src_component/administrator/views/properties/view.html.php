@@ -17,6 +17,7 @@ class BookingmanagerViewProperties extends BaseHtmlView
         $this->items      = $this->get('Items');
         $this->pagination = $this->get('Pagination');
         $this->state      = $this->get('State');
+        $this->filterForm = $this->get('FilterForm');
 
         // Load the sidebar
         require_once JPATH_COMPONENT_ADMINISTRATOR . '/helpers/bookingmanager.php';

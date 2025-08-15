@@ -175,16 +175,6 @@ class BookingmanagerModelProperty extends AdminModel
         $query = $db->getQuery(true)
             ->delete('#__bookingmanager_complex_property_map')
             ->where('property_id = ' . $propertyId);
-        $db->setQuery($query)->execute();
-
-        // 4. Insert new assignments with re-calculated sequential priorities
-        $newPriority = 1;
-        foreach ($assignedComplexes as $assignment) {
-            $map = new stdClass();
-            $map->property_id = $propertyId;
-            $map->complex_id = $assignment['complex_id'];
-            $map->priority = $newPriority++;
-            $db->insertObject('#__bookingmanager_complex_property_map', $map);
         }
 
         if (isset($data['rates'])) {
