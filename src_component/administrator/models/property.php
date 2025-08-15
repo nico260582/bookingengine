@@ -50,39 +50,88 @@ class BookingmanagerModelProperty extends AdminModel
         return $form;
     }
 
+public function getItem($pk = null)
+{
+    // Get the item, either from the state or from the parent method
+    $item = parent::getItem($pk);
+
+    if ($item && !empty($item->id) && !isset($item->ratesData)) {
+        $db = Factory::getDbo();
+        $query = $db->getQuery(true);
+
+        // 1. Get the article_id if it's not already present
+        if (empty($item->article_id)) {
+            $query->select($db->quoteName('article_id'))
+                ->from($db->quoteName('#__bookingmanager_properties'))
+                ->where($db->quoteName('id') . ' = ' . (int) $item->id);
+            $item->article_id = $db->setQuery($query)->loadResult();
+        }
+
+        // 2. Load the complex ID
+        $query->clear()
+            ->select($db->quoteName('complex_id'))
+            ->from($db->quoteName('#__bookingmanager_complex_property_map'))
+            ->where($db->quoteName('property_id') . ' = ' . (int) $item->id);
+        $item->complex_id = $db->setQuery($query)->loadResult();
+
+        // 3. Load the rates data directly here
+        if (!empty($item->article_id)) {
+            $ratesData = new stdClass();
+            $propertyId = (int) $item->article_id;
+
+            // Get supplier rules
+            $query->clear()
+                ->select('s.rules')
+                ->from($db->quoteName('#__bookingmanager_property_map', 'm'))
+                ->join('INNER', $db->quoteName('#__bookingmanager_suppliers', 's') . ' ON m.supplier_id = s.id')
+                ->where('m.property_id = ' . $propertyId);
+            $rulesJson = $db->setQuery($query)->loadResult();
+
+            if (empty($rulesJson)) {
+                $ratesData->error = 'This property is not assigned to a supplier.';
+            } else {
+                $rules = json_decode($rulesJson);
+                $seasons = [];
+                if (isset($rules->seasons)) {
+                    $seasons = array_values((array) $rules->seasons);
+                }
+                $ratesData->seasons = $seasons;
+
+                if (empty($ratesData->seasons)) {
+                    $ratesData->error = 'The assigned supplier has no seasons defined.';
+                } else {
+                    // Get the saved rates
+                    $query->clear()
+                        ->select('*')
+                        ->from($db->quoteName('#__bookingmanager_rates'))
+                        ->where($db->quoteName('property_id') . ' = ' . $propertyId);
+                    $ratesList = $db->setQuery($query)->loadObjectList('season_name');
+                    $ratesData->rates = $ratesList;
+                }
+            }
+            $item->ratesData = $ratesData;
+        } else {
+            $item->ratesData = new stdClass();
+            $item->ratesData->error = 'This property is not linked to a Joomla Article.';
+        }
+    } elseif (!$item) {
+        // For a new item, return a table object with default values to prevent errors
+        $item = $this->getTable();
+        $item->id = 0;
+    }
+
+    return $item;
+}
+
     protected function loadFormData()
     {
         // Load the data from the session.
         $data = Factory::getApplication()->getUserState('com_bookingmanager.edit.property.data', array());
 
         if (empty($data)) {
-            // If no session data, load from the database
+            // If no session data, load from the database.
+            // The getItem method will now handle loading all related data.
             $data = $this->getItem();
-        }
-
-        // Always load the related data for an existing item
-        if ($data && !empty($data->id)) {
-            // Load the complex ID from the mapping table
-            $db = Factory::getDbo();
-            $query = $db->getQuery(true)
-                ->select($db->quoteName('complex_id'))
-                ->from($db->quoteName('#__bookingmanager_complex_property_map'))
-                ->where($db->quoteName('property_id') . ' = ' . (int)$data->id);
-            $data->complex_id = $db->setQuery($query)->loadResult();
-
-            // Load the rates data
-            AdminModel::addIncludePath(JPATH_COMPONENT_ADMINISTRATOR . '/models');
-            $ratesModel = AdminModel::getInstance('Propertyrates', 'BookingmanagerModel');
-            if ($ratesModel) {
-                // Pass the article_id to getRateData, not the internal property id.
-                if (!empty($data->article_id)) {
-                    $data->ratesData = $ratesModel->getRateData($data->article_id);
-                } else {
-                    // If there's no article linked, we can't get rates.
-                    $data->ratesData = new stdClass();
-                    $data->ratesData->error = 'This property is not linked to a Joomla Article. Please link an article to manage rates.';
-                }
-            }
         }
 
         return $data;
