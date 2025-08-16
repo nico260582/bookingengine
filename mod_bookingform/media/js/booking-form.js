@@ -256,7 +256,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // --- Start of New Logic ---
         if (totalGuestsForCapacity > baseCapacity) {
             const suitableAlternatives = (rules.alternative_properties || [])
-                .filter(p => p.max_guests >= totalGuestsForCapacity);
+                .filter(p => parseInt(p.max_guests, 10) >= totalGuestsForCapacity);
 
             if (suitableAlternatives.length > 0) {
                 // If suitable alternatives exist, show them and stop calculation
