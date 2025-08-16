@@ -68,13 +68,6 @@ if ($pricingRules) {
     }
 
     $inlineCss = "
-        /* Main container styles */
-        .booking-form-container {
-          background-color: #fff;
-          padding: 15px;
-          border-radius: 8px;
-          box-shadow: 0 2px 6px rgba(6, 4, 4, 0.35);
-        }
         /* Title style */
         .booking-form-header h5 {
           font-size: 1.2rem;
@@ -83,13 +76,13 @@ if ($pricingRules) {
           margin-bottom: 1rem;
           font-weight: bold;
         }
-        /* Price Total style */
-        #price-estimate-display {
+        /* Style for BOTH \"From\" price and \"Est.\" price */
+        .price-total {
             font-size: 1.4rem;
             font-weight: bold;
             color: #f37321;
         }
-        /* Your requested style for the price summary box */
+        /* Style for the price summary box */
         #price-summary-container {
           text-align: center;
           margin: 10px 0;
@@ -97,11 +90,18 @@ if ($pricingRules) {
           background-color: #f8f8f8;
           border-radius: 5px;
         }
-        /* Your requested style for the suggestions box */
+        /* Style for the suggestions box */
         #property-suggestion-alert.alert-info {
           color: #055160;
           background-color: #fff;
           border: 1px solid #ddd;
+        }
+        /* WhatsApp Icon styling */
+        .whatsapp-icon {
+            width: 20px;
+            height: 20px;
+            vertical-align: middle;
+            filter: invert(48%) sepia(79%) saturate(2476%) hue-rotate(86deg) brightness(118%) contrast(119%);
         }
     ";
     $doc->addStyleDeclaration($inlineCss);
