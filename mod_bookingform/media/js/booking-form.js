@@ -236,7 +236,6 @@ document.addEventListener('DOMContentLoaded', function () {
         const rules = options.pricingRules;
         if (!rules) return;
 
-        // Always reset suggestion alerts
         elements.propertySuggestionAlert.style.display = 'none';
         elements.unitCountDisplay.style.display = 'block';
 
@@ -252,30 +251,44 @@ document.addEventListener('DOMContentLoaded', function () {
         let mattressCost = 0;
         let requiredUnits = 1;
         const baseCapacity = options.totalAccommodationGuests || 1;
+        const availableUnits = rules.number_of_units || 1;
 
-        // Handle property suggestion logic first
-        if (totalGuestsForCapacity > baseCapacity && Array.isArray(rules.alternative_properties) && rules.alternative_properties.length > 0) {
-            const suitableAlternatives = rules.alternative_properties
+        // --- Start of New Logic ---
+        if (totalGuestsForCapacity > baseCapacity) {
+            const suitableAlternatives = (rules.alternative_properties || [])
                 .filter(p => p.max_guests >= totalGuestsForCapacity);
 
             if (suitableAlternatives.length > 0) {
+                // If suitable alternatives exist, show them and stop calculation
                 elements.propertySuggestionAlert.style.display = 'block';
-                elements.unitCountDisplay.style.display = 'none'; // Hide the unit count
-                elements.priceDisplay.textContent = 'Est. Price: -'; // Reset price
+                elements.unitCountDisplay.style.display = 'none';
+                elements.priceDisplay.textContent = 'Est. Price: -';
                 elements.priceInput.value = 'N/A';
-                return; // Stop further calculation
+                return; // Exit the function
+            }
+
+            // If no alternatives, check if multiple units are possible
+            if (availableUnits > 1) {
+                 requiredUnits = Math.ceil(totalGuestsForCapacity / baseCapacity);
+                 if (requiredUnits > availableUnits) {
+                    // Not enough units available for the number of guests
+                    elements.unitCountDisplay.textContent = `Only ${availableUnits} units available.`;
+                    elements.unitCountDisplay.classList.add('booking-form-notice');
+                    elements.priceDisplay.textContent = 'Est. Price: -';
+                    elements.priceInput.value = 'N/A';
+                    return; // Exit
+                 }
+            } else {
+                 // Only one unit available, and capacity is exceeded
+                 elements.unitCountDisplay.textContent = 'Max capacity exceeded.';
+                 elements.unitCountDisplay.classList.add('booking-form-notice');
+                 elements.priceDisplay.textContent = 'Est. Price: -';
+                 elements.priceInput.value = 'N/A';
+                 return; // Exit
             }
         }
+        // --- End of New Logic ---
 
-        if (rules.pricing_model === 'CapacityBased') {
-            let childrenCounting = childAges.filter(age => age > rules.free_with_parents_age).length;
-            totalGuestsForCapacity = adults + childrenCounting;
-            const extraGuests = totalGuestsForCapacity - baseCapacity;
-            if (extraGuests === 1) { mattressCost = (rules.extra_mattress_fee || 0) * numberOfNights; }
-            else if (extraGuests > 1) { requiredUnits = Math.ceil(totalGuestsForCapacity / baseCapacity); }
-        } else {
-            if (baseCapacity > 0) { requiredUnits = Math.max(1, Math.ceil(totalGuestsForCapacity / baseCapacity)); }
-        }
 
         const guestsCoveredByBaseRate = 2 * requiredUnits;
         const extraAdults = Math.max(0, totalAdultsAndTeens - guestsCoveredByBaseRate);

@@ -19,6 +19,15 @@ class ModBookingFormHelper
         $db    = Factory::getDbo();
         $query = $db->getQuery(true);
 
+        // Fetch property details including number_of_units
+        $propertyQuery = $db->getQuery(true)
+            ->select('p.number_of_units')
+            ->from($db->quoteName('#__bookingmanager_properties', 'p'))
+            ->where('p.article_id = ' . (int) $articleId);
+        $propertyDetails = $db->setQuery($propertyQuery)->loadObject();
+        $numberOfUnits = $propertyDetails ? $propertyDetails->number_of_units : 1;
+
+
         $query->select('s.rules')
             ->from($db->quoteName('#__bookingmanager_property_map', 'm'))
             ->join('INNER', $db->quoteName('#__bookingmanager_suppliers', 's') . ' ON m.supplier_id = s.id')
@@ -27,7 +36,7 @@ class ModBookingFormHelper
         $rulesJson = $db->setQuery($query)->loadResult();
 
         if (!$rulesJson) {
-            return null; 
+            return null;
         }
 
         $rules = json_decode($rulesJson, true);
@@ -54,6 +63,7 @@ class ModBookingFormHelper
         }
 
         $cleanRules = [
+            'number_of_units' => $numberOfUnits, // <-- Add this line
             'pricing_model' => $rules['pricing_model'] ?? 'FlatUnitRate',
             'adult_supplement' => (float)($rules['adult_supplement'] ?? 0),
             'child_supplement' => (float)($rules['child_supplement'] ?? 0),
@@ -67,18 +77,15 @@ class ModBookingFormHelper
             'rate_details' => $rateDetails,
             'country_discounts' => isset($rules['country_discounts']) && is_array($rules['country_discounts']) ? array_values($rules['country_discounts']) : [],
             'coupon_codes' => isset($rules['coupon_codes']) && is_array($rules['coupon_codes']) ? array_values($rules['coupon_codes']) : [],
-            'alternative_properties' => self::getAlternativeProperties($articleId) // Add alternatives
+            'alternative_properties' => self::getAlternativeProperties($articleId)
         ];
 
-        // If there are no seasons defined for the property's supplier, do not show the form.
         if (empty($cleanRules['seasons'])) {
             return null;
         }
 
-        // Check if a valid rate is defined for every season.
         foreach ($cleanRules['seasons'] as $season) {
             if (empty($cleanRules['rates'][$season['name']]) || !is_numeric($cleanRules['rates'][$season['name']]) || $cleanRules['rates'][$season['name']] <= 0) {
-                // If any season is missing a valid rate, do not show the booking form.
                 return null;
             }
         }
@@ -131,7 +138,7 @@ class ModBookingFormHelper
                 ->where('map.complex_id = ' . (int)$complexId)
                 ->where('p.article_id != ' . (int)$currentArticleId)
                 ->where('a.state = 1')
-                ->where('p.published = 1');
+                ->order('map.priority ASC'); // Order by priority within the complex
 
             $results = $db->setQuery($query)->loadObjectList();
 
