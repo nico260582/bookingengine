@@ -68,16 +68,40 @@ if ($pricingRules) {
     }
 
     $inlineCss = "
-        .price-summary {
+        /* Main container styles */
+        .booking-form-container {
+          background-color: #fff;
+          padding: 15px;
+          border-radius: 8px;
+          box-shadow: 0 2px 6px rgba(6, 4, 4, 0.35);
+        }
+        /* Title style */
+        .booking-form-header h5 {
+          font-size: 1.2rem;
+          color: #f37321;
+          text-align: center;
+          margin-bottom: 1rem;
+          font-weight: bold;
+        }
+        /* Price Total style */
+        #price-estimate-display {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #f37321;
+        }
+        /* Your requested style for the price summary box */
+        #price-summary-container {
           text-align: center;
           margin: 10px 0;
           padding: 10px;
           background-color: #f8f8f8;
           border-radius: 5px;
         }
-        .alert-info {
+        /* Your requested style for the suggestions box */
+        #property-suggestion-alert.alert-info {
           color: #055160;
           background-color: #fff;
+          border: 1px solid #ddd;
         }
     ";
     $doc->addStyleDeclaration($inlineCss);
