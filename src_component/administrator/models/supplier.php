@@ -43,6 +43,9 @@ class BookingmanagerModelSupplier extends AdminModel
                 $data->properties = $db->setQuery($query)->loadColumn();
             }
         }
+        echo "<pre>";
+        print_r($data);
+        die("--- END DEBUG ---");
         return $data;
     }
     
