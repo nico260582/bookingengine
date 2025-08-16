@@ -45,7 +45,7 @@ class JFormFieldComplexassignment extends FormField
                     $priority = array_key_exists($complex->id, $assignedComplexes) ? $assignedComplexes[$complex->id]->priority : '0';
 
                     $html .= '<tr class="bm-complex-row">';
-                    $html .= '<td>' . $this->escape($complex->name) . '</td>';
+                    $html .= '<td>' . htmlspecialchars($complex->name, ENT_QUOTES, 'UTF-8') . '</td>';
                     $html .= '<td><input type="checkbox" class="bm-complex-assign" name="' . $this->name . '[' . $complex->id . '][assign]" value="1"' . $checked . ' /></td>';
                     $html .= '<td><input type="number" name="' . $this->name . '[' . $complex->id . '][priority]" value="' . $priority . '" class="input-mini bm-priority-input" /></td>';
                     $html .= '</tr>';
