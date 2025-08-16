@@ -31,7 +31,10 @@ Factory::getDocument()->addScriptDeclaration($script);
 
     <fieldset class="form-horizontal">
         <legend>Property Details</legend>
-        <?php foreach ($this->form->getFieldset('details') as $field) { echo $field->renderField(); } ?>
+        <?php echo $this->form->renderField('article_id'); ?>
+        <?php echo $this->form->renderField('max_guests'); ?>
+        <?php echo $this->form->renderField('number_of_units'); ?>
+        <?php echo $this->form->renderField('complexes'); ?>
     </fieldset>
 
     <hr>
