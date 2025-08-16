@@ -31,9 +31,7 @@ Factory::getDocument()->addScriptDeclaration($script);
 
     <fieldset class="form-horizontal">
         <legend>Property Details</legend>
-        <?php echo $this->form->renderField('article_id'); ?>
-        <?php echo $this->form->renderField('max_guests'); ?>
-        <?php echo $this->form->renderField('complexes'); ?>
+        <?php echo $this->form->renderFieldset('details'); // This line is the fix ?>
     </fieldset>
 
     <hr>
