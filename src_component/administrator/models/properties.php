@@ -1,6 +1,7 @@
 <?php
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Factory;
 use Joomla\CMS\MVC\Model\ListModel;
 
 class BookingmanagerModelProperties extends ListModel
@@ -21,8 +22,22 @@ class BookingmanagerModelProperties extends ListModel
         parent::__construct($config);
     }
 
+    /**
+     * Method to auto-populate the model state.
+     * This final version includes a check to prevent deprecated warnings.
+     */
     protected function populateState($ordering = 'article.title', $direction = 'asc')
     {
+        // Get the application instance.
+        $app = Factory::getApplication('administrator');
+
+        // Set a default ordering if none is found in the user state.
+        // This prevents the "explode(): Passing null to parameter #2" warning.
+        $fullOrdering = $app->getUserStateFromRequest($this->context . '.list.fullordering', 'list_fullordering');
+        if (empty($fullOrdering)) {
+            $app->setUserState($this->context . '.list.fullordering', $ordering . ' ' . $direction);
+        }
+
         parent::populateState($ordering, $direction);
     }
 
@@ -61,7 +76,6 @@ class BookingmanagerModelProperties extends ListModel
 
     public function getItems()
     {
-        // Get the raw list from the parent, which will have duplicates
         $items = parent::getItems();
 
         if (empty($items)) {
@@ -71,34 +85,26 @@ class BookingmanagerModelProperties extends ListModel
         $processedItems = [];
         $complexNamesByProperty = [];
 
-        // First pass: group complex names by property ID
         foreach ($items as $item) {
             if (!isset($complexNamesByProperty[$item->id])) {
                 $complexNamesByProperty[$item->id] = [];
             }
             if (!empty($item->complex_name)) {
-                // Avoid adding the same complex name twice if there are other joins causing duplicates
                 if (!in_array($item->complex_name, $complexNamesByProperty[$item->id])) {
                     $complexNamesByProperty[$item->id][] = $item->complex_name;
                 }
             }
         }
 
-        // Second pass: create the final, de-duplicated list
         foreach ($items as $item) {
             if (!isset($processedItems[$item->id])) {
-                // If we haven't added this property yet, add it now
-
-                // Set the concatenated complex names
                 if (isset($complexNamesByProperty[$item->id])) {
                     $item->complex_name = implode(', ', $complexNamesByProperty[$item->id]);
                 }
-
                 $processedItems[$item->id] = $item;
             }
         }
 
-        // Return the de-duplicated list, re-indexed from 0
         return array_values($processedItems);
     }
 }
