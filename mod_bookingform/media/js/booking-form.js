@@ -236,8 +236,13 @@ document.addEventListener('DOMContentLoaded', function () {
         const rules = options.pricingRules;
         if (!rules) return;
 
+        // Always hide suggestion box by default and clear old content
         elements.propertySuggestionAlert.style.display = 'none';
+        const alternativesContainer = document.getElementById('alternative-properties-container');
+        if(alternativesContainer) alternativesContainer.innerHTML = '';
+
         elements.unitCountDisplay.style.display = 'block';
+        elements.priceSummaryContainer.style.display = 'block';
 
         updateChildAgeNotification();
         const childAges = Array.from(document.querySelectorAll('.child-age-input')).map(input => parseInt(input.value, 10)).filter(age => !isNaN(age));
@@ -253,42 +258,53 @@ document.addEventListener('DOMContentLoaded', function () {
         const baseCapacity = options.totalAccommodationGuests || 1;
         const availableUnits = rules.number_of_units || 1;
 
-        // --- Start of New Logic ---
         if (totalGuestsForCapacity > baseCapacity) {
             const suitableAlternatives = (rules.alternative_properties || [])
                 .filter(p => parseInt(p.max_guests, 10) >= totalGuestsForCapacity);
 
             if (suitableAlternatives.length > 0) {
-                // If suitable alternatives exist, show them and stop calculation
+                // Dynamically build and inject the HTML for alternatives
+                suitableAlternatives.forEach(alt => {
+                    const altHtml = `
+                        <div class="col-12 mb-2">
+                            <div class="card">
+                                <a href="${alt.url}" target="_blank">
+                                    ${alt.intro_image ? `<img src="${options.rootUrl}${alt.intro_image}" class="card-img-top" alt="${alt.title}">` : ''}
+                                    <div class="card-body">
+                                        <h6 class="card-title">
+                                            ${alt.title}
+                                            <small class="text-muted">(Max Guests: ${alt.max_guests})</small>
+                                        </h6>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                    if (alternativesContainer) alternativesContainer.innerHTML += altHtml;
+                });
+
                 elements.propertySuggestionAlert.style.display = 'block';
-                elements.unitCountDisplay.style.display = 'none';
-                elements.priceDisplay.textContent = 'Est. Price: -';
-                elements.priceInput.value = 'N/A';
+                elements.priceSummaryContainer.style.display = 'none'; // Hide the price summary
                 return; // Exit the function
             }
 
-            // If no alternatives, check if multiple units are possible
             if (availableUnits > 1) {
                  requiredUnits = Math.ceil(totalGuestsForCapacity / baseCapacity);
                  if (requiredUnits > availableUnits) {
-                    // Not enough units available for the number of guests
                     elements.unitCountDisplay.textContent = `Only ${availableUnits} units available.`;
                     elements.unitCountDisplay.classList.add('booking-form-notice');
                     elements.priceDisplay.textContent = 'Est. Price: -';
                     elements.priceInput.value = 'N/A';
-                    return; // Exit
+                    return;
                  }
             } else {
-                 // Only one unit available, and capacity is exceeded
                  elements.unitCountDisplay.textContent = 'Max capacity exceeded.';
                  elements.unitCountDisplay.classList.add('booking-form-notice');
                  elements.priceDisplay.textContent = 'Est. Price: -';
                  elements.priceInput.value = 'N/A';
-                 return; // Exit
+                 return;
             }
         }
-        // --- End of New Logic ---
-
 
         const guestsCoveredByBaseRate = 2 * requiredUnits;
         const extraAdults = Math.max(0, totalAdultsAndTeens - guestsCoveredByBaseRate);

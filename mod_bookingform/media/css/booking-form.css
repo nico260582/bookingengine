@@ -25,7 +25,16 @@
     border-color: #80bdff; box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
 }
 .price-summary {
-    text-align: center; margin: 10px 0; padding: 10px; background-color: #e9ecef; border-radius: 5px;
+  text-align: center;
+  margin: 10px 0;
+  padding: 10px;
+  background-color: #f8f8f8;
+  border-radius: 5px;
+}
+
+.alert-info {
+  color: #055160;
+  background-color: #fff;
 }
 .price-summary #discount-applied-alert {
     padding: .25rem .75rem; font-size: 0.85rem; margin: 5px auto 0; display: inline-block; width: auto;

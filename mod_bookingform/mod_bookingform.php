@@ -76,6 +76,7 @@ if ($pricingRules) {
     $doc->addScript(Uri::root(true) . '/modules/mod_bookingform/media/js/booking-form.js?v=' . filemtime($jsPath), ['defer' => 'true']);
 
     $scriptOptions = [
+        'rootUrl'        => Uri::root(),
         'totalAccommodationGuests' => $totalAccommodationGuests,
         'pricingRules'   => $pricingRules,
         'currencySymbol' => $params->get('currency_symbol', '€'),

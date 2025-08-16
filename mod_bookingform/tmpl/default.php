@@ -58,34 +58,17 @@ use Joomla\CMS\HTML\HTMLHelper;
             </div>
         </div>
 
+        <div id="property-suggestion-alert" class="alert alert-info" style="display: none;">
+            <p>The number of guests exceeds this property's capacity. Here are some alternatives properties:</p>
+            <div id="alternative-properties-container" class="row">
+                <!-- Alternatives will be injected here by JavaScript -->
+            </div>
+        </div>
+
         <div class="price-summary" id="price-summary-container" style="display: none;">
             <div id="price-estimate-display" class="price-total">Est. Price: -</div>
             <div id="discount-applied-alert" class="alert alert-success" style="display: none;"></div>
             <div id="nights-count-display" class="nights-count"></div>
-            <div id="property-suggestion-alert" class="alert alert-info" style="display: none;">
-                <p>The number of guests exceeds this property's capacity. Here are some alternatives in the same complex:</p>
-                <div id="alternative-properties-container" class="row">
-                    <?php if (!empty($pricingRules['alternative_properties'])) : ?>
-                        <?php foreach ($pricingRules['alternative_properties'] as $alt_property) : ?>
-                            <div class="col-12 mb-2">
-                                <div class="card">
-                                    <a href="<?php echo $alt_property->url; ?>" target="_blank">
-                                        <?php if (!empty($alt_property->intro_image)) : ?>
-                                            <img src="<?php echo JUri::root() . $alt_property->intro_image; ?>" class="card-img-top" alt="<?php echo htmlspecialchars($alt_property->title, ENT_QUOTES, 'UTF-8'); ?>">
-                                        <?php endif; ?>
-                                        <div class="card-body">
-                                            <h6 class="card-title">
-                                                <?php echo htmlspecialchars($alt_property->title, ENT_QUOTES, 'UTF-8'); ?>
-                                                <small class="text-muted">(Max Guests: <?php echo $alt_property->max_guests; ?>)</small>
-                                            </h6>
-                                        </div>
-                                    </a>
-                                </div>
-                            </div>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
-                </div>
-            </div>
             <div id="unit-count-display" class="units-count">1 Unit</div>
         </div>
 
