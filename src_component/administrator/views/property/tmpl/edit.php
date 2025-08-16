@@ -31,7 +31,7 @@ Factory::getDocument()->addScriptDeclaration($script);
 
     <fieldset class="form-horizontal">
         <legend>Property Details</legend>
-        <?php echo $this->form->renderFieldset('details'); // This line is the fix ?>
+        <?php foreach ($this->form->getFieldset('details') as $field) { echo $field->renderField(); } ?>
     </fieldset>
 
     <hr>
