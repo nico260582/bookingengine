@@ -23,9 +23,9 @@ class BookingmanagerTableProperty extends Table
             return false;
         }
 
-        // If number_of_units is not set or is not a positive number, default it to 1
         if (empty($this->number_of_units) || (int)$this->number_of_units <= 0) {
-            $this->number_of_units = 1;
+            $this->setError('Number of available units must be a positive number.');
+            return false;
         }
 
         return true;
