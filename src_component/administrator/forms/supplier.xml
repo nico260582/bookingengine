@@ -82,6 +82,6 @@
         </field>
     </fieldset>
     <fieldset name="assignments" label="Property Assignments">
-        <field name="properties" type="PropertyAssignment" label="Assign to Properties" description="Select one or more properties (Joomla Articles) that will use these pricing rules." />
+        <field name="properties" type="hidden" />
     </fieldset>
 </form>

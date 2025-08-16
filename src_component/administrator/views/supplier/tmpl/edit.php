@@ -36,7 +36,102 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="table-responsive" style="overflow: visible;"><?php echo $this->form->renderFieldset('discounts'); ?></div>
         <?php echo JHtml::_('bootstrap.endTab'); ?>
         <?php echo JHtml::_('bootstrap.addTab', 'myTab', 'assignments', 'Property Assignments'); ?>
-            <?php echo $this->form->renderFieldset('assignments'); ?>
+            <style>
+                .property-assignment-container { display: flex; gap: 20px; }
+                .property-list-box { width: 45%; border: 1px solid #ccc; padding: 10px; height: 400px; overflow-y: auto; }
+                .property-list-box h5 { margin-top: 0; }
+                .property-item { padding: 5px; cursor: pointer; border-bottom: 1px solid #eee; }
+                .property-item:hover { background-color: #f0f0f0; }
+                .property-item.assigned-other { background-color: #f2f2f2; color: #999; cursor: not-allowed; }
+                .property-item.assigned-other .supplier-abbr { font-weight: bold; margin-left: 10px; }
+            </style>
+            <div class="property-assignment-container">
+                <div class="property-list-box" id="available-properties">
+                    <h5>Available Properties</h5>
+                    <!-- JS will populate this -->
+                </div>
+                <div class="property-list-box" id="selected-properties">
+                    <h5>Assigned to this Supplier</h5>
+                    <!-- JS will populate this -->
+                </div>
+            </div>
+            <?php echo $this->form->getInput('properties'); ?>
+
+            <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const allProperties = <?php echo json_encode(array_values($this->allProperties)); ?>;
+                const availableBox = document.getElementById('available-properties');
+                const selectedBox = document.getElementById('selected-properties');
+                const hiddenSelect = document.getElementById('jform_properties');
+
+                // Ensure the hidden field is a multi-select
+                if(hiddenSelect) {
+                    hiddenSelect.multiple = true;
+                    hiddenSelect.style.display = 'none';
+                }
+
+                function renderLists() {
+                    availableBox.innerHTML = '<h5>Available Properties</h5>';
+                    selectedBox.innerHTML = '<h5>Assigned to this Supplier</h5>';
+                    if (hiddenSelect) hiddenSelect.innerHTML = '';
+
+                    allProperties.forEach(prop => {
+                        const item = document.createElement('div');
+                        item.classList.add('property-item');
+                        item.dataset.id = prop.id;
+                        item.textContent = prop.title;
+
+                        if (prop.assignment) {
+                            if (prop.assignment.is_current) {
+                                selectedBox.appendChild(item);
+                                if (hiddenSelect) {
+                                    const option = document.createElement('option');
+                                    option.value = prop.id;
+                                    option.selected = true;
+                                    hiddenSelect.appendChild(option);
+                                }
+                            } else {
+                                item.classList.add('assigned-other');
+                                item.innerHTML += ` <span class="supplier-abbr">(${prop.assignment.abbreviation})</span>`;
+                                availableBox.appendChild(item);
+                            }
+                        } else {
+                            availableBox.appendChild(item);
+                        }
+                    });
+                }
+
+                function moveItem(item) {
+                    if (item.classList.contains('assigned-other')) return;
+
+                    const parent = item.parentElement;
+                    const targetBox = (parent.id === 'available-properties') ? selectedBox : availableBox;
+                    targetBox.appendChild(item);
+                    updateHiddenSelect();
+                }
+
+                function updateHiddenSelect() {
+                    if (!hiddenSelect) return;
+                    hiddenSelect.innerHTML = '';
+                    const selectedItems = selectedBox.querySelectorAll('.property-item');
+                    selectedItems.forEach(item => {
+                        const option = document.createElement('option');
+                        option.value = item.dataset.id;
+                        option.selected = true;
+                        hiddenSelect.appendChild(option);
+                    });
+                }
+
+                availableBox.addEventListener('click', e => {
+                    if (e.target.classList.contains('property-item')) moveItem(e.target);
+                });
+                selectedBox.addEventListener('click', e => {
+                    if (e.target.classList.contains('property-item')) moveItem(e.target);
+                });
+
+                renderLists();
+            });
+            </script>
         <?php echo JHtml::_('bootstrap.endTab'); ?>
         <?php echo JHtml::_('bootstrap.addTab', 'myTab', 'logs', 'Change Log'); ?>
             <table class="table table-striped">
