@@ -58,6 +58,8 @@ use Joomla\CMS\HTML\HTMLHelper;
             </div>
         </div>
 
+        <button type="button" id="get-quote-button" class="btn btn-secondary w-100 mb-2">Calculate Price</button>
+
         <div id="property-suggestion-alert" class="alert alert-info" style="display: none;">
             <p>The number of guests exceeds this property's capacity. Here are some alternatives properties:</p>
             <div id="alternative-properties-container" class="row">
@@ -71,8 +73,6 @@ use Joomla\CMS\HTML\HTMLHelper;
             <div id="nights-count-display" class="nights-count"></div>
             <div id="unit-count-display" class="units-count">1 Unit</div>
         </div>
-
-        <button type="button" id="get-quote-button" class="btn btn-secondary w-100 mb-2">Calculate Price</button>
 
         <div id="booking-step-2" style="display: none;">
             <hr>
