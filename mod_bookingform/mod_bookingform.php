@@ -67,8 +67,20 @@ if ($pricingRules) {
         return;
     }
 
-    $cssPath = JPATH_SITE . '/modules/mod_bookingform/media/css/booking-form.css';
-    $doc->addStyleSheet(Uri::root(true) . '/modules/mod_bookingform/media/css/booking-form.css?v=' . filemtime($cssPath));
+    $inlineCss = "
+        .price-summary {
+          text-align: center;
+          margin: 10px 0;
+          padding: 10px;
+          background-color: #f8f8f8;
+          border-radius: 5px;
+        }
+        .alert-info {
+          color: #055160;
+          background-color: #fff;
+        }
+    ";
+    $doc->addStyleDeclaration($inlineCss);
     $doc->addStyleSheet('https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.13/css/intlTelInput.css');
     $doc->addScript('https://cdn.jsdelivr.net/npm/litepicker/dist/litepicker.js');
     $doc->addScript('https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.13/js/intlTelInput.min.js');
