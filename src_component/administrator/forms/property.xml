@@ -33,7 +33,6 @@
             required="true"
             min="1"
             step="1"
-            default="1"
         />
         <field
             name="complexes"
