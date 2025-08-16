@@ -21,22 +21,22 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="form-horizontal">
         <?php echo JHtml::_('bootstrap.startTabSet', 'myTab', array('active' => 'details')); ?>
         <?php echo JHtml::_('bootstrap.addTab', 'myTab', 'details', 'Details'); ?>
-            <?php echo "<!-- DEBUG: Rendering 'details' -->"; echo $this->form->renderFieldset('details'); ?>
+            <?php echo $this->form->renderFieldset('details'); ?>
         <?php echo JHtml::_('bootstrap.endTab'); ?>
         <?php echo JHtml::_('bootstrap.addTab', 'myTab', 'pricing', 'Pricing Rules'); ?>
-            <?php echo "<!-- DEBUG: Rendering 'pricing_model_rules' -->"; echo $this->form->renderFieldset('pricing_model_rules'); ?>
+            <?php echo $this->form->renderFieldset('pricing_model_rules'); ?>
         <?php echo JHtml::_('bootstrap.endTab'); ?>
         <?php echo JHtml::_('bootstrap.addTab', 'myTab', 'ages', 'Guest Age Rules'); ?>
-            <?php echo "<!-- DEBUG: Rendering 'guest_age_rules' -->"; echo $this->form->renderFieldset('guest_age_rules'); ?>
+            <?php echo $this->form->renderFieldset('guest_age_rules'); ?>
         <?php echo JHtml::_('bootstrap.endTab'); ?>
         <?php echo JHtml::_('bootstrap.addTab', 'myTab', 'seasons', 'Seasons'); ?>
-            <div class="table-responsive" style="overflow: visible;"><?php echo "<!-- DEBUG: Rendering 'seasons_rules' -->"; echo $this->form->renderFieldset('seasons_rules'); ?></div>
+            <div class="table-responsive" style="overflow: visible;"><?php echo $this->form->renderFieldset('seasons_rules'); ?></div>
         <?php echo JHtml::_('bootstrap.endTab'); ?>
         <?php echo JHtml::_('bootstrap.addTab', 'myTab', 'discounts', 'Discount Rules'); ?>
-            <div class="table-responsive" style="overflow: visible;"><?php echo "<!-- DEBUG: Rendering 'discounts' -->"; echo $this->form->renderFieldset('discounts'); ?></div>
+            <div class="table-responsive" style="overflow: visible;"><?php echo $this->form->renderFieldset('discounts'); ?></div>
         <?php echo JHtml::_('bootstrap.endTab'); ?>
         <?php echo JHtml::_('bootstrap.addTab', 'myTab', 'assignments', 'Property Assignments'); ?>
-            <?php echo "<!-- DEBUG: Rendering 'assignments' -->"; echo $this->form->renderFieldset('assignments'); ?>
+            <?php echo $this->form->renderFieldset('assignments'); ?>
         <?php echo JHtml::_('bootstrap.endTab'); ?>
         <?php echo JHtml::_('bootstrap.addTab', 'myTab', 'logs', 'Change Log'); ?>
             <table class="table table-striped">

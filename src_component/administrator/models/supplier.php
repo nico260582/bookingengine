@@ -18,33 +18,8 @@ class BookingmanagerModelSupplier extends AdminModel
     {
         JForm::addFormPath(JPATH_COMPONENT_ADMINISTRATOR . '/forms');
         JForm::addFieldPath(JPATH_COMPONENT_ADMINISTRATOR . '/models/fields');
-        // Step 1: Load form without data to prevent crash
-        $form = $this->loadForm('com_bookingmanager.supplier', 'supplier', ['control' => 'jform', 'load_data' => false]);
-
-        if (empty($form)) {
-            return false;
-        }
-
-        // Step 2: Manually load the data
-        $data = $this->loadFormData();
-
-        // Step 3: Debug the data before binding
-        echo "<pre>-- DEBUGGING DATA BEFORE BIND --\n";
-        foreach ($data as $key => $value) {
-            echo "<strong>Field Name:</strong> " . htmlspecialchars($key) . "\n";
-            echo "<strong>Value Type:</strong> " . gettype($value) . "\n";
-            echo "<strong>Value:</strong>\n";
-            print_r($value);
-            echo "\n--------------------------------\n";
-        }
-        die("-- END DEBUG --");
-
-        // Original bind would happen here if we let it
-        if ($loadData) {
-            $form->bind($data);
-        }
-
-        return $form;
+        $form = $this->loadForm('com_bookingmanager.supplier', 'supplier', ['control' => 'jform', 'load_data' => $loadData]);
+        return empty($form) ? false : $form;
     }
     
     protected function loadFormData()
