@@ -26,6 +26,16 @@
             step="1"
         />
         <field
+            name="number_of_units"
+            type="number"
+            label="Number of Available Units"
+            description="Enter the total number of units available for this property (e.g., if it's a block of 4 identical apartments, enter 4). Defaults to 1."
+            required="true"
+            min="1"
+            step="1"
+            default="1"
+        />
+        <field
             name="complexes"
             type="complexassignment"
             label="COM_BOOKINGMANAGER_PROPERTY_COMPLEX_ASSIGNMENT_LABEL"
