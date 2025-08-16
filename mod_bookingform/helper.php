@@ -142,6 +142,16 @@ class ModBookingFormHelper
 
             $results = $db->setQuery($query)->loadObjectList();
 
+            // --- START DEBUGGING ---
+            echo '<pre style="background: #eee; border: 1px solid #ddd; padding: 10px; margin: 10px; z-index: 9999; position: relative;">';
+            echo "<strong>DEBUGGING ALTERNATIVE PROPERTIES</strong><br>";
+            echo "<strong>Complex ID:</strong> " . htmlspecialchars($complexId, ENT_QUOTES, 'UTF-8') . "<br>";
+            echo "<strong>SQL Query:</strong><br>" . htmlspecialchars($query->__toString(), ENT_QUOTES, 'UTF-8') . "<br><br>";
+            echo "<strong>Raw Results:</strong><br>";
+            print_r($results);
+            echo '</pre>';
+            // --- END DEBUGGING ---
+
             // Add the URL and intro image to each alternative
             foreach ($results as $alt) {
                 if (in_array($alt->article_id, $added_properties)) {
