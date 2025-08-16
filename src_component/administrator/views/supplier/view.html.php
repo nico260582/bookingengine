@@ -15,6 +15,7 @@ class BookingmanagerViewSupplier extends HtmlView
         $this->item = $this->get('Item');
         $model = $this->getModel();
         $this->logs = $model->getChangeLog($this->item->id);
+        $this->allProperties = $model->getAllPropertiesWithAssignments($this->item->id);
         $this->document->getWebAssetManager()->useScript('form.validate');
         $this->document->addStyleSheet(JUri::root(true) . '/administrator/components/com_bookingmanager/assets/css/bookingmanager.css');
         $this->document->addStyleSheet(JUri::root(true) . '/administrator/components/com_bookingmanager/assets/css/custom-booking-styles.css');
