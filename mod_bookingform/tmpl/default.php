@@ -65,8 +65,8 @@ use Joomla\CMS\HTML\HTMLHelper;
             <div id="property-suggestion-alert" class="alert alert-info" style="display: none;">
                 <div id="alternative-properties-container" class="row">
                     <h6>Alternative Properties</h6>
-                    <?php if (!empty($pricingData['alternative_properties'])) : ?>
-                        <?php foreach ($pricingData['alternative_properties'] as $alt_property) : ?>
+                    <?php if (!empty($pricingRules['alternative_properties'])) : ?>
+                        <?php foreach ($pricingRules['alternative_properties'] as $alt_property) : ?>
                             <div class="col-md-4 mb-2">
                                 <div class="card">
                                     <a href="<?php echo $alt_property->url; ?>" target="_blank">
