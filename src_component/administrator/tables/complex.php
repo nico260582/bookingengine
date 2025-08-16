@@ -1,11 +1,12 @@
 <?php
 defined('_JEXEC') or die;
 
-class BookingmanagerTableComplex extends JTable
+use Joomla\CMS\Table\Table;
+
+class BookingmanagerTableComplex extends Table
 {
     public function __construct(&$db)
     {
         parent::__construct('#__bookingmanager_complexes', 'id', $db);
     }
-
 }
