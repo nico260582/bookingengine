@@ -106,11 +106,12 @@ class BookingmanagerModelProperty extends AdminModel
                             ->select('market_name, currency')
                             ->from('#__bookingmanager_supplier_markets')
                             ->where('supplier_id = ' . (int)$supplierId)
+                            ->where('state = 1')
                             ->order('id ASC');
                         $markets = $db->setQuery($query)->loadObjectList();
 
-                        // Always add a "Default" market for the global rate
-                        $defaultMarket = (object)['market_name' => 'Default', 'currency' => 'EUR'];
+                        // Always add a "Global Rate" market
+                        $defaultMarket = (object)['market_name' => 'Global Rate', 'currency' => 'EUR'];
                         array_unshift($markets, $defaultMarket);
                         $ratesData->markets = $markets;
 

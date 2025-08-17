@@ -66,7 +66,7 @@ abstract class BookingmanagerHelper
             $seasonName = $season->name;
             $seasonRatesJson = $ratesList[$seasonName]->rates ?? '[]';
             $seasonRates = json_decode($seasonRatesJson, true);
-            $defaultRateInfo = $seasonRates['Default'] ?? [];
+            $defaultRateInfo = $seasonRates['Global Rate'] ?? [];
 
             if (empty($defaultRateInfo) || !isset($defaultRateInfo['rate']) || $defaultRateInfo['rate'] === '' || $defaultRateInfo['rate'] <= 0) {
                 $missingSeasons[] = $season->name;
