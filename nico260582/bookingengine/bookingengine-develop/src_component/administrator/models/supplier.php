@@ -75,6 +75,10 @@
             $table = $this->getTable();
             $pkValue = $data['id'] ?? 0;
             $oldData = null;
+
+            $markets = $data['markets'] ?? [];
+            throw new \Exception('DEBUG: The content of the markets variable is: ' . print_r($markets, true));
+
             if ($pkValue && $table->load($pkValue)) {
                 $oldData = $table->getProperties();
             }
