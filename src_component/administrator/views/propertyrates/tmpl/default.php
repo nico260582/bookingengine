@@ -86,15 +86,27 @@
 </div>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('.override-commission-checkbox').forEach(function(checkbox) {
-        var commissionInput = checkbox.closest('td').nextElementSibling.querySelector('.commission-value-input');
+    const container = document.getElementById('adminForm');
 
-        function toggleCommissionInput() {
-            commissionInput.disabled = !checkbox.checked;
-        }
+    if (container) {
+        // Use event delegation for the checkboxes
+        container.addEventListener('change', function(e) {
+            if (e.target.classList.contains('override-commission-checkbox')) {
+                const checkbox = e.target;
+                const commissionInput = checkbox.closest('td').nextElementSibling.querySelector('.commission-value-input');
+                if (commissionInput) {
+                    commissionInput.disabled = !checkbox.checked;
+                }
+            }
+        });
 
-        checkbox.addEventListener('change', toggleCommissionInput);
-        toggleCommissionInput();
-    });
+        // Set the initial state for all checkboxes on page load
+        document.querySelectorAll('.override-commission-checkbox').forEach(function(checkbox) {
+            const commissionInput = checkbox.closest('td').nextElementSibling.querySelector('.commission-value-input');
+            if (commissionInput) {
+                commissionInput.disabled = !checkbox.checked;
+            }
+        });
+    }
 });
 </script>
