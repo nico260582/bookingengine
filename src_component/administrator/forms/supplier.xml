@@ -81,6 +81,19 @@
             </form>
         </field>
     </fieldset>
+        <fieldset name="markets_rules" label="Market Pricing">
+            <field
+                name="markets"
+                type="subform"
+                label="Define Price Markets"
+                description="Add one or more markets (e.g., Europe, USA, Local). These will be used for rate entry on each property. The first market in the list will be considered the default."
+                layout="joomla.form.field.subform.repeatable-table"
+                multiple="true">
+                <form>
+                    <field name="market_name" type="text" label="Market Name" size="20" required="true" />
+                </form>
+            </field>
+        </fieldset>
     <fieldset name="assignments" label="Property Assignments">
         <field name="properties" type="hidden" />
     </fieldset>
