@@ -298,8 +298,11 @@ class BookingmanagerModelProperty extends AdminModel
 
                 foreach ($ratesData->seasons as $season) {
                     $seasonName = $season->name;
-                    if (!isset($ratesData->rates[$seasonName]) || !isset($ratesData->rates[$seasonName]->base_rate) || $ratesData->rates[$seasonName]->base_rate === '') {
-                        $this->setError('Property ID ' . $pk . ' cannot be published. Please fill in the base rate for all seasons first.');
+                    $seasonRates = $ratesData->rates[$seasonName]->rates ?? [];
+                    $defaultRateInfo = $seasonRates['Default'] ?? [];
+
+                    if (empty($defaultRateInfo) || !isset($defaultRateInfo['rate']) || $defaultRateInfo['rate'] === '') {
+                        $this->setError('Property ID ' . $pk . ' cannot be published. Please fill in the rate for the "Default" market for all seasons first.');
                         return false;
                     }
                 }
