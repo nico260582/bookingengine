@@ -46,7 +46,8 @@
                         $db = Factory::getDbo();
                         // Load properties
                         $query = $db->getQuery(true)->select('property_id')->from('#__bookingmanager_property_map')->where('supplier_id = ' . (int)$data->id);
-                        $data->properties = $db->setQuery($query)->loadColumn();
+                        $propertyIds = $db->setQuery($query)->loadColumn();
+                        $data->properties = implode(',', $propertyIds);
 
                         // Load markets
                         $query->clear()->select('market_name')->from('#__bookingmanager_supplier_markets')->where('supplier_id = ' . (int)$data->id);
@@ -79,7 +80,8 @@
                 $oldData = $table->getProperties();
             }
 
-            $assignedProperties = $data['properties'] ?? [];
+            $propertyIdsString = $data['properties'] ?? '';
+            $assignedProperties = $propertyIdsString ? explode(',', $propertyIdsString) : [];
             $markets = $data['markets'] ?? [];
 
             // Unset these from the main data array so parent::save() doesn't see them
