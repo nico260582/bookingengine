@@ -82,13 +82,6 @@
         </field>
     </fieldset>
     <fieldset name="assignments" label="Property Assignments">
-        <field
-            name="properties"
-            type="list"
-            multiple="true"
-            label=""
-            description=""
-            class="hidden"
-        />
+        <field name="properties" type="hidden" />
     </fieldset>
 </form>

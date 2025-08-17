@@ -63,8 +63,9 @@ class BookingmanagerModelSupplier extends AdminModel
             $oldData = $table->getProperties();
         }
 
-        // Extract assigned properties before they are unset
-        $assignedProperties = $data['properties'] ?? [];
+        // Extract assigned properties, which are submitted as a comma-separated string
+        $propertyIdsString = $data['properties'] ?? '';
+        $assignedProperties = $propertyIdsString ? explode(',', $propertyIdsString) : [];
         unset($data['properties']);
 
         // Prepare the rules data
