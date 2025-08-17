@@ -106,7 +106,6 @@ class BookingmanagerModelProperty extends AdminModel
                             ->select('market_name, currency')
                             ->from('#__bookingmanager_supplier_markets')
                             ->where('supplier_id = ' . (int)$supplierId)
-                            ->where('state = 1') // Only fetch active markets
                             ->order('id ASC');
                         $markets = $db->setQuery($query)->loadObjectList();
 
