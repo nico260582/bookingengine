@@ -18,7 +18,7 @@
 
             $db = Factory::getDbo();
             $query = $db->getQuery(true)
-                ->select('market_name, currency')
+                ->select('market_name, currency, state')
                 ->from('#__bookingmanager_supplier_markets')
                 ->where('supplier_id = ' . (int)$supplierId);
             $assignedMarkets = $db->setQuery($query)->loadObjectList('market_name');
