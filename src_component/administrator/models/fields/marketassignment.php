@@ -69,13 +69,11 @@
                         return;
                     }
 
+                    const index = tableBody.rows.length;
                     const newRow = tableBody.insertRow();
-                    const index = tableBody.rows.length - 1;
-                    newRow.innerHTML = `
-                        <td><input type=\"hidden\" name=\"jform[markets][${index}][market_name]\" value=\"${selectedCountry}\">${selectedCountry}</td>
-                        <td><input type=\"text\" name=\"jform[markets][${index}][currency]\" value=\"EUR\" class=\"input-small\" required></td>
-                        <td><button type=\"button\" class=\"btn btn-danger btn-small remove-market-btn\"><span class=\"icon-minus\"></span></button></td>
-                    `;
+                    newRow.innerHTML = '<td><input type="hidden" name="jform[markets][' + index + '][market_name]" value="' + selectedCountry + '">' + selectedCountry + '</td>' +
+                                       '<td><input type="text" name="jform[markets][' + index + '][currency]" value="EUR" class="input-small" required></td>' +
+                                       '<td><button type="button" class="btn btn-danger btn-small remove-market-btn"><span class="icon-minus"></span></button></td>';
                 });
 
                 tableBody.addEventListener('click', function(e) {
