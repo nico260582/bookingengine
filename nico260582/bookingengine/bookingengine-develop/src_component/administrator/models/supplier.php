@@ -72,13 +72,14 @@
 
         public function save($data)
         {
+            $log_file = JPATH_ROOT . '/jules_debug_log.txt';
+            $log_message = 'Timestamp: ' . date('Y-m-d H:i:s') . "\n";
+            $log_message .= 'Markets data: ' . print_r($data['markets'] ?? 'not set', true) . "\n\n";
+            file_put_contents($log_file, $log_message, FILE_APPEND);
+
             $table = $this->getTable();
             $pkValue = $data['id'] ?? 0;
             $oldData = null;
-
-            $markets = $data['markets'] ?? [];
-            throw new \Exception('DEBUG: The content of the markets variable is: ' . print_r($markets, true));
-
             if ($pkValue && $table->load($pkValue)) {
                 $oldData = $table->getProperties();
             }
@@ -229,7 +230,7 @@
             $allProperties = $db->setQuery($query)->loadObjectList('id');
 
             $query->clear()
-                ->select('m.property_id, m.supplier_id, s.abbreviation')
+                ->select('m.property_id, m.supplier__id, s.abbreviation')
                 ->from($db->quoteName('#__bookingmanager_property_map', 'm'))
                 ->join('LEFT', $db->quoteName('#__bookingmanager_suppliers', 's') . ' ON m.supplier_id = s.id');
             $assignments = $db->setQuery($query)->loadObjectList('property_id');
