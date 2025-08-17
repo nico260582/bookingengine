@@ -114,22 +114,27 @@
                 ->where($db->quoteName('supplier_id') . ' = ' . $supplierId);
             $db->setQuery($query)->execute();
 
-            // Insert new markets if any were provided
+            // Collect values to insert
+            $values = [];
             if (!empty($marketsData)) {
+                foreach ($marketsData as $market) {
+                    if (!empty($market['market_name'])) {
+                        $values[] = $supplierId . ',' . $db->quote($market['market_name']);
+                    }
+                }
+            }
+
+            // Insert new markets if any were provided
+            if (!empty($values)) {
                 $insertQuery = $db->getQuery(true)
                     ->insert($db->quoteName('#__bookingmanager_supplier_markets'))
                     ->columns([$db->quoteName('supplier_id'), $db->quoteName('market_name')]);
 
-                foreach ($marketsData as $market) {
-                    if (!empty($market['market_name'])) {
-                        $insertQuery->values($supplierId . ',' . $db->quote($market['market_name']));
-                    }
+                foreach($values as $value) {
+                    $insertQuery->values($value);
                 }
 
-                // Only execute if there are values to insert
-                if(!empty($insertQuery->getValues())) {
-                    $db->setQuery($insertQuery)->execute();
-                }
+                $db->setQuery($insertQuery)->execute();
             }
         }
         
