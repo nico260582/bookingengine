@@ -47,8 +47,8 @@
                         $propertyIds = $db->setQuery($query)->loadColumn();
                         $data->properties = implode(',', $propertyIds);
 
-                        // Load markets with their currencies
-                        $query->clear()->select('market_name, currency')->from('#__bookingmanager_supplier_markets')->where('supplier_id = ' . (int)$data->id);
+                        // Load markets with their currencies and state
+                        $query->clear()->select('market_name, currency, state')->from('#__bookingmanager_supplier_markets')->where('supplier_id = ' . (int)$data->id);
                         $data->markets = $db->setQuery($query)->loadAssocList();
                     }
                 }
