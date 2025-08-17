@@ -24,19 +24,38 @@
             <?php elseif (empty($this->rateData->seasons)) : ?>
                 <div class="alert">This property's supplier has no seasons defined.</div>
             <?php else : ?>
+                <?php
+                // Prepare active markets data for easy lookup
+                $activeMarkets = [];
+                if (isset($this->rateData->active_markets)) {
+                    $activeMarkets = is_array($this->rateData->active_markets) ? $this->rateData->active_markets : json_decode($this->rateData->active_markets, true);
+                    if (!is_array($activeMarkets)) $activeMarkets = [];
+                }
+                ?>
                 <table class="table table-striped table-bordered">
                     <thead>
                         <tr>
                             <th rowspan="2" style="vertical-align: middle;">Season</th>
                             <?php foreach ($this->rateData->markets as $market) : ?>
-                                <th colspan="3" class="text-center"><?php echo $this->escape($market->market_name); ?></th>
+                                <th colspan="3" class="text-center market-header-<?php echo str_replace(' ', '-', $this->escape($market->market_name)); ?>">
+                                    <?php echo $this->escape($market->market_name); ?>
+                                    <?php if ($market->market_name !== 'Global Rate') : ?>
+                                        <br/>
+                                        <label class="small">
+                                            <input type="checkbox" class="market-activation-checkbox" data-market-name="<?php echo $this->escape($market->market_name); ?>"
+                                                   name="jform[active_markets][<?php echo $this->escape($market->market_name); ?>]" value="1"
+                                                   <?php echo (!empty($activeMarkets) && in_array($market->market_name, $activeMarkets)) ? 'checked' : ''; ?>>
+                                            Activate Market
+                                        </label>
+                                    <?php endif; ?>
+                                </th>
                             <?php endforeach; ?>
                         </tr>
                         <tr>
                             <?php foreach ($this->rateData->markets as $market) : ?>
-                                <th>Rate (<?php echo $this->escape($market->currency); ?>)</th>
-                                <th>Override Commission</th>
-                                <th>Commission %</th>
+                                <th class="market-col-<?php echo str_replace(' ', '-', $this->escape($market->market_name)); ?>">Rate (<?php echo $this->escape($market->currency); ?>)</th>
+                                <th class="market-col-<?php echo str_replace(' ', '-', $this->escape($market->market_name)); ?>">Override Commission</th>
+                                <th class="market-col-<?php echo str_replace(' ', '-', $this->escape($market->market_name)); ?>">Commission %</th>
                             <?php endforeach; ?>
                         </tr>
                     </thead>
@@ -56,15 +75,16 @@
                                 $overrideChecked = !empty($marketRateData['override_commission']) ? 'checked' : '';
                                 $commissionValue = $marketRateData['commission'] ?? '';
                                 $supplierCommission = $season->admin_commission ?? 0;
+                                $isMarketActive = ($marketName === 'Global Rate' || (!empty($activeMarkets) && in_array($marketName, $activeMarkets)));
                             ?>
-                                <td>
-                                    <input type="number" step="0.01" name="jform[rates][<?php echo $this->escape($season->name); ?>][<?php echo $this->escape($marketName); ?>][rate]" value="<?php echo $this->escape($rateValue); ?>" class="input-small" />
+                                <td class="market-col-<?php echo str_replace(' ', '-', $this->escape($market->market_name)); ?>">
+                                    <input type="number" step="0.01" name="jform[rates][<?php echo $this->escape($season->name); ?>][<?php echo $this->escape($marketName); ?>][rate]" value="<?php echo $this->escape($rateValue); ?>" class="input-small" <?php if (!$isMarketActive) echo 'disabled'; ?> />
                                 </td>
-                                <td class="text-center">
-                                    <input type="checkbox" name="jform[rates][<?php echo $this->escape($season->name); ?>][<?php echo $this->escape($marketName); ?>][override_commission]" value="1" class="override-commission-checkbox" <?php echo $overrideChecked; ?> />
+                                <td class="text-center market-col-<?php echo str_replace(' ', '-', $this->escape($market->market_name)); ?>">
+                                    <input type="checkbox" name="jform[rates][<?php echo $this->escape($season->name); ?>][<?php echo $this->escape($marketName); ?>][override_commission]" value="1" class="override-commission-checkbox" <?php echo $overrideChecked; ?> <?php if (!$isMarketActive) echo 'disabled'; ?> />
                                 </td>
-                                <td>
-                                    <input type="number" step="0.01" name="jform[rates][<?php echo $this->escape($season->name); ?>][<?php echo $this->escape($marketName); ?>][commission]" value="<?php echo $this->escape($commissionValue); ?>" class="input-small commission-value-input" />
+                                <td class="market-col-<?php echo str_replace(' ', '-', $this->escape($market->market_name)); ?>">
+                                    <input type="number" step="0.01" name="jform[rates][<?php echo $this->escape($season->name); ?>][<?php echo $this->escape($marketName); ?>][commission]" value="<?php echo $this->escape($commissionValue); ?>" class="input-small commission-value-input" <?php if (!$isMarketActive || !$overrideChecked) echo 'disabled'; ?> />
                                     <div class="commission-source-info small" style="color: #666;">
                                         (Default: <?php echo $this->escape($supplierCommission); ?>%)
                                     </div>
@@ -89,7 +109,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const container = document.getElementById('adminForm');
 
     if (container) {
-        // Use event delegation for the checkboxes
+        // Commission checkbox logic
         container.addEventListener('change', function(e) {
             if (e.target.classList.contains('override-commission-checkbox')) {
                 const checkbox = e.target;
@@ -100,11 +120,24 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // Set the initial state for all checkboxes on page load
-        document.querySelectorAll('.override-commission-checkbox').forEach(function(checkbox) {
-            const commissionInput = checkbox.closest('td').nextElementSibling.querySelector('.commission-value-input');
-            if (commissionInput) {
-                commissionInput.disabled = !checkbox.checked;
+        // Market activation logic
+        container.addEventListener('change', function(e) {
+            if (e.target.classList.contains('market-activation-checkbox')) {
+                const activationCheckbox = e.target;
+                const marketName = activationCheckbox.dataset.marketName.replace(/ /g, '-');
+                const isChecked = activationCheckbox.checked;
+
+                const inputsToToggle = container.querySelectorAll('.market-col-' + marketName + ' input');
+                inputsToToggle.forEach(function(input) {
+                    input.disabled = !isChecked;
+                    // Re-apply commission logic
+                    if (input.classList.contains('commission-value-input')) {
+                        const overrideCheckbox = input.closest('tr').querySelector('[data-market-name="' + activationCheckbox.dataset.marketName + '"] .override-commission-checkbox');
+                        if (overrideCheckbox && !overrideCheckbox.checked) {
+                            input.disabled = true;
+                        }
+                    }
+                });
             }
         });
     }

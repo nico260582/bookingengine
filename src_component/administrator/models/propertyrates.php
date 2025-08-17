@@ -64,17 +64,21 @@
 
             // Get all saved rates for this property
             $query->clear()
-                ->select('season_name, rates')
+                ->select('season_name, rates, active_markets')
                 ->from($db->quoteName('#__bookingmanager_rates'))
                 ->where('property_id = ' . (int) $propertyId);
             $ratesList = $db->setQuery($query)->loadObjectList('season_name');
 
-            // Decode the JSON for each season's rates
+            $data->active_markets = [];
             foreach ($ratesList as $seasonName => $rate) {
                 if (!empty($rate->rates)) {
                     $ratesList[$seasonName]->rates = json_decode($rate->rates, true);
                 } else {
                     $ratesList[$seasonName]->rates = [];
+                }
+                // Load active markets from the first available season
+                if (empty($data->active_markets) && !empty($rate->active_markets)) {
+                    $data->active_markets = json_decode($rate->active_markets, true);
                 }
             }
             $data->rates = $ratesList;
@@ -86,6 +90,9 @@
         {
             $propertyId = (int)($data['property_id'] ?? 0);
             $ratesData = $data['rates'] ?? [];
+            $activeMarkets = $data['active_markets'] ?? [];
+            $activeMarketsJson = json_encode(array_keys($activeMarkets));
+
 
             if (!$propertyId) {
                 $this->setError('No property selected.');
@@ -109,6 +116,7 @@
                 $rateObj->property_id = $propertyId;
                 $rateObj->season_name = $seasonName;
                 $rateObj->rates = json_encode($sanitizedMarketData);
+                $rateObj->active_markets = $activeMarketsJson;
 
                 // Check if a rate for this season already exists
                 $query = $db->getQuery(true)
