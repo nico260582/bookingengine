@@ -52,7 +52,7 @@
 
             $html .= '</tbody></table></div>';
 
-            $script = "
+            $script = <<<'JS'
             document.addEventListener('DOMContentLoaded', function() {
                 const addBtn = document.getElementById('add-market-btn');
                 const selector = document.getElementById('country-market-selector');
@@ -71,9 +71,11 @@
 
                     const index = tableBody.rows.length;
                     const newRow = tableBody.insertRow();
-                    newRow.innerHTML = '<td><input type="hidden" name="jform[markets][' + index + '][market_name]" value="' + selectedCountry + '">' + selectedCountry + '</td>' +
-                                       '<td><input type="text" name="jform[markets][' + index + '][currency]" value="EUR" class="input-small" required></td>' +
-                                       '<td><button type="button" class="btn btn-danger btn-small remove-market-btn"><span class="icon-minus"></span></button></td>';
+                    newRow.innerHTML = `
+                        <td><input type="hidden" name="jform[markets][${index}][market_name]" value="${selectedCountry}">${selectedCountry}</td>
+                        <td><input type="text" name="jform[markets][${index}][currency]" value="EUR" class="input-small" required></td>
+                        <td><button type="button" class="btn btn-danger btn-small remove-market-btn"><span class="icon-minus"></span></button></td>
+                    `;
                 });
 
                 tableBody.addEventListener('click', function(e) {
@@ -83,7 +85,7 @@
                     }
                 });
             });
-            ";
+JS;
             Factory::getDocument()->addScriptDeclaration($script);
 
             return $html;
