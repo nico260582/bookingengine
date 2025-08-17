@@ -36,17 +36,19 @@
                 return $data;
             }
 
-            // Get supplier markets with currencies
+            // Get supplier markets
             $query->clear()
                 ->select('market_name, currency')
                 ->from('#__bookingmanager_supplier_markets')
                 ->where('supplier_id = ' . (int)$supplierInfo->supplier_id)
+                ->where('state = 1') // Only fetch active markets
                 ->order('id ASC');
-            $data->markets = $db->setQuery($query)->loadObjectList();
+            $markets = $db->setQuery($query)->loadObjectList();
 
-            if (empty($data->markets)) {
-                $data->markets = [(object)['market_name' => 'Default', 'currency' => 'EUR']];
-            }
+            // Always add a "Default" market for the global rate
+            $defaultMarket = (object)['market_name' => 'Default', 'currency' => 'EUR'];
+            array_unshift($markets, $defaultMarket);
+            $data->markets = $markets;
 
             $rules = json_decode($supplierInfo->rules);
             $seasons = [];
@@ -60,15 +62,20 @@
                 return $data;
             }
 
+            // Get all saved rates for this property
             $query->clear()
                 ->select('season_name, rates')
                 ->from($db->quoteName('#__bookingmanager_rates'))
                 ->where('property_id = ' . (int) $propertyId);
-
             $ratesList = $db->setQuery($query)->loadObjectList('season_name');
 
+            // Decode the JSON for each season's rates
             foreach ($ratesList as $seasonName => $rate) {
-                $ratesList[$seasonName]->rates = json_decode($rate->rates, true);
+                if (!empty($rate->rates)) {
+                    $ratesList[$seasonName]->rates = json_decode($rate->rates, true);
+                } else {
+                    $ratesList[$seasonName]->rates = [];
+                }
             }
             $data->rates = $ratesList;
 
@@ -87,12 +94,23 @@
 
             $db = $this->getDbo();
 
-            foreach ($ratesData as $seasonName => $seasonRates) {
+            foreach ($ratesData as $seasonName => $seasonMarkets) {
+                // Sanitize and structure the data for JSON encoding
+                $sanitizedMarketData = [];
+                foreach ($seasonMarkets as $marketName => $marketData) {
+                    $sanitizedMarketData[$marketName] = [
+                        'rate' => isset($marketData['rate']) && is_numeric($marketData['rate']) ? (float)$marketData['rate'] : null,
+                        'override_commission' => isset($marketData['override_commission']) ? 1 : 0,
+                        'commission' => isset($marketData['commission']) && is_numeric($marketData['commission']) ? (float)$marketData['commission'] : null,
+                    ];
+                }
+
                 $rateObj = new stdClass();
                 $rateObj->property_id = $propertyId;
                 $rateObj->season_name = $seasonName;
-                $rateObj->rates = json_encode($seasonRates);
+                $rateObj->rates = json_encode($sanitizedMarketData);
 
+                // Check if a rate for this season already exists
                 $query = $db->getQuery(true)
                     ->select('COUNT(*)')
                     ->from($db->quoteName('#__bookingmanager_rates'))
@@ -101,11 +119,13 @@
                 $exists = $db->setQuery($query)->loadResult();
 
                 if ($exists) {
+                    // Update existing record
                     if (!$db->updateObject('#__bookingmanager_rates', $rateObj, ['property_id', 'season_name'])) {
                         $this->setError($db->getErrorMsg());
                         return false;
                     }
                 } else {
+                    // Insert new record
                     if (!$db->insertObject('#__bookingmanager_rates', $rateObj)) {
                         $this->setError($db->getErrorMsg());
                         return false;

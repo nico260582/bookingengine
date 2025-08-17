@@ -41,44 +41,59 @@ Factory::getDocument()->addScriptDeclaration($script);
 
     <fieldset class="form-horizontal">
         <legend>Property Rates</legend>
-        <?php if (isset($this->item->ratesData) && !empty($this->item->ratesData->seasons)) : ?>
-            <table class="table table-striped">
+        <?php if (isset($this->item->ratesData) && !empty($this->item->ratesData->seasons) && !empty($this->item->ratesData->markets)) : ?>
+            <table class="table table-striped table-bordered">
                 <thead>
                     <tr>
-                        <th>Season</th>
-                        <th>Base Rate (per night)</th>
-                        <th class="nowrap">Override Admin Commission?</th>
-                        <th>Admin Commission %</th>
+                        <th rowspan="2" style="vertical-align: middle;">Season</th>
+                        <?php foreach ($this->item->ratesData->markets as $market) : ?>
+                            <th colspan="3" class="text-center"><?php echo $this->escape($market->market_name); ?></th>
+                        <?php endforeach; ?>
+                    </tr>
+                    <tr>
+                        <?php foreach ($this->item->ratesData->markets as $market) : ?>
+                            <th>Rate (<?php echo $this->escape($market->currency); ?>)</th>
+                            <th>Override Commission</th>
+                            <th>Commission %</th>
+                        <?php endforeach; ?>
                     </tr>
                 </thead>
                 <tbody>
                     <?php foreach ($this->item->ratesData->seasons as $season) :
-                        $rate = $this->item->ratesData->rates[$season->name] ?? null;
-                        $rateValue = ($rate && isset($rate->base_rate)) ? $rate->base_rate : '';
-                        $overrideChecked = ($rate && isset($rate->override_admin_commission) && $rate->override_admin_commission) ? 'checked' : '';
-                        $commissionValue = ($rate && isset($rate->admin_commission)) ? $rate->admin_commission : '';
-                        $supplierCommission = $season->admin_commission ?? 0;
+                        $seasonRates = $this->item->ratesData->rates[$season->name]->rates ?? [];
                     ?>
                     <tr>
-                        <td><?php echo $this->escape($season->name); ?><br/><small><?php echo $season->start_date . ' to ' . $season->end_date; ?></small></td>
-                        <td><input type="number" step="0.01" name="jform[rates][<?php echo $this->escape($season->name); ?>][base_rate]" value="<?php echo $this->escape($rateValue); ?>" class="input-small" /></td>
-                        <td><input type="checkbox" name="jform[rates][<?php echo $this->escape($season->name); ?>][override_admin_commission]" value="1" class="override-commission-checkbox" <?php echo $overrideChecked; ?> /></td>
                         <td>
-                            <input type="number" step="0.01" name="jform[rates][<?php echo $this->escape($season->name); ?>][admin_commission]" value="<?php echo $this->escape($commissionValue); ?>" class="input-small commission-value-input" />
-                            <div class="commission-source-info" style="font-size: 0.9em; color: #666;">
-                                <?php if ($overrideChecked) : ?>
-                                    <span style="color: green;">Property Override</span>
-                                <?php else : ?>
-                                    Inherited from Supplier (<?php echo $this->escape($supplierCommission); ?>%)
-                                <?php endif; ?>
-                            </div>
+                            <?php echo $this->escape($season->name); ?><br/>
+                            <small><?php echo HTMLHelper::_('date', $season->start_date, 'd M Y'); ?> to <?php echo HTMLHelper::_('date', $season->end_date, 'd M Y'); ?></small>
                         </td>
+                        <?php foreach ($this->item->ratesData->markets as $market) :
+                            $marketName = $market->market_name;
+                            $marketRateData = $seasonRates[$marketName] ?? [];
+                            $rateValue = $marketRateData['rate'] ?? '';
+                            $overrideChecked = !empty($marketRateData['override_commission']) ? 'checked' : '';
+                            $commissionValue = $marketRateData['commission'] ?? '';
+                            $supplierCommission = $season->admin_commission ?? 0;
+                        ?>
+                            <td>
+                                <input type="number" step="0.01" name="jform[rates][<?php echo $this->escape($season->name); ?>][<?php echo $this->escape($marketName); ?>][rate]" value="<?php echo $this->escape($rateValue); ?>" class="input-small" />
+                            </td>
+                            <td class="text-center">
+                                <input type="checkbox" name="jform[rates][<?php echo $this->escape($season->name); ?>][<?php echo $this->escape($marketName); ?>][override_commission]" value="1" class="override-commission-checkbox" <?php echo $overrideChecked; ?> />
+                            </td>
+                            <td>
+                                <input type="number" step="0.01" name="jform[rates][<?php echo $this->escape($season->name); ?>][<?php echo $this->escape($marketName); ?>][commission]" value="<?php echo $this->escape($commissionValue); ?>" class="input-small commission-value-input" />
+                                <div class="commission-source-info small" style="color: #666;">
+                                    (Default: <?php echo $this->escape($supplierCommission); ?>%)
+                                </div>
+                            </td>
+                        <?php endforeach; ?>
                     </tr>
                     <?php endforeach; ?>
                 </tbody>
             </table>
         <?php elseif (isset($this->item->ratesData) && isset($this->item->ratesData->error)) : ?>
-            <div class="alert alert-warning"><?php echo $this->item->ratesData->error; ?></div>
+            <div class="alert alert-warning"><?php echo $this->escape($this->item->ratesData->error); ?></div>
         <?php else : ?>
             <div class="alert">No seasons found. Please define seasons for the supplier assigned to this property.</div>
         <?php endif; ?>
