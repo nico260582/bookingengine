@@ -9,4 +9,15 @@ use Joomla\CMS\Language\Text;
 
 class BookingmanagerControllerSupplier extends FormController
 {
+    public function save($key = null, $urlVar = null)
+    {
+        $log_file = JPATH_ROOT . '/jules_controller_debug_log.txt';
+        $log_message = 'Timestamp: ' . date('Y-m-d H:i:s') . "\n";
+        $log_message .= "Controller save() method was called.\n";
+        $data  = $this->input->post->get('jform', array(), 'array');
+        $log_message .= 'Form data: ' . print_r($data, true) . "\n\n";
+        file_put_contents($log_file, $log_message, FILE_APPEND);
+
+        return parent::save($key, $urlVar);
+    }
 }
