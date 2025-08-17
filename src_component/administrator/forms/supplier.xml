@@ -82,6 +82,5 @@
         </field>
     </fieldset>
     <fieldset name="assignments" label="Property Assignments">
-        <field name="properties" type="hidden" />
     </fieldset>
 </form>
