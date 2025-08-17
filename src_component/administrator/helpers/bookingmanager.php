@@ -54,16 +54,21 @@ abstract class BookingmanagerHelper
 
         // 2. Get the saved rates for this property
         $query->clear()
-            ->select('season_name, base_rate')
+            ->select('season_name, rates')
             ->from($db->quoteName('#__bookingmanager_rates'))
             ->where($db->quoteName('property_id') . ' = ' . (int) $articleId);
-        $rates = $db->setQuery($query)->loadObjectList('season_name');
+        $ratesList = $db->setQuery($query)->loadObjectList('season_name');
 
         // 3. Check for completeness
         $missingSeasons = [];
         $filledSeasons = 0;
         foreach ($seasons as $season) {
-            if (empty($rates[$season->name]->base_rate) || !is_numeric($rates[$season->name]->base_rate) || $rates[$season->name]->base_rate <= 0) {
+            $seasonName = $season->name;
+            $seasonRatesJson = $ratesList[$seasonName]->rates ?? '[]';
+            $seasonRates = json_decode($seasonRatesJson, true);
+            $defaultRateInfo = $seasonRates['Default'] ?? [];
+
+            if (empty($defaultRateInfo) || !isset($defaultRateInfo['rate']) || $defaultRateInfo['rate'] === '' || $defaultRateInfo['rate'] <= 0) {
                 $missingSeasons[] = $season->name;
             } else {
                 $filledSeasons++;
