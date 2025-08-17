@@ -30,7 +30,6 @@
                 $data = $this->getItem();
 
                 if ($data) {
-                    // Unpack rules
                     if (!empty($data->rules)) {
                         $rules = json_decode($data->rules);
                         if (is_object($rules)) {
@@ -44,18 +43,13 @@
 
                     if (!empty($data->id)) {
                         $db = Factory::getDbo();
-                        // Load properties
                         $query = $db->getQuery(true)->select('property_id')->from('#__bookingmanager_property_map')->where('supplier_id = ' . (int)$data->id);
                         $propertyIds = $db->setQuery($query)->loadColumn();
                         $data->properties = implode(',', $propertyIds);
 
-                        // Load markets
-                        $query->clear()->select('market_name')->from('#__bookingmanager_supplier_markets')->where('supplier_id = ' . (int)$data->id);
-                        $markets = $db->setQuery($query)->loadColumn();
-                        $data->markets = [];
-                        foreach ($markets as $marketName) {
-                            $data->markets[] = ['market_name' => $marketName];
-                        }
+                        // Load markets with their currencies
+                        $query->clear()->select('market_name, currency')->from('#__bookingmanager_supplier_markets')->where('supplier_id = ' . (int)$data->id);
+                        $data->markets = $db->setQuery($query)->loadAssocList();
                     }
                 }
             }
@@ -63,7 +57,6 @@
             if (is_object($data)) {
                 $data = get_object_vars($data);
             }
-
 
             return $data;
         }
@@ -118,8 +111,8 @@
             $values = [];
             if (!empty($marketsData)) {
                 foreach ($marketsData as $market) {
-                    if (!empty($market['market_name'])) {
-                        $values[] = $supplierId . ',' . $db->quote($market['market_name']);
+                    if (!empty($market['market_name']) && !empty($market['currency'])) {
+                        $values[] = $supplierId . ',' . $db->quote($market['market_name']) . ',' . $db->quote($market['currency']);
                     }
                 }
             }
@@ -128,7 +121,7 @@
             if (!empty($values)) {
                 $insertQuery = $db->getQuery(true)
                     ->insert($db->quoteName('#__bookingmanager_supplier_markets'))
-                    ->columns([$db->quoteName('supplier_id'), $db->quoteName('market_name')]);
+                    ->columns([$db->quoteName('supplier_id'), $db->quoteName('market_name'), $db->quoteName('currency')]);
 
                 foreach($values as $value) {
                     $insertQuery->values($value);

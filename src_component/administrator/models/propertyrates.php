@@ -1,130 +1,118 @@
 <?php
-defined('_JEXEC') or die;
+    defined('_JEXEC') or die;
 
-use Joomla\CMS\MVC\Model\BaseDatabaseModel;
+    use Joomla\CMS\MVC\Model\BaseDatabaseModel;
+    use Joomla\CMS\Factory;
 
-class BookingmanagerModelPropertyrates extends BaseDatabaseModel
-{
-    public function getPropertiesForFilter()
+    class BookingmanagerModelPropertyrates extends BaseDatabaseModel
     {
-        $db = $this->getDbo();
-        $query = $db->getQuery(true)->select('c.id, c.title')->from($db->quoteName('#__content', 'c'))
-            ->join('INNER', $db->quoteName('#__bookingmanager_property_map', 'm') . ' ON c.id = m.property_id')
-            ->where('c.state = 1')->order('c.title');
-        return $db->setQuery($query)->loadObjectList();
-    }
-
-    public function getRateData($propertyId)
-    {
-        if (!$propertyId) {
-            return null;
-        }
-        $db = $this->getDbo();
-        $data = new stdClass();
-
-        // This query correctly uses the property_id (which is the article_id) from the map table
-        $query = $db->getQuery(true)
-            ->select('s.rules')
-            ->from($db->quoteName('#__bookingmanager_property_map', 'm'))
-            ->join('INNER', $db->quoteName('#__bookingmanager_suppliers', 's') . ' ON m.supplier_id = s.id')
-            ->where('m.property_id = ' . (int) $propertyId);
-
-        $rulesJson = $db->setQuery($query)->loadResult();
-
-        if (empty($rulesJson)) {
-            $data->error = 'This property (Article ID: ' . $propertyId . ') is not assigned to a supplier. Please assign it to a supplier to manage rates.';
-            return $data;
+        public function getPropertiesForFilter()
+        {
+            $db = $this->getDbo();
+            $query = $db->getQuery(true)->select('c.id, c.title')->from($db->quoteName('#__content', 'c'))
+                ->join('INNER', $db->quoteName('#__bookingmanager_property_map', 'm') . ' ON c.id = m.property_id')
+                ->where('c.state = 1')->order('c.title');
+            return $db->setQuery($query)->loadObjectList();
         }
 
-        $rules = json_decode($rulesJson);
-        $seasons = [];
+        public function getRateData($propertyId)
+        {
+            if (!$propertyId) {
+                return null;
+            }
+            $db = $this->getDbo();
+            $data = new stdClass();
 
-        if (isset($rules->seasons)) {
-            if (is_string($rules->seasons)) {
-                // Handles the case where seasons are a JSON string within the JSON
-                $seasons = json_decode($rules->seasons);
-            } elseif (is_object($rules->seasons) || is_array($rules->seasons)) {
-                // Handles the case where seasons are an object from a subform field
+            $query = $db->getQuery(true)
+                ->select('s.id as supplier_id, s.rules')
+                ->from($db->quoteName('#__bookingmanager_property_map', 'm'))
+                ->join('INNER', $db->quoteName('#__bookingmanager_suppliers', 's') . ' ON m.supplier_id = s.id')
+                ->where('m.property_id = ' . (int) $propertyId);
+
+            $supplierInfo = $db->setQuery($query)->loadObject();
+
+            if (empty($supplierInfo) || empty($supplierInfo->rules)) {
+                $data->error = 'This property (Article ID: ' . $propertyId . ') is not assigned to a supplier with defined seasons.';
+                return $data;
+            }
+
+            // Get supplier markets with currencies
+            $query->clear()
+                ->select('market_name, currency')
+                ->from('#__bookingmanager_supplier_markets')
+                ->where('supplier_id = ' . (int)$supplierInfo->supplier_id)
+                ->order('id ASC');
+            $data->markets = $db->setQuery($query)->loadObjectList();
+
+            if (empty($data->markets)) {
+                $data->markets = [(object)['market_name' => 'Default', 'currency' => 'EUR']];
+            }
+
+            $rules = json_decode($supplierInfo->rules);
+            $seasons = [];
+            if (isset($rules->seasons)) {
                 $seasons = array_values((array) $rules->seasons);
             }
-        }
+            $data->seasons = $seasons;
 
-        $data->seasons = $seasons;
+            if (empty($data->seasons)) {
+                $data->error = 'The assigned supplier does not have any seasons defined.';
+                return $data;
+            }
 
-        if (empty($data->seasons)) {
-            $data->error = 'The assigned supplier does not have any seasons defined. Please define seasons for the supplier first.';
+            $query->clear()
+                ->select('season_name, rates')
+                ->from($db->quoteName('#__bookingmanager_rates'))
+                ->where('property_id = ' . (int) $propertyId);
+
+            $ratesList = $db->setQuery($query)->loadObjectList('season_name');
+
+            foreach ($ratesList as $seasonName => $rate) {
+                $ratesList[$seasonName]->rates = json_decode($rate->rates, true);
+            }
+            $data->rates = $ratesList;
+
             return $data;
         }
 
-        $query->clear()
-            ->select('*')
-            ->from($db->quoteName('#__bookingmanager_rates'))
-            ->where('property_id = ' . (int) $propertyId);
+        public function save($data)
+        {
+            $propertyId = (int)($data['property_id'] ?? 0);
+            $ratesData = $data['rates'] ?? [];
 
-        $data->rates = $db->setQuery($query)->loadObjectList('season_name');
-
-        return $data;
-    }
-
-    public function save($data)
-    {
-        $propertyId = (int)($data['property_id'] ?? 0); // This is the Article ID
-        $ratesData = $data['rates'] ?? [];
-
-        if (!$propertyId) {
-            $this->setError('No property selected.');
-            return false;
-        }
-
-        $db = $this->getDbo();
-
-        $existingRatesQuery = $db->getQuery(true)
-            ->select('season_name')
-            ->from($db->quoteName('#__bookingmanager_rates'))
-            ->where('property_id = ' . $propertyId);
-        $existingRates = $db->setQuery($existingRatesQuery)->loadColumn();
-        $existingRates = array_flip($existingRates);
-
-        foreach ($ratesData as $seasonName => $seasonData) {
-            $seasonName = trim($seasonName);
-            if (empty($seasonName)) {
-                continue;
+            if (!$propertyId) {
+                $this->setError('No property selected.');
+                return false;
             }
 
-            $rateObj = new stdClass();
-            $rateObj->property_id = $propertyId;
-            $rateObj->season_name = $seasonName;
+            $db = $this->getDbo();
 
-            $baseRateInput = $seasonData['base_rate'] ?? '';
-            $sanitizedRate = preg_replace('/[^\d\.]/', '', $baseRateInput);
-            $rateObj->base_rate = ($sanitizedRate !== '' && is_numeric($sanitizedRate)) ? (float)$sanitizedRate : null;
+            foreach ($ratesData as $seasonName => $seasonRates) {
+                $rateObj = new stdClass();
+                $rateObj->property_id = $propertyId;
+                $rateObj->season_name = $seasonName;
+                $rateObj->rates = json_encode($seasonRates);
 
-            $rateObj->override_admin_commission = (isset($seasonData['override_admin_commission']) && $seasonData['override_admin_commission'] == '1') ? 1 : 0;
+                $query = $db->getQuery(true)
+                    ->select('COUNT(*)')
+                    ->from($db->quoteName('#__bookingmanager_rates'))
+                    ->where('property_id = ' . $propertyId)
+                    ->where('season_name = ' . $db->quote($seasonName));
+                $exists = $db->setQuery($query)->loadResult();
 
-            if ($rateObj->override_admin_commission) {
-                $commissionInput = $seasonData['admin_commission'] ?? '';
-                $rateObj->admin_commission = is_numeric($commissionInput) ? (float)$commissionInput : null;
-            } else {
-                $rateObj->admin_commission = null;
-            }
-
-            $hasData = $rateObj->base_rate !== null || $rateObj->override_admin_commission == 1;
-
-            if (isset($existingRates[$seasonName])) {
-                if (!$db->updateObject('#__bookingmanager_rates', $rateObj, ['property_id', 'season_name'])) {
-                    $this->setError($db->getErrorMsg());
-                    return false;
-                }
-            } else {
-                if ($hasData) {
+                if ($exists) {
+                    if (!$db->updateObject('#__bookingmanager_rates', $rateObj, ['property_id', 'season_name'])) {
+                        $this->setError($db->getErrorMsg());
+                        return false;
+                    }
+                } else {
                     if (!$db->insertObject('#__bookingmanager_rates', $rateObj)) {
                         $this->setError($db->getErrorMsg());
                         return false;
                     }
                 }
             }
-        }
 
-        return true;
+            return true;
+        }
     }
-}
