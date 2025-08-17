@@ -40,7 +40,8 @@ class BookingmanagerModelSupplier extends AdminModel
             if ($data && !empty($data->id)) {
                 $db = Factory::getDbo();
                 $query = $db->getQuery(true)->select('property_id')->from('#__bookingmanager_property_map')->where('supplier_id = ' . (int)$data->id);
-                $data->properties = $db->setQuery($query)->loadColumn();
+                $propertyIds = $db->setQuery($query)->loadColumn();
+                $data->properties = implode(',', $propertyIds);
             }
         }
         return $data;
