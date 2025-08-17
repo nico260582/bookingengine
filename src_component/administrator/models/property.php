@@ -94,11 +94,42 @@ class BookingmanagerModelProperty extends AdminModel
                     if (empty($ratesData->seasons)) {
                         $ratesData->error = 'The assigned supplier has no seasons defined.';
                     } else {
+                        // Get supplier markets
                         $query->clear()
-                            ->select('*')
+                            ->select('s.id')
+                            ->from($db->quoteName('#__bookingmanager_property_map', 'm'))
+                            ->join('INNER', $db->quoteName('#__bookingmanager_suppliers', 's') . ' ON m.supplier_id = s.id')
+                            ->where('m.property_id = ' . $propertyId);
+                        $supplierId = $db->setQuery($query)->loadResult();
+
+                        $query->clear()
+                            ->select('market_name, currency')
+                            ->from('#__bookingmanager_supplier_markets')
+                            ->where('supplier_id = ' . (int)$supplierId)
+                            ->where('state = 1') // Only fetch active markets
+                            ->order('id ASC');
+                        $markets = $db->setQuery($query)->loadObjectList();
+
+                        // Always add a "Default" market for the global rate
+                        $defaultMarket = (object)['market_name' => 'Default', 'currency' => 'EUR'];
+                        array_unshift($markets, $defaultMarket);
+                        $ratesData->markets = $markets;
+
+                        // Get all saved rates for this property
+                        $query->clear()
+                            ->select('season_name, rates')
                             ->from($db->quoteName('#__bookingmanager_rates'))
-                            ->where($db->quoteName('property_id') . ' = ' . $propertyId);
+                            ->where('property_id = ' . (int) $propertyId);
                         $ratesList = $db->setQuery($query)->loadObjectList('season_name');
+
+                        // Decode the JSON for each season's rates
+                        foreach ($ratesList as $seasonName => $rate) {
+                            if (!empty($rate->rates)) {
+                                $ratesList[$seasonName]->rates = json_decode($rate->rates, true);
+                            } else {
+                                $ratesList[$seasonName]->rates = [];
+                            }
+                        }
                         $ratesData->rates = $ratesList;
                     }
                 }
