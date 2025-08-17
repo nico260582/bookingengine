@@ -64,9 +64,6 @@
                 $data = get_object_vars($data);
             }
 
-            if (!isset($data['properties']) || !is_array($data['properties'])) {
-                $data['properties'] = [];
-            }
 
             return $data;
         }
