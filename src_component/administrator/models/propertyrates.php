@@ -124,6 +124,18 @@
                     $existingRates = [];
                 }
 
+                // For any market that was submitted, we should reset its 'override_commission'
+                // in the existing data before merging. This ensures that if the checkbox was
+                // unchecked (and thus not in the submission), the old value is cleared.
+                foreach (array_keys($submittedSeasonRates) as $marketName) {
+                    if (isset($existingRates[$marketName]['override_commission'])) {
+                        unset($existingRates[$marketName]['override_commission']);
+                    }
+                    if (isset($existingRates[$marketName]['commission'])) {
+                        unset($existingRates[$marketName]['commission']);
+                    }
+                }
+
                 // 2. Merge new data into existing data
                 $mergedRates = array_replace_recursive($existingRates, $submittedSeasonRates);
 
