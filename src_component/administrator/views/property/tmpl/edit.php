@@ -53,8 +53,8 @@
                     <tr>
                         <?php foreach ($this->item->ratesData->markets as $market) : ?>
                             <th class="market-col-<?php echo str_replace(' ', '-', $this->escape($market->market_name)); ?>">Rate (<?php echo $this->escape($market->currency); ?>)</th>
-                            <th class="market-col-<?php echo str_replace(' ', '-', $this->escape($market->market_name)); ?>">Override Commission</th>
-                            <th class="market-col-<?php echo str_replace(' ', '-', $this->escape($market->market_name)); ?>">Commission %</th>
+                            <th class="market-col-<?php echo str_replace(' ', '-', $this->escape($market->market_name)); ?>">Override<br>Commission</th>
+                            <th class="market-col-<?php echo str_replace(' ', '-', $this->escape($market->market_name)); ?>">com %</th>
                         <?php endforeach; ?>
                     </tr>
                 </thead>
