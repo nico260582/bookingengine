@@ -54,6 +54,23 @@ use Joomla\CMS\HTML\HTMLHelper;
 
         <div class="row">
             <div class="col-12 mb-2">
+                <select id="country-residence" name="country" class="form-select" required>
+                    <option value="">Country of Residence...</option>
+                    <?php foreach ($countries as $country) : ?>
+                        <option value="<?php echo htmlspecialchars($country['name'], ENT_QUOTES, 'UTF-8'); ?>"
+                                data-dial-code="<?php echo htmlspecialchars($country['dial_code'], ENT_QUOTES, 'UTF-8'); ?>"
+                                data-iso-code="<?php echo strtolower(htmlspecialchars($country['code'], ENT_QUOTES, 'UTF-8')); ?>"
+                                <?php if ($country['name'] === 'Mauritius') echo 'selected'; ?>>
+                            <?php echo htmlspecialchars($country['flag'] . ' ' . $country['name'], ENT_QUOTES, 'UTF-8'); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+                <div id="country-error" class="invalid-feedback"></div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12 mb-2">
                 <input type="text" id="coupon-code" name="coupon_code" class="form-control" placeholder="Coupon Code">
             </div>
         </div>
@@ -101,21 +118,6 @@ use Joomla\CMS\HTML\HTMLHelper;
                 </div>
             </div>
 
-            <div class="row">
-                 <div class="col-12 mb-2">
-                    <select id="country-residence" name="country" class="form-select" required>
-                        <option value="">Country of Residence...</option>
-                        <?php foreach ($countries as $country) : ?>
-                            <option value="<?php echo htmlspecialchars($country['name'], ENT_QUOTES, 'UTF-8'); ?>"
-                                    data-dial-code="<?php echo htmlspecialchars($country['dial_code'], ENT_QUOTES, 'UTF-8'); ?>"
-                                    data-iso-code="<?php echo strtolower(htmlspecialchars($country['code'], ENT_QUOTES, 'UTF-8')); ?>"
-                                    <?php if ($country['name'] === 'Mauritius') echo 'selected'; ?>>
-                                <?php echo htmlspecialchars($country['flag'] . ' ' . $country['name'], ENT_QUOTES, 'UTF-8'); ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-            </div>
 
             <div class="row">
                 <div class="col-12 mb-2">
