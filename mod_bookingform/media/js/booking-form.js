@@ -75,14 +75,21 @@ document.addEventListener('DOMContentLoaded', function () {
             geoIpLookup: (callback) => {
                 fetch("https://ipapi.co/json")
                     .then(res => res.json())
-                    .then(data => callback(data.country_code))
-                    .catch(() => callback("mu"));
+                    .then(data => {
+                        callback(data.country_code);
+                        // Directly update the price after the lookup
+                        displayStartingPrice(data.country_name);
+                    })
+                    .catch(() => {
+                        callback("mu");
+                        displayStartingPrice("Mauritius"); // Fallback
+                    });
             },
             separateDialCode: true,
             utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.13/js/utils.js",
         });
 
-        // When the country changes, update the starting price display
+        // Add a listener for manual changes as well
         elements.telephoneInput.addEventListener('countrychange', function() {
             const selectedCountry = iti.getSelectedCountryData();
             if (selectedCountry.name) {
@@ -286,13 +293,8 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             requiredUnits = Math.ceil(totalGuestsForCapacity / baseCapacity);
-            if (requiredUnits > 1 && availableUnits > 1) {
-                if (requiredUnits > availableUnits) {
-                    elements.unitCountDisplay.textContent = `Your group requires ${requiredUnits} units, but only ${availableUnits} are available.`;
-                    isBookingPossible = false;
-                }
-            } else if (requiredUnits > 1 && availableUnits === 1) {
-                elements.unitCountDisplay.textContent = `Your group requires ${requiredUnits} units, but this property only has 1 unit available.`;
+            if (requiredUnits > availableUnits) {
+                elements.unitCountDisplay.textContent = `This property has a limit of ${availableUnits} unit(s), but your group requires ${requiredUnits}. Please consider an alternative property.`;
                 isBookingPossible = false;
             } else if (totalGuestsForCapacity > baseCapacity) {
                 elements.unitCountDisplay.textContent = 'Guest number exceeds the maximum capacity for this property.';
