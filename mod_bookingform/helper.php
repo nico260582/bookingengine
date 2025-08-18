@@ -45,25 +45,59 @@ class ModBookingFormHelper
             $rules['seasons'] = json_decode($rules['seasons'], true);
         }
 
+        // Get supplier ID for market lookup
         $query->clear()
-            ->select('*')
-            ->from($db->quoteName('#__bookingmanager_rates'))
+            ->select('supplier_id')
+            ->from($db->quoteName('#__bookingmanager_property_map'))
             ->where('property_id = ' . (int) $articleId);
+        $supplierId = $db->setQuery($query)->loadResult();
 
-        $ratesList = $db->setQuery($query)->loadObjectList('season_name');
-
-        $rates = [];
-        $rateDetails = [];
-        foreach ($ratesList as $seasonName => $rate) {
-            $rates[$seasonName] = (float)$rate->base_rate;
-            $rateDetails[$seasonName] = [
-                'override_admin_commission' => (int)($rate->override_admin_commission ?? 0),
-                'admin_commission'          => isset($rate->admin_commission) ? (float)$rate->admin_commission : null,
-            ];
+        // Get all defined markets for the supplier, including currency
+        $allMarkets = [];
+        if ($supplierId) {
+            $query->clear()
+                ->select('market_name, currency')
+                ->from('#__bookingmanager_supplier_markets')
+                ->where('supplier_id = ' . (int)$supplierId)
+                ->where('state = 1');
+            $allMarkets = $db->setQuery($query)->loadObjectList('market_name');
+        }
+        // Always ensure a Global Rate market exists as a fallback
+        if (!isset($allMarkets['Global Rate'])) {
+             $allMarkets['Global Rate'] = (object)['market_name' => 'Global Rate', 'currency' => 'EUR'];
         }
 
+
+        // Get all saved rates for this property
+        $query->clear()
+            ->select('season_name, rates, active_markets')
+            ->from($db->quoteName('#__bookingmanager_rates'))
+            ->where('property_id = ' . (int) $articleId);
+        $ratesList = $db->setQuery($query)->loadObjectList('season_name');
+
+        $ratesBySeason = [];
+        $activeMarkets = [];
+        foreach ($ratesList as $seasonName => $rateInfo) {
+            $decodedRates = !empty($rateInfo->rates) ? json_decode($rateInfo->rates, true) : [];
+            if (!is_array($decodedRates)) $decodedRates = [];
+
+            // Inject currency into each market's rate data
+            foreach ($decodedRates as $marketName => &$marketData) {
+                $marketData['currency'] = $allMarkets[$marketName]->currency ?? 'EUR';
+            }
+
+            $ratesBySeason[$seasonName] = $decodedRates;
+
+            // Load active markets from the first available season
+            if (empty($activeMarkets) && !empty($rateInfo->active_markets)) {
+                $activeMarkets = json_decode($rateInfo->active_markets, true);
+                if (!is_array($activeMarkets)) $activeMarkets = [];
+            }
+        }
+
+
         $cleanRules = [
-            'number_of_units' => $numberOfUnits, // <-- Add this line
+            'number_of_units' => $numberOfUnits,
             'pricing_model' => $rules['pricing_model'] ?? 'FlatUnitRate',
             'adult_supplement' => (float)($rules['adult_supplement'] ?? 0),
             'child_supplement' => (float)($rules['child_supplement'] ?? 0),
@@ -73,8 +107,8 @@ class ModBookingFormHelper
             'teen_max_age' => (int)($rules['teen_max_age'] ?? 17),
             'free_with_parents_age' => (int)($rules['free_with_parents_age'] ?? 0),
             'seasons' => isset($rules['seasons']) && is_array($rules['seasons']) ? array_values($rules['seasons']) : [],
-            'rates' => $rates,
-            'rate_details' => $rateDetails,
+            'rates' => $ratesBySeason,
+            'active_markets' => $activeMarkets,
             'country_discounts' => isset($rules['country_discounts']) && is_array($rules['country_discounts']) ? array_values($rules['country_discounts']) : [],
             'coupon_codes' => isset($rules['coupon_codes']) && is_array($rules['coupon_codes']) ? array_values($rules['coupon_codes']) : [],
             'alternative_properties' => self::getAlternativeProperties($articleId)
@@ -84,8 +118,12 @@ class ModBookingFormHelper
             return null;
         }
 
+        // Validate that there is a valid Global Rate for every season
         foreach ($cleanRules['seasons'] as $season) {
-            if (empty($cleanRules['rates'][$season['name']]) || !is_numeric($cleanRules['rates'][$season['name']]) || $cleanRules['rates'][$season['name']] <= 0) {
+            if (empty($cleanRules['rates'][$season['name']]['Global Rate']['rate']) ||
+                !is_numeric($cleanRules['rates'][$season['name']]['Global Rate']['rate']) ||
+                $cleanRules['rates'][$season['name']]['Global Rate']['rate'] <= 0) {
+                // If the global rate is missing or invalid for any season, we can't proceed.
                 return null;
             }
         }

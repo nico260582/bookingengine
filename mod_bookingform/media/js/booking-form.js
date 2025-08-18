@@ -31,28 +31,26 @@ document.addEventListener('DOMContentLoaded', function () {
         priceSummaryContainer: document.getElementById('price-summary-container'),
         dateRangeError: document.getElementById('date-range-error'),
         childAgesError: document.getElementById('child-ages-error'),
+        countryError: document.getElementById('country-error'),
         propertySuggestionAlert: document.getElementById('property-suggestion-alert'),
     };
 
     function displayStartingPrice() {
         const rules = options.pricingRules;
         if (!rules.rates || Object.keys(rules.rates).length === 0) return;
-        const finalRates = Object.entries(rules.rates).map(([seasonName, baseRate]) => {
-            if (baseRate <= 0) return null;
-            const season = rules.seasons.find(s => s.name === seasonName);
-            const rateDetail = rules.rate_details ? rules.rate_details[seasonName] : null;
-            let commissionRate = 0;
-            if (rateDetail && rateDetail.override_admin_commission && rateDetail.admin_commission > 0) {
-                commissionRate = parseFloat(rateDetail.admin_commission);
-            } else if (season && season.admin_commission) {
-                commissionRate = parseFloat(season.admin_commission);
-            }
-            return baseRate * (1 + (commissionRate / 100));
-        }).filter(rate => rate !== null);
-        if (finalRates.length === 0) return;
-        const lowestFinalRate = Math.min(...finalRates);
-        if (elements.startingFromPrice && lowestFinalRate > 0 && isFinite(lowestFinalRate)) {
-            elements.startingFromPrice.textContent = `From ${options.currencySymbol}${Math.ceil(lowestFinalRate)} / night`;
+
+        // Use the Global Rate for the "From" price.
+        const globalRates = Object.values(rules.rates).map(seasonRates => {
+            return seasonRates['Global Rate'] ? seasonRates['Global Rate'].rate : null;
+        }).filter(rate => rate && rate > 0);
+
+        if (globalRates.length === 0) return;
+
+        const lowestGlobalRate = Math.min(...globalRates);
+        const currencySymbol = rules.rates[Object.keys(rules.rates)[0]]['Global Rate']?.currency || '€';
+
+        if (elements.startingFromPrice && lowestGlobalRate > 0 && isFinite(lowestGlobalRate)) {
+            elements.startingFromPrice.textContent = `From ${currencySymbol}${Math.ceil(lowestGlobalRate)} / night`;
         }
     }
     displayStartingPrice();
@@ -236,117 +234,86 @@ document.addEventListener('DOMContentLoaded', function () {
         const rules = options.pricingRules;
         if (!rules) return;
 
-        // Always hide suggestion box by default and clear old content
         elements.propertySuggestionAlert.style.display = 'none';
         const alternativesContainer = document.getElementById('alternative-properties-container');
         if(alternativesContainer) alternativesContainer.innerHTML = '';
-
         elements.unitCountDisplay.style.display = 'block';
         elements.priceSummaryContainer.style.display = 'block';
 
         updateChildAgeNotification();
         const childAges = Array.from(document.querySelectorAll('.child-age-input')).map(input => parseInt(input.value, 10)).filter(age => !isNaN(age));
-
         const infants = childAges.filter(age => age <= rules.infant_max_age);
         const teens = childAges.filter(age => age > rules.child_max_age && age <= rules.teen_max_age);
         const children = childAges.filter(age => age > rules.infant_max_age && age <= rules.child_max_age);
         const totalAdultsAndTeens = adults + teens.length;
-
         let totalGuestsForCapacity = adults + teens.length + children.length;
-        let mattressCost = 0;
         let requiredUnits = 1;
         const baseCapacity = options.totalAccommodationGuests || 1;
         const availableUnits = rules.number_of_units || 1;
 
         if (totalGuestsForCapacity > baseCapacity) {
-            const suitableAlternatives = (rules.alternative_properties || [])
-                .filter(p => parseInt(p.max_guests, 10) >= totalGuestsForCapacity);
-
+            const suitableAlternatives = (rules.alternative_properties || []).filter(p => parseInt(p.max_guests, 10) >= totalGuestsForCapacity);
             if (suitableAlternatives.length > 0) {
-                // Dynamically build and inject the HTML for alternatives
                 suitableAlternatives.forEach(alt => {
-                    const altHtml = `
-                        <div class="col-12 mb-2">
-                            <div class="card">
-                                <a href="${alt.url}" target="_blank">
-                                    ${alt.intro_image ? `<img src="${options.rootUrl}${alt.intro_image}" class="card-img-top" alt="${alt.title}">` : ''}
-                                    <div class="card-body">
-                                        <h6 class="card-title">
-                                            ${alt.title}
-                                            <small class="text-muted">(Max Guests: ${alt.max_guests})</small>
-                                        </h6>
-                                    </div>
-                                </a>
-                            </div>
-                        </div>
-                    `;
+                    const altHtml = `<div class="col-12 mb-2"><div class="card"><a href="${alt.url}" target="_blank">${alt.intro_image ? `<img src="${options.rootUrl}${alt.intro_image}" class="card-img-top" alt="${alt.title}">` : ''}<div class="card-body"><h6 class="card-title">${alt.title}<small class="text-muted">(Max Guests: ${alt.max_guests})</small></h6></div></a></div></div>`;
                     if (alternativesContainer) alternativesContainer.innerHTML += altHtml;
                 });
-
                 elements.propertySuggestionAlert.style.display = 'block';
-                elements.priceSummaryContainer.style.display = 'none'; // Hide the price summary
-                return; // Exit the function
+                elements.priceSummaryContainer.style.display = 'none';
+                return;
             }
-
             if (availableUnits > 1) {
-                 requiredUnits = Math.ceil(totalGuestsForCapacity / baseCapacity);
-                 if (requiredUnits > availableUnits) {
+                requiredUnits = Math.ceil(totalGuestsForCapacity / baseCapacity);
+                if (requiredUnits > availableUnits) {
                     elements.unitCountDisplay.textContent = `Only ${availableUnits} units available.`;
-                    elements.unitCountDisplay.classList.add('booking-form-notice');
                     elements.priceDisplay.textContent = 'Est. Price: -';
                     elements.priceInput.value = 'N/A';
                     return;
-                 }
+                }
             } else {
-                 elements.unitCountDisplay.textContent = 'Max capacity exceeded.';
-                 elements.unitCountDisplay.classList.add('booking-form-notice');
-                 elements.priceDisplay.textContent = 'Est. Price: -';
-                 elements.priceInput.value = 'N/A';
-                 return;
+                elements.unitCountDisplay.textContent = 'Max capacity exceeded.';
+                elements.priceDisplay.textContent = 'Est. Price: -';
+                elements.priceInput.value = 'N/A';
+                return;
             }
         }
 
-        const guestsCoveredByBaseRate = 2 * requiredUnits;
-        const extraAdults = Math.max(0, totalAdultsAndTeens - guestsCoveredByBaseRate);
-        const extraChildren = Math.max(0, (totalAdultsAndTeens + children.length) - guestsCoveredByBaseRate - extraAdults);
+        const selectedCountry = elements.countryResidenceSelect.value;
+        const marketName = (rules.active_markets && rules.active_markets.includes(selectedCountry)) ? selectedCountry : 'Global Rate';
 
+        let currencySymbol = '€';
         let totalBaseCost = 0;
         let totalSupplementCost = 0;
-        let totalCommission = 0;
 
         for (const [seasonName, nightsInSeason] of Object.entries(seasonRateCounts)) {
-            const nightlyRate = rules.rates[seasonName] || 0;
+            const seasonRates = rules.rates[seasonName];
+            if (!seasonRates) continue;
+
+            const marketRateData = seasonRates[marketName] || seasonRates['Global Rate'];
+            if (!marketRateData || !marketRateData.rate) continue;
+
+            const nightlyRate = parseFloat(marketRateData.rate);
+            currencySymbol = marketRateData.currency || currencySymbol;
             const seasonBaseCost = nightlyRate * nightsInSeason * requiredUnits;
             totalBaseCost += seasonBaseCost;
 
-            let seasonSupplementCost = 0;
             const currentSeason = rules.seasons.find(s => s.name === seasonName);
             if (rules.pricing_model === 'SupplementPerGuest' && currentSeason) {
-                seasonSupplementCost += (extraAdults * (rules.adult_supplement || 0)) * nightsInSeason;
+                const guestsCoveredByBaseRate = 2 * requiredUnits;
+                const extraAdults = Math.max(0, totalAdultsAndTeens - guestsCoveredByBaseRate);
+                const extraChildren = Math.max(0, (totalAdultsAndTeens + children.length) - guestsCoveredByBaseRate - extraAdults);
+                let seasonSupplementCost = (extraAdults * (rules.adult_supplement || 0)) * nightsInSeason;
                 if (currentSeason.apply_child_supplement == 1) {
                     seasonSupplementCost += (extraChildren * (rules.child_supplement || 0)) * nightsInSeason;
                 }
-            }
-            totalSupplementCost += seasonSupplementCost;
-
-            const netCostForSeason = seasonBaseCost + seasonSupplementCost;
-            let commissionRate = 0;
-            const rateDetail = rules.rate_details ? rules.rate_details[seasonName] : null;
-            if (rateDetail && rateDetail.override_admin_commission) {
-                commissionRate = parseFloat(rateDetail.admin_commission) || 0;
-            } else if (currentSeason && currentSeason.admin_commission) {
-                commissionRate = parseFloat(currentSeason.admin_commission) || 0;
-            }
-            if (commissionRate > 0) {
-                totalCommission += netCostForSeason * (commissionRate / 100);
+                totalSupplementCost += seasonSupplementCost;
             }
         }
 
-        let totalCost = totalBaseCost + totalSupplementCost + mattressCost + totalCommission;
-
-        const selectedCountry = elements.countryResidenceSelect.value;
+        let totalCost = totalBaseCost + totalSupplementCost;
         let discountPercent = 0;
         let discountNote = '';
+
         if (couponDiscount.percent > 0) {
             discountPercent = couponDiscount.percent;
             discountNote = couponDiscount.message;
@@ -357,9 +324,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 discountNote = countryRule.note || `A ${discountPercent}% discount has been applied!`;
             }
         }
+
         if (discountPercent > 0) {
             totalCost *= (1 - (discountPercent / 100));
         }
+
         if (elements.discountAlert) {
             if (discountPercent > 0 && totalCost > 0) {
                 elements.discountAlert.textContent = discountNote;
@@ -372,18 +341,12 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         elements.unitCountInput.value = requiredUnits;
-        if (requiredUnits > 1) {
-            elements.unitCountDisplay.textContent = `${requiredUnits} Units (Max guests per unit: ${baseCapacity})`;
-            elements.unitCountDisplay.classList.add('booking-form-notice');
-        } else {
-            elements.unitCountDisplay.textContent = `${requiredUnits} Unit`;
-            elements.unitCountDisplay.classList.remove('booking-form-notice');
-        }
+        elements.unitCountDisplay.textContent = requiredUnits > 1 ? `${requiredUnits} Units` : '1 Unit';
 
         if (numberOfNights > 0) {
             const formattedPrice = totalCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            elements.priceDisplay.textContent = `Est. Price: ${options.currencySymbol}${formattedPrice}`;
-            elements.priceInput.value = `${options.currencySymbol}${formattedPrice}`;
+            elements.priceDisplay.textContent = `Est. Price: ${currencySymbol}${formattedPrice}`;
+            elements.priceInput.value = `${currencySymbol}${formattedPrice}`;
             elements.nightsDisplay.textContent = `(${numberOfNights} ${numberOfNights > 1 ? 'Nights' : 'Night'})`;
             elements.priceDisclaimer.style.display = 'block';
         } else {
@@ -422,55 +385,58 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (elements.getQuoteButton) {
         elements.getQuoteButton.addEventListener('click', function() {
-            elements.datePickerEl.classList.remove('is-invalid');
-            elements.dateRangeError.style.display = 'none';
-            elements.childAgesError.style.display = 'none';
-            elements.childAgesContainer.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
-            let isValid = true;
-            let minStay = 0;
-            let minStaySeason = '';
-            if (options.pricingRules && Array.isArray(options.pricingRules.seasons)) {
-                const seasonsInBooking = options.pricingRules.seasons.filter(s => seasonRateCounts[s.name] && s.min_stay > 0);
-                if (seasonsInBooking.length > 0) {
-                    minStay = Math.min(...seasonsInBooking.map(s => s.min_stay));
-                    const minStaySeasonObject = seasonsInBooking.find(s => s.min_stay == minStay);
-                    if (minStaySeasonObject) {
-                        minStaySeason = minStaySeasonObject.name;
-                    }
+            // Clear previous validation errors
+            ['dateRangeError', 'childAgesError', 'countryError'].forEach(err => {
+                if (elements[err]) {
+                    elements[err].style.display = 'none';
+                    elements[err].textContent = '';
                 }
-            }
+            });
+            elements.datePickerEl.classList.remove('is-invalid');
+            elements.countryResidenceSelect.classList.remove('is-invalid');
+            elements.childAgesContainer.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+
+            let isValid = true;
+
+            // Validate dates
             if (numberOfNights === 0) {
-                elements.dateRangeError.textContent = 'Please select your check-in and check-out dates first.';
-                elements.datePickerEl.classList.add('is-invalid');
+                elements.dateRangeError.textContent = 'Please select your check-in and check-out dates.';
                 elements.dateRangeError.style.display = 'block';
-                isValid = false;
-            } else if (numberOfNights < minStay) {
-                elements.dateRangeError.textContent = `A minimum stay of ${minStay} nights is required for the selected period (${minStaySeason} season).`;
                 elements.datePickerEl.classList.add('is-invalid');
-                elements.dateRangeError.style.display = 'block';
                 isValid = false;
             }
+
+            // Validate country
+            if (!elements.countryResidenceSelect.value) {
+                elements.countryError.textContent = 'Please select your country of residence.';
+                elements.countryError.style.display = 'block';
+                elements.countryResidenceSelect.classList.add('is-invalid');
+                isValid = false;
+            }
+
+            // Validate child ages
             const childrenCount = parseInt(elements.childrenSelect.value, 10);
             const childAgeInputs = elements.childAgesContainer.querySelectorAll('.child-age-input');
-            if (childrenCount > 0 && childAgeInputs.length > 0) {
+            if (childrenCount > 0) {
                 let allAgesEntered = true;
-                for (const input of childAgeInputs) {
+                childAgeInputs.forEach(input => {
                     if (input.value === '') {
                         input.classList.add('is-invalid');
                         allAgesEntered = false;
-                    } else {
-                        input.classList.remove('is-invalid');
                     }
-                }
+                });
                 if (!allAgesEntered) {
                     elements.childAgesError.textContent = 'Please enter the age for all children.';
                     elements.childAgesError.style.display = 'block';
                     isValid = false;
                 }
             }
+
             if (!isValid) {
                 return;
             }
+
+            // If valid, proceed with calculation
             validateCouponCode(function() {
                 updateCalculations();
                 elements.priceSummaryContainer.style.display = 'block';

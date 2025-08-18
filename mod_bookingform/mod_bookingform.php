@@ -115,7 +115,6 @@ if ($pricingRules) {
         'rootUrl'        => Uri::root(),
         'totalAccommodationGuests' => $totalAccommodationGuests,
         'pricingRules'   => $pricingRules,
-        'currencySymbol' => $params->get('currency_symbol', '€'),
         'submissionUrl'  => Route::_('index.php?option=com_bookingmanager&task=submitBooking&format=json', false)
     ];
     $doc->addScriptOptions('mod_bookingform', $scriptOptions);
