@@ -13,7 +13,6 @@
     <config>
         <fields name="params">
             <fieldset name="basic">
-                <field name="currency_symbol" type="text" default="€" label="Currency Symbol" />
             </fieldset>
         </fields>
     </config>
