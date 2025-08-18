@@ -110,10 +110,23 @@
             $db = $this->getDbo();
             $query = $db->getQuery(true);
 
-            foreach ($ratesData as $seasonName => $seasonMarkets) {
-                // Sanitize and structure the data for JSON encoding
+            foreach ($ratesData as $seasonName => $submittedSeasonRates) {
+
+                // 1. Load existing rates for this season to preserve data for inactive markets
+                $query->clear()
+                    ->select('rates')
+                    ->from($db->quoteName('#__bookingmanager_rates'))
+                    ->where($db->quoteName('property_id') . ' = ' . $propertyId)
+                    ->where($db->quoteName('season_name') . ' = ' . $db->quote($seasonName));
+                $existingRatesJson = $db->setQuery($query)->loadResult();
+                $existingRates = $existingRatesJson ? json_decode($existingRatesJson, true) : [];
+
+                // 2. Merge new data into existing data
+                $mergedRates = array_replace_recursive($existingRates, $submittedSeasonRates);
+
+                // 3. Sanitize and structure the merged data
                 $sanitizedMarketData = [];
-                foreach ($seasonMarkets as $marketName => $marketData) {
+                foreach ($mergedRates as $marketName => $marketData) {
                     $sanitizedMarketData[$marketName] = [
                         'rate' => isset($marketData['rate']) && is_numeric($marketData['rate']) ? (float)$marketData['rate'] : null,
                         'override_commission' => isset($marketData['override_commission']) ? 1 : 0,
@@ -122,7 +135,7 @@
                 }
                 $ratesJson = json_encode($sanitizedMarketData);
 
-                // Check if a rate for this season already exists
+                // 4. Check if a rate row for this season already exists
                 $query->clear()
                     ->select('COUNT(*)')
                     ->from($db->quoteName('#__bookingmanager_rates'))
