@@ -35,25 +35,29 @@ document.addEventListener('DOMContentLoaded', function () {
         propertySuggestionAlert: document.getElementById('property-suggestion-alert'),
     };
 
-    function displayStartingPrice() {
+    function displayStartingPrice(countryName = null) {
         const rules = options.pricingRules;
         if (!rules.rates || Object.keys(rules.rates).length === 0) return;
 
-        // Use the Global Rate for the "From" price.
-        const globalRates = Object.values(rules.rates).map(seasonRates => {
-            return seasonRates['Global Rate'] ? seasonRates['Global Rate'].rate : null;
+        const marketName = (countryName && rules.active_markets && rules.active_markets.includes(countryName)) ? countryName : 'Global Rate';
+
+        const marketRates = Object.values(rules.rates).map(seasonRates => {
+            const marketData = seasonRates[marketName] || seasonRates['Global Rate'];
+            return marketData ? marketData.rate : null;
         }).filter(rate => rate && rate > 0);
 
-        if (globalRates.length === 0) return;
+        if (marketRates.length === 0) return;
 
-        const lowestGlobalRate = Math.min(...globalRates);
-        const currencySymbol = rules.rates[Object.keys(rules.rates)[0]]['Global Rate']?.currency || '€';
+        const lowestMarketRate = Math.min(...marketRates);
+        const firstSeasonName = Object.keys(rules.rates)[0];
+        const currencySymbol = (rules.rates[firstSeasonName][marketName]?.currency || rules.rates[firstSeasonName]['Global Rate']?.currency) || '€';
 
-        if (elements.startingFromPrice && lowestGlobalRate > 0 && isFinite(lowestGlobalRate)) {
-            elements.startingFromPrice.textContent = `From ${currencySymbol}${Math.ceil(lowestGlobalRate)} / night`;
+        if (elements.startingFromPrice && lowestMarketRate > 0 && isFinite(lowestMarketRate)) {
+            elements.startingFromPrice.textContent = `From ${currencySymbol}${Math.ceil(lowestMarketRate)} / night`;
         }
     }
-    displayStartingPrice();
+
+    displayStartingPrice(); // Initial display with Global Rate
 
     if (elements.couponCodeInput && (!options.pricingRules.coupon_codes || options.pricingRules.coupon_codes.length === 0)) {
         elements.couponCodeInput.closest('.row').style.display = 'none';
@@ -63,11 +67,26 @@ document.addEventListener('DOMContentLoaded', function () {
     let seasonRateCounts = {};
     let iti = null;
     let couponDiscount = { percent: 0, message: '' };
+    let isBookingPossible = true;
 
     if (elements.telephoneInput) {
         iti = window.intlTelInput(elements.telephoneInput, {
             initialCountry: "auto",
-            geoIpLookup: (callback) => { fetch("https://ipapi.co/json").then(res => res.json()).then(data => callback(data.country_code)).catch(() => callback("mu")); },
+            geoIpLookup: (callback) => {
+                fetch("https://ipapi.co/json")
+                    .then(res => res.json())
+                    .then(data => {
+                        callback(data.country_code);
+                        // After the country is set, update the starting price
+                        setTimeout(() => { // Use timeout to ensure iti has updated
+                            const selectedCountry = iti.getSelectedCountryData();
+                            if (selectedCountry.name) {
+                                displayStartingPrice(selectedCountry.name);
+                            }
+                        }, 100);
+                    })
+                    .catch(() => callback("mu"));
+            },
             separateDialCode: true,
             utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.13/js/utils.js",
         });
@@ -250,30 +269,32 @@ document.addEventListener('DOMContentLoaded', function () {
         let requiredUnits = 1;
         const baseCapacity = options.totalAccommodationGuests || 1;
         const availableUnits = rules.number_of_units || 1;
+        isBookingPossible = true; // Reset flag on each calculation
 
         if (totalGuestsForCapacity > baseCapacity) {
             let suitableAlternatives = (rules.alternative_properties || []).filter(p => parseInt(p.max_guests, 10) >= totalGuestsForCapacity);
 
-            // Sort by closest capacity
             if (suitableAlternatives.length > 0) {
                 suitableAlternatives.sort((a, b) => parseInt(a.max_guests, 10) - parseInt(b.max_guests, 10));
-
                 suitableAlternatives.forEach(alt => {
                     const altHtml = `<div class="col-12 mb-2"><div class="card"><a href="${alt.url}" target="_blank">${alt.intro_image ? `<img src="${options.rootUrl}${alt.intro_image}" class="card-img-top" alt="${alt.title}">` : ''}<div class="card-body"><h6 class="card-title">${alt.title}<small class="text-muted">(Max Guests: ${alt.max_guests})</small></h6></div></a></div></div>`;
                     if (alternativesContainer) alternativesContainer.innerHTML += altHtml;
                 });
                 elements.propertySuggestionAlert.style.display = 'block';
-                // Don't hide price summary or return
             }
-            else if (availableUnits > 1) {
-                requiredUnits = Math.ceil(totalGuestsForCapacity / baseCapacity);
+
+            requiredUnits = Math.ceil(totalGuestsForCapacity / baseCapacity);
+            if (requiredUnits > 1 && availableUnits > 1) {
                 if (requiredUnits > availableUnits) {
-                    elements.unitCountDisplay.textContent = `Only ${availableUnits} units available.`;
-                    // Don't hide price or return
+                    elements.unitCountDisplay.textContent = `Your group requires ${requiredUnits} units, but only ${availableUnits} are available.`;
+                    isBookingPossible = false;
                 }
-            } else {
-                elements.unitCountDisplay.textContent = 'Max capacity exceeded.';
-                 // Don't hide price or return
+            } else if (requiredUnits > 1 && availableUnits === 1) {
+                elements.unitCountDisplay.textContent = `Your group requires ${requiredUnits} units, but this property only has 1 unit available.`;
+                isBookingPossible = false;
+            } else if (totalGuestsForCapacity > baseCapacity) {
+                elements.unitCountDisplay.textContent = 'Guest number exceeds the maximum capacity for this property.';
+                isBookingPossible = false;
             }
         }
 
@@ -457,9 +478,15 @@ document.addEventListener('DOMContentLoaded', function () {
             validateCouponCode(function() {
                 updateCalculations();
                 elements.priceSummaryContainer.style.display = 'block';
-                elements.bookingStep2.style.display = 'block';
                 elements.startingFromPrice.style.display = 'none';
                 elements.getQuoteButton.textContent = 'Recalculate Price';
+
+                // Only show the final booking step if the booking is possible
+                if (isBookingPossible) {
+                    elements.bookingStep2.style.display = 'block';
+                } else {
+                    elements.bookingStep2.style.display = 'none';
+                }
             });
         });
     }
