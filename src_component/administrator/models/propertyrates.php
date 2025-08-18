@@ -79,6 +79,12 @@
                 // Load active markets from the first available season
                 if (empty($data->active_markets) && !empty($rate->active_markets)) {
                     $data->active_markets = json_decode($rate->active_markets, true);
+
+                    $log_file = JPATH_ROOT . '/jules_rates_debug_log.txt';
+                    file_put_contents($log_file, "--- LOAD ---\n", FILE_APPEND);
+                    file_put_contents($log_file, 'Timestamp: ' . date('Y-m-d H:i:s') . "\n", FILE_APPEND);
+                    file_put_contents($log_file, 'Raw active_markets JSON from DB: ' . $rate->active_markets . "\n", FILE_APPEND);
+                    file_put_contents($log_file, 'Decoded active_markets array: ' . print_r($data->active_markets, true) . "\n\n", FILE_APPEND);
                 }
             }
             $data->rates = $ratesList;
@@ -88,10 +94,17 @@
 
         public function save($data)
         {
+            $log_file = JPATH_ROOT . '/jules_rates_debug_log.txt';
+            file_put_contents($log_file, "--- SAVE ---\n", FILE_APPEND);
+            file_put_contents($log_file, 'Timestamp: ' . date('Y-m-d H:i:s') . "\n", FILE_APPEND);
+            file_put_contents($log_file, 'Received active_markets data: ' . print_r($data['active_markets'] ?? 'not set', true) . "\n", FILE_APPEND);
+
             $propertyId = (int)($data['property_id'] ?? 0);
             $ratesData = $data['rates'] ?? [];
             $activeMarkets = $data['active_markets'] ?? [];
             $activeMarketsJson = json_encode(array_keys($activeMarkets));
+
+            file_put_contents($log_file, 'JSON to be saved: ' . $activeMarketsJson . "\n\n", FILE_APPEND);
 
 
             if (!$propertyId) {
