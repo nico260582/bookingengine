@@ -7,11 +7,15 @@
         />
         <field
             name="rates"
-            type="hidden"
+            type="subform"
+            layout="joomla.form.field.subform.repeatable"
+            multiple="true"
         />
         <field
             name="active_markets"
-            type="hidden"
+            type="subform"
+            layout="joomla.form.field.subform.repeatable"
+            multiple="true"
         />
     </fieldset>
 </form>
