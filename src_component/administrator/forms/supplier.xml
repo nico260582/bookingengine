@@ -33,12 +33,12 @@
                 <field name="name" type="text" label="Season Name" size="15" required="true" />
                 <field name="start_date" type="calendar" label="Start Date" format="%Y-%m-%d" required="true" />
                 <field name="end_date" type="calendar" label="End Date" format="%Y-%m-%d" required="true" />
-                <field name="min_stay" type="number" label="Min. Stay" default="1" size="5" />
+                <field name="min_stay" type="number" label="Min. Stay" default="1" size="4" />
                 <field name="apply_child_supplement" type="list" label="Apply Child Supplement?" default="1" filter="integer">
                     <option value="1">JYES</option>
                     <option value="0">JNO</option>
                 </field>
-                <field name="admin_commission" type="number" label="Admin Commission %" description="Commission by percentage for each season." step="0.01" size="5" />
+                <field name="admin_commission" type="number" label="Admin Commission %" description="Commission by percentage for each season." step="0.01" size="4" />
             </form>
         </field>
     </fieldset>

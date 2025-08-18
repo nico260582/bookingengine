@@ -44,7 +44,7 @@
                     $checked = (isset($market->state) && $market->state == 1) ? 'checked' : '';
                     $html .= '<tr>';
                     $html .= '<td><input type="hidden" name="jform[markets][' . $i . '][market_name]" value="' . htmlspecialchars($name, ENT_QUOTES, 'UTF-8') . '">' . htmlspecialchars($name, ENT_QUOTES, 'UTF-8') . '</td>';
-                    $html .= '<td><input type="text" name="jform[markets][' . $i . '][currency]" value="' . htmlspecialchars($market->currency, ENT_QUOTES, 'UTF-8') . '" class="input-small" required></td>';
+                    $html .= '<td><input type="text" name="jform[markets][' . $i . '][currency]" value="' . htmlspecialchars($market->currency, ENT_QUOTES, 'UTF-8') . '" style="width: 50px;" maxlength="3" required></td>';
                     $html .= '<td><input type="checkbox" name="jform[markets][' . $i . '][state]" value="1" ' . $checked . '></td>';
                     $html .= '<td><button type="button" class="btn btn-danger btn-small remove-market-btn"><span class="icon-minus"></span></button></td>';
                     $html .= '</tr>';
@@ -75,7 +75,7 @@
                     const newRow = tableBody.insertRow();
                     newRow.innerHTML = `
                         <td><input type="hidden" name="jform[markets][${index}][market_name]" value="${selectedCountry}">${selectedCountry}</td>
-                        <td><input type="text" name="jform[markets][${index}][currency]" value="EUR" class="input-small" required></td>
+                        <td><input type="text" name="jform[markets][${index}][currency]" value="EUR" style="width: 50px;" maxlength="3" required></td>
                         <td><input type="checkbox" name="jform[markets][${index}][state]" value="1" checked></td>
                         <td><button type="button" class="btn btn-danger btn-small remove-market-btn"><span class="icon-minus"></span></button></td>
                     `;
