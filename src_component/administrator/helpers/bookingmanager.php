@@ -30,60 +30,74 @@ abstract class BookingmanagerHelper
 
         $db = Factory::getDbo();
 
-        // 1. Get the supplier's seasons for this property
+        // 1. Get supplier and season info
         $query = $db->getQuery(true)
-            ->select('s.rules')
+            ->select('s.id as supplier_id, s.rules')
             ->from($db->quoteName('#__bookingmanager_property_map', 'm'))
             ->join('INNER', $db->quoteName('#__bookingmanager_suppliers', 's') . ' ON m.supplier_id = s.id')
             ->where('m.property_id = ' . (int) $articleId);
-        $rulesJson = $db->setQuery($query)->loadResult();
+        $supplierInfo = $db->setQuery($query)->loadObject();
 
-        if (empty($rulesJson)) {
+        if (empty($supplierInfo) || empty($supplierInfo->rules)) {
             return ['status' => 'empty', 'reason' => 'Property not assigned to a supplier.'];
         }
 
-        $rules = json_decode($rulesJson);
-        $seasons = [];
-        if (isset($rules->seasons)) {
-            $seasons = array_values((array) $rules->seasons);
-        }
+        $rules = json_decode($supplierInfo->rules);
+        $seasons = !empty($rules->seasons) ? array_values((array) $rules->seasons) : [];
 
         if (empty($seasons)) {
             return ['status' => 'empty', 'reason' => 'Supplier has no seasons defined.'];
         }
 
-        // 2. Get the saved rates for this property
+        // 2. Get the saved rates and active markets for this property
         $query->clear()
-            ->select('season_name, rates')
+            ->select('season_name, rates, active_markets')
             ->from($db->quoteName('#__bookingmanager_rates'))
             ->where($db->quoteName('property_id') . ' = ' . (int) $articleId);
         $ratesList = $db->setQuery($query)->loadObjectList('season_name');
 
-        // 3. Check for completeness
-        $missingSeasons = [];
-        $filledSeasons = 0;
+        $activeCountryMarkets = [];
+        if (!empty($ratesList)) {
+            $firstRateRow = reset($ratesList);
+            if (!empty($firstRateRow->active_markets)) {
+                $activeCountryMarkets = json_decode($firstRateRow->active_markets, true);
+                if (!is_array($activeCountryMarkets)) $activeCountryMarkets = [];
+            }
+        }
+
+        // 3. Define all markets that need to be checked
+        $marketsToCheck = ['Global Rate'];
+        $marketsToCheck = array_merge($marketsToCheck, $activeCountryMarkets);
+
+        // 4. Check for completeness
+        $missingMessages = [];
+        $totalRates = count($seasons) * count($marketsToCheck);
+        $filledRates = 0;
+
         foreach ($seasons as $season) {
             $seasonName = $season->name;
             $seasonRatesJson = $ratesList[$seasonName]->rates ?? '[]';
             $seasonRates = json_decode($seasonRatesJson, true);
-            $defaultRateInfo = $seasonRates['Global Rate'] ?? [];
 
-            if (empty($defaultRateInfo) || !isset($defaultRateInfo['rate']) || $defaultRateInfo['rate'] === '' || $defaultRateInfo['rate'] <= 0) {
-                $missingSeasons[] = $season->name;
-            } else {
-                $filledSeasons++;
+            foreach ($marketsToCheck as $marketName) {
+                $marketRateInfo = $seasonRates[$marketName] ?? [];
+                if (!empty($marketRateInfo['rate']) && is_numeric($marketRateInfo['rate']) && $marketRateInfo['rate'] > 0) {
+                    $filledRates++;
+                } else {
+                    $missingMessages[] = "$marketName for $seasonName";
+                }
             }
         }
 
-        if (count($missingSeasons) === 0) {
-            return ['status' => 'complete', 'reason' => 'All rates are filled.'];
+        if ($filledRates === $totalRates) {
+            return ['status' => 'complete', 'reason' => 'All rates for Global Rate and all active markets are filled.'];
         }
 
-        if ($filledSeasons === 0) {
-            return ['status' => 'empty', 'reason' => 'All rates are missing.'];
+        if ($filledRates === 0) {
+            return ['status' => 'empty', 'reason' => 'All rates are missing for Global Rate and all active markets.'];
         }
 
-        return ['status' => 'partial', 'reason' => 'Missing rates for: ' . implode(', ', $missingSeasons)];
+        return ['status' => 'partial', 'reason' => 'Missing rates for: ' . implode(', ', $missingMessages)];
     }
 
     public static function getPlaceholders()
