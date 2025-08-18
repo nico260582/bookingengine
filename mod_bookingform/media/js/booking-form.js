@@ -75,18 +75,19 @@ document.addEventListener('DOMContentLoaded', function () {
             geoIpLookup: (callback) => {
                 fetch("https://ipapi.co/json")
                     .then(res => res.json())
-                    .then(data => {
-                        callback(data.country_code);
-                        // Directly update the price after the lookup
-                        displayStartingPrice(data.country_name);
-                    })
-                    .catch(() => {
-                        callback("mu");
-                        displayStartingPrice("Mauritius"); // Fallback
-                    });
+                    .then(data => callback(data.country_code))
+                    .catch(() => callback("mu"));
             },
             separateDialCode: true,
             utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.13/js/utils.js",
+        });
+
+        // The library's `promise` resolves when the utils script is loaded and the geoIP lookup is done.
+        iti.promise.then(function() {
+            const selectedCountry = iti.getSelectedCountryData();
+            if (selectedCountry.name) {
+                displayStartingPrice(selectedCountry.name);
+            }
         });
 
         // Add a listener for manual changes as well
@@ -365,7 +366,9 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         elements.unitCountInput.value = requiredUnits;
-        elements.unitCountDisplay.textContent = requiredUnits > 1 ? `${requiredUnits} Units` : '1 Unit';
+        if (isBookingPossible) {
+            elements.unitCountDisplay.textContent = requiredUnits > 1 ? `${requiredUnits} Units` : '1 Unit';
+        }
 
         if (numberOfNights > 0) {
             const formattedPrice = totalCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
