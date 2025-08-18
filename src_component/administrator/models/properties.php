@@ -13,6 +13,7 @@ class BookingmanagerModelProperties extends ListModel
                 'id', 'a.id',
                 'article_title', 'article.title',
                 'max_guests', 'a.max_guests',
+                'number_of_units', 'a.number_of_units',
                 'complex_name', 'complex.name',
                 'supplier_name', 'supplier.name',
                 'published', 'a.published'
