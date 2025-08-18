@@ -17,15 +17,15 @@
             <option value="FlatUnitRate">Flat Unit Rate</option>
             <option value="CapacityBased">Capacity Based (Mattress-for-One)</option>
         </field>
-        <field name="adult_supplement" type="number" label="Default Adult Supplement" step="0.01" class="bm-showon-supplement"/>
-        <field name="child_supplement" type="number" label="Default Child Supplement" step="0.01" class="bm-showon-supplement"/>
+        <field name="adult_supplement" type="number" label="Default Adult Supplement" step="0.01" class="bm-showon-supplement" size="10"/>
+        <field name="child_supplement" type="number" label="Default Child Supplement" step="0.01" class="bm-showon-supplement" size="10"/>
         <field name="extra_mattress_fee" type="number" label="Default Extra Mattress Fee" step="0.01" class="bm-showon-capacity"/>
     </fieldset>
     <fieldset name="guest_age_rules" label="Guest Age Rules">
-        <field name="infant_max_age" type="number" label="Infant Max Age" description="Guests this age or younger are Infants for this supplier." default="5" filter="integer" />
-        <field name="child_max_age" type="number" label="Child Max Age" description="Guests older than an infant and this age or younger are Children." default="12" filter="integer" />
-        <field name="teen_max_age" type="number" label="Teen Max Age" description="Guests older than a child and this age or younger are Teens." default="17" filter="integer" />
-        <field name="free_with_parents_age" type="number" label="Free with Parents Age Limit" description="For applicable models, children this age or younger can stay free, sharing existing beds." filter="integer" />
+        <field name="infant_max_age" type="number" label="Infant Max Age" description="Guests this age or younger are Infants for this supplier." default="5" filter="integer" size="5" />
+        <field name="child_max_age" type="number" label="Child Max Age" description="Guests older than an infant and this age or younger are Children." default="12" filter="integer" size="5" />
+        <field name="teen_max_age" type="number" label="Teen Max Age" description="Guests older than a child and this age or younger are Teens." default="17" filter="integer" size="5" />
+        <field name="free_with_parents_age" type="number" label="Free with Parents Age Limit" description="For applicable models, children this age or younger can stay free, sharing existing beds." filter="integer" size="5" />
     </fieldset>
     <fieldset name="seasons_rules" label="Seasons">
         <field name="seasons" type="subform" label="Define Seasons" layout="joomla.form.field.subform.repeatable-table" multiple="true">
@@ -33,12 +33,12 @@
                 <field name="name" type="text" label="Season Name" size="15" required="true" />
                 <field name="start_date" type="calendar" label="Start Date" format="%Y-%m-%d" required="true" />
                 <field name="end_date" type="calendar" label="End Date" format="%Y-%m-%d" required="true" />
-                <field name="min_stay" type="number" label="Min. Stay" default="1" />
+                <field name="min_stay" type="number" label="Min. Stay" default="1" size="5" />
                 <field name="apply_child_supplement" type="list" label="Apply Child Supplement?" default="1" filter="integer">
                     <option value="1">JYES</option>
                     <option value="0">JNO</option>
                 </field>
-                <field name="admin_commission" type="number" label="Admin Commission %" description="Commission by percentage for each season." step="0.01" />
+                <field name="admin_commission" type="number" label="Admin Commission %" description="Commission by percentage for each season." step="0.01" size="5" />
             </form>
         </field>
     </fieldset>

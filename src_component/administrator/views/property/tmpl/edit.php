@@ -77,13 +77,13 @@
                             $isMarketActive = ($marketName === 'Global Rate' || (!empty($activeMarkets) && in_array($marketName, $activeMarkets)));
                         ?>
                             <td class="market-col-<?php echo str_replace(' ', '-', $this->escape($market->market_name)); ?>">
-                                <input type="number" step="0.01" name="jform[rates][<?php echo $this->escape($season->name); ?>][<?php echo $this->escape($marketName); ?>][rate]" value="<?php echo $this->escape($rateValue); ?>" class="input-small" <?php if (!$isMarketActive) echo 'disabled'; ?> />
+                                <input type="number" step="0.01" max="9999" name="jform[rates][<?php echo $this->escape($season->name); ?>][<?php echo $this->escape($marketName); ?>][rate]" value="<?php echo $this->escape($rateValue); ?>" style="width: 80px;" <?php if (!$isMarketActive) echo 'disabled'; ?> />
                             </td>
                             <td class="text-center market-col-<?php echo str_replace(' ', '-', $this->escape($market->market_name)); ?>">
                                 <input type="checkbox" name="jform[rates][<?php echo $this->escape($season->name); ?>][<?php echo $this->escape($marketName); ?>][override_commission]" value="1" class="override-commission-checkbox" <?php echo $overrideChecked; ?> <?php if (!$isMarketActive) echo 'disabled'; ?> />
                             </td>
                             <td class="market-col-<?php echo str_replace(' ', '-', $this->escape($market->market_name)); ?>">
-                                <input type="number" step="0.01" name="jform[rates][<?php echo $this->escape($season->name); ?>][<?php echo $this->escape($marketName); ?>][commission]" value="<?php echo $this->escape($commissionValue); ?>" class="input-small commission-value-input" <?php if (!$isMarketActive || !$overrideChecked) echo 'disabled'; ?> />
+                                <input type="number" step="0.01" max="100" name="jform[rates][<?php echo $this->escape($season->name); ?>][<?php echo $this->escape($marketName); ?>][commission]" value="<?php echo $this->escape($commissionValue); ?>" style="width: 70px;" class="commission-value-input" <?php if (!$isMarketActive || !$overrideChecked) echo 'disabled'; ?> />
                                 <div class="commission-source-info small" style="color: #666;">
                                     (Default: <?php echo $this->escape($supplierCommission); ?>%)
                                 </div>
