@@ -75,20 +75,19 @@ document.addEventListener('DOMContentLoaded', function () {
             geoIpLookup: (callback) => {
                 fetch("https://ipapi.co/json")
                     .then(res => res.json())
-                    .then(data => {
-                        callback(data.country_code);
-                        // After the country is set, update the starting price
-                        setTimeout(() => { // Use timeout to ensure iti has updated
-                            const selectedCountry = iti.getSelectedCountryData();
-                            if (selectedCountry.name) {
-                                displayStartingPrice(selectedCountry.name);
-                            }
-                        }, 100);
-                    })
+                    .then(data => callback(data.country_code))
                     .catch(() => callback("mu"));
             },
             separateDialCode: true,
             utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.13/js/utils.js",
+        });
+
+        // When the country changes, update the starting price display
+        elements.telephoneInput.addEventListener('countrychange', function() {
+            const selectedCountry = iti.getSelectedCountryData();
+            if (selectedCountry.name) {
+                displayStartingPrice(selectedCountry.name);
+            }
         });
     }
 
@@ -276,10 +275,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (suitableAlternatives.length > 0) {
                 suitableAlternatives.sort((a, b) => parseInt(a.max_guests, 10) - parseInt(b.max_guests, 10));
-                suitableAlternatives.forEach(alt => {
-                    const altHtml = `<div class="col-12 mb-2"><div class="card"><a href="${alt.url}" target="_blank">${alt.intro_image ? `<img src="${options.rootUrl}${alt.intro_image}" class="card-img-top" alt="${alt.title}">` : ''}<div class="card-body"><h6 class="card-title">${alt.title}<small class="text-muted">(Max Guests: ${alt.max_guests})</small></h6></div></a></div></div>`;
-                    if (alternativesContainer) alternativesContainer.innerHTML += altHtml;
-                });
+
+                // Get only the single best-fit alternative
+                const bestFitAlternative = suitableAlternatives[0];
+
+                const altHtml = `<div class="col-12 mb-2"><div class="card"><a href="${bestFitAlternative.url}" target="_blank">${bestFitAlternative.intro_image ? `<img src="${options.rootUrl}${bestFitAlternative.intro_image}" class="card-img-top" alt="${bestFitAlternative.title}">` : ''}<div class="card-body"><h6 class="card-title">${bestFitAlternative.title}<small class="text-muted">(Max Guests: ${bestFitAlternative.max_guests})</small></h6></div></a></div></div>`;
+                if (alternativesContainer) alternativesContainer.innerHTML = altHtml; // Use '=' to show only one
+
                 elements.propertySuggestionAlert.style.display = 'block';
             }
 
