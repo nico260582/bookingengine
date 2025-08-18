@@ -77,6 +77,11 @@ class BookingmanagerModelPropertyrates extends BaseDatabaseModel
 
     public function save($data)
     {
+            $log_file = JPATH_ROOT . '/jules_rates_debug_log.txt';
+            file_put_contents($log_file, "--- SAVE ---\n", FILE_APPEND);
+            file_put_contents($log_file, 'Timestamp: ' . date('Y-m-d H:i:s') . "\n", FILE_APPEND);
+            file_put_contents($log_file, 'Received data: ' . print_r($data, true) . "\n\n", FILE_APPEND);
+
         $propertyId = (int)($data['property_id'] ?? 0); // This is the Article ID
         $ratesData = $data['rates'] ?? [];
 
