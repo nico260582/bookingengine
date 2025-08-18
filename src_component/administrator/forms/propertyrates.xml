@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<form>
+    <fieldset>
+        <field
+            name="property_id"
+            type="hidden"
+        />
+        <field
+            name="rates"
+            type="hidden"
+        />
+        <field
+            name="active_markets"
+            type="hidden"
+        />
+    </fieldset>
+</form>

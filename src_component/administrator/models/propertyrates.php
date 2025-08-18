@@ -5,6 +5,15 @@ use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 
 class BookingmanagerModelPropertyrates extends BaseDatabaseModel
 {
+        public function getForm($data = array(), $loadData = true)
+        {
+            $form = $this->loadForm('com_bookingmanager.propertyrates', 'propertyrates', ['control' => 'jform', 'load_data' => $loadData]);
+            if (empty($form)) {
+                return false;
+            }
+            return $form;
+        }
+
     public function getPropertiesForFilter()
     {
         $db = $this->getDbo();
