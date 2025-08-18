@@ -120,6 +120,9 @@
                     ->where($db->quoteName('season_name') . ' = ' . $db->quote($seasonName));
                 $existingRatesJson = $db->setQuery($query)->loadResult();
                 $existingRates = $existingRatesJson ? json_decode($existingRatesJson, true) : [];
+                if (!is_array($existingRates)) {
+                    $existingRates = [];
+                }
 
                 // 2. Merge new data into existing data
                 $mergedRates = array_replace_recursive($existingRates, $submittedSeasonRates);
@@ -158,7 +161,7 @@
                         $values = [$propertyId, $db->quote($seasonName), $db->quote($ratesJson), $db->quote($activeMarketsJson)];
                         $query->clear()
                             ->insert($db->quoteName('#__bookingmanager_rates'))
-                            ->columns($db->quoteNameArray($columns))
+                            ->columns($columns)
                             ->values(implode(',', $values));
                     }
                     $db->setQuery($query)->execute();
