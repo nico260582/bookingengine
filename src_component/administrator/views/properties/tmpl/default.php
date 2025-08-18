@@ -38,6 +38,9 @@ require_once JPATH_ADMINISTRATOR . '/components/com_bookingmanager/helpers/booki
                         <?php echo JHtml::_('grid.sort', 'Max Guests', 'a.max_guests', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
                     </th>
                     <th width="5%">
+                        <?php echo JHtml::_('grid.sort', 'Units', 'a.number_of_units', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
+                    </th>
+                    <th width="5%">
                         <?php echo JHtml::_('grid.sort', 'ID', 'a.id', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
                     </th>
                 </tr>
@@ -86,13 +89,16 @@ require_once JPATH_ADMINISTRATOR . '/components/com_bookingmanager/helpers/booki
                                 <?php echo (int) $item->max_guests; ?>
                             </td>
                             <td>
+                                <?php echo (int) $item->number_of_units; ?>
+                            </td>
+                            <td>
                                 <?php echo (int) $item->id; ?>
                             </td>
                         </tr>
                     <?php endforeach; ?>
                 <?php else : ?>
                     <tr>
-                        <td colspan="7" class="text-center">
+                        <td colspan="8" class="text-center">
                             No properties found.
                         </td>
                     </tr>
@@ -100,7 +106,7 @@ require_once JPATH_ADMINISTRATOR . '/components/com_bookingmanager/helpers/booki
             </tbody>
             <tfoot>
                 <tr>
-                    <td colspan="7">
+                    <td colspan="8">
                         <?php echo $this->pagination->getListFooter(); ?>
                     </td>
                 </tr>
