@@ -252,29 +252,28 @@ document.addEventListener('DOMContentLoaded', function () {
         const availableUnits = rules.number_of_units || 1;
 
         if (totalGuestsForCapacity > baseCapacity) {
-            const suitableAlternatives = (rules.alternative_properties || []).filter(p => parseInt(p.max_guests, 10) >= totalGuestsForCapacity);
+            let suitableAlternatives = (rules.alternative_properties || []).filter(p => parseInt(p.max_guests, 10) >= totalGuestsForCapacity);
+
+            // Sort by closest capacity
             if (suitableAlternatives.length > 0) {
+                suitableAlternatives.sort((a, b) => parseInt(a.max_guests, 10) - parseInt(b.max_guests, 10));
+
                 suitableAlternatives.forEach(alt => {
                     const altHtml = `<div class="col-12 mb-2"><div class="card"><a href="${alt.url}" target="_blank">${alt.intro_image ? `<img src="${options.rootUrl}${alt.intro_image}" class="card-img-top" alt="${alt.title}">` : ''}<div class="card-body"><h6 class="card-title">${alt.title}<small class="text-muted">(Max Guests: ${alt.max_guests})</small></h6></div></a></div></div>`;
                     if (alternativesContainer) alternativesContainer.innerHTML += altHtml;
                 });
                 elements.propertySuggestionAlert.style.display = 'block';
-                elements.priceSummaryContainer.style.display = 'none';
-                return;
+                // Don't hide price summary or return
             }
-            if (availableUnits > 1) {
+            else if (availableUnits > 1) {
                 requiredUnits = Math.ceil(totalGuestsForCapacity / baseCapacity);
                 if (requiredUnits > availableUnits) {
                     elements.unitCountDisplay.textContent = `Only ${availableUnits} units available.`;
-                    elements.priceDisplay.textContent = 'Est. Price: -';
-                    elements.priceInput.value = 'N/A';
-                    return;
+                    // Don't hide price or return
                 }
             } else {
                 elements.unitCountDisplay.textContent = 'Max capacity exceeded.';
-                elements.priceDisplay.textContent = 'Est. Price: -';
-                elements.priceInput.value = 'N/A';
-                return;
+                 // Don't hide price or return
             }
         }
 
@@ -399,8 +398,26 @@ document.addEventListener('DOMContentLoaded', function () {
             let isValid = true;
 
             // Validate dates
+            let minStay = 0;
+            let minStaySeason = '';
+            if (options.pricingRules && Array.isArray(options.pricingRules.seasons)) {
+                const seasonsInBooking = options.pricingRules.seasons.filter(s => seasonRateCounts[s.name] && s.min_stay > 0);
+                if (seasonsInBooking.length > 0) {
+                    minStay = Math.max(...seasonsInBooking.map(s => s.min_stay)); // Use Math.max to enforce the strictest policy
+                    const minStaySeasonObject = seasonsInBooking.find(s => s.min_stay == minStay);
+                    if (minStaySeasonObject) {
+                        minStaySeason = minStaySeasonObject.name;
+                    }
+                }
+            }
+
             if (numberOfNights === 0) {
                 elements.dateRangeError.textContent = 'Please select your check-in and check-out dates.';
+                elements.dateRangeError.style.display = 'block';
+                elements.datePickerEl.classList.add('is-invalid');
+                isValid = false;
+            } else if (numberOfNights < minStay) {
+                elements.dateRangeError.textContent = `A minimum stay of ${minStay} nights is required for the selected period (${minStaySeason} season).`;
                 elements.dateRangeError.style.display = 'block';
                 elements.datePickerEl.classList.add('is-invalid');
                 isValid = false;
