@@ -113,7 +113,8 @@
                 foreach ($marketsData as $market) {
                     if (!empty($market['market_name']) && !empty($market['currency'])) {
                         $state = isset($market['state']) ? (int)$market['state'] : 0;
-                        $values[] = $supplierId . ',' . $db->quote($market['market_name']) . ',' . $db->quote($market['currency']) . ',' . $state;
+                        $symbol = $market['currency_symbol'] ?? '';
+                        $values[] = $supplierId . ',' . $db->quote($market['market_name']) . ',' . $db->quote($market['currency']) . ',' . $db->quote($symbol) . ',' . $state;
                     }
                 }
             }
@@ -122,7 +123,7 @@
             if (!empty($values)) {
                 $insertQuery = $db->getQuery(true)
                     ->insert($db->quoteName('#__bookingmanager_supplier_markets'))
-                    ->columns([$db->quoteName('supplier_id'), $db->quoteName('market_name'), $db->quoteName('currency'), $db->quoteName('state')]);
+                    ->columns([$db->quoteName('supplier_id'), $db->quoteName('market_name'), $db->quoteName('currency'), $db->quoteName('currency_symbol'), $db->quoteName('state')]);
 
                 foreach($values as $value) {
                     $insertQuery->values($value);
