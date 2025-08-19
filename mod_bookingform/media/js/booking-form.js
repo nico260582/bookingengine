@@ -231,9 +231,15 @@ document.addEventListener('DOMContentLoaded', function () {
             messages.push(`Child aged ${rules.child_max_age + 1}-${rules.teen_max_age} are considered guest adults for pricing.`);
         }
 
-        if (rules.pricing_model === 'CapacityBased') {
+        if (rules.pricing_model === 'CapacityBased' || rules.pricing_model === 'FlatUnitRate') {
             if (children.length > 0) {
-                messages.push(`Children above age ${rules.infant_max_age} are counted towards the total guest capacity and may use an extra mattress if the limit is reached.`);
+                let message = `Children above age ${rules.infant_max_age} are counted towards the total guest capacity`;
+                if (rules.pricing_model === 'CapacityBased' && rules.allow_extra_mattress) {
+                    message += ' and may use an extra mattress if the limit is reached.';
+                } else {
+                    message += '.';
+                }
+                messages.push(message);
             }
         } else {
             const selectedSeasonNames = Object.keys(seasonRateCounts);
@@ -344,7 +350,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     suggestionMessage = `Your total guest is ${totalGuestsForCapacity}, ${requiredUnits} units will be required or select an alternative properties below`;
                 }
                 showSuggestion = true;
-            } else if (rules.allow_extra_mattress) {
+            } else if (rules.pricing_model === 'CapacityBased' && rules.allow_extra_mattress) {
                  showSuggestion = true;
                  suggestionMessage = "An extra mattress will be provided for your group. You can also consider these larger properties below:";
             }
