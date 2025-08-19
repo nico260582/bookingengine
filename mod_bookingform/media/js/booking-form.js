@@ -316,19 +316,29 @@ document.addEventListener('DOMContentLoaded', function () {
             requiredUnits = Math.ceil(totalGuestsForCapacity / capacityPerUnit);
 
             let suggestionMessage = '';
+            let showSuggestion = false;
+
             if (requiredUnits > availableUnits) {
                 // Case 1: Booking is impossible.
-                suggestionMessage = `This property has a limit of ${availableUnits} unit(s), but your group requires ${requiredUnits}.`;
+                suggestionMessage = `This property has a limit of ${availableUnits} unit(s), but your group requires ${requiredUnits}. Please consider an alternative property below.`;
                 elements.unitCountDisplay.textContent = suggestionMessage;
                 isBookingPossible = false;
-            } else if (requiredUnits > 1 && rules.pricing_model === 'CapacityBased') {
-                // Case 2: Booking is possible but requires multiple units (only for CapacityBased model).
-                suggestionMessage = `Your total guest is ${totalGuestsForCapacity}, a ${requiredUnits} units will be required or select an alternative properties above`;
+                showSuggestion = true;
+            } else if (requiredUnits > 1) {
+                // Case 2: Booking is possible but requires multiple units.
+                if (rules.pricing_model === 'CapacityBased') {
+                    suggestionMessage = `Your total guest is ${totalGuestsForCapacity}, ${requiredUnits} units will be required or select an alternative properties below`;
+                }
+                showSuggestion = true;
+            } else {
+                 // Case 3: More guests than base capacity but fits in one unit (with mattress).
+                 showSuggestion = true;
+                 suggestionMessage = 'Your group size exceeds the standard capacity. Consider these alternatives if you prefer more space:';
             }
 
             // This logic for showing alternatives is generic and should be triggered if needed
             let suitableAlternatives = (rules.alternative_properties || []).filter(p => parseInt(p.max_guests, 10) >= totalGuestsForCapacity);
-            if (suitableAlternatives.length > 0 && suggestionMessage) {
+            if (suitableAlternatives.length > 0 && showSuggestion) {
                 suitableAlternatives.sort((a, b) => parseInt(a.max_guests, 10) - parseInt(b.max_guests, 10));
                 const bestFitAlternative = suitableAlternatives[0];
                 const altHtml = `<div class="col-12 mb-2"><div class="card"><a href="${bestFitAlternative.url}" target="_blank">${bestFitAlternative.intro_image ? `<img src="${options.rootUrl}${bestFitAlternative.intro_image}" class="card-img-top" alt="${bestFitAlternative.title}">` : ''}<div class="card-body"><h6 class="card-title">${bestFitAlternative.title}<small class="text-muted">(Max Guests: ${bestFitAlternative.max_guests})</small></h6></div></a></div></div>`;
