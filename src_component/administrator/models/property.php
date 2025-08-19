@@ -61,10 +61,11 @@ class BookingmanagerModelProperty extends AdminModel
                     $pricingModel = $rules->pricing_model ?? '';
                 }
 
-                if ($pricingModel !== 'CapacityBased') {
+                if ($pricingModel !== 'CapacityBased' && $table->allow_extra_mattress != 1) {
                     $form->removeField('allow_extra_mattress');
                 }
             } else {
+                // If there's no article ID, it can't be a capacity-based property with this feature.
                 $form->removeField('allow_extra_mattress');
             }
         } else {
