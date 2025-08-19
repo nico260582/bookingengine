@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', function () {
         childAgesContainer: document.getElementById('child-ages-container'),
         childAgesLabelRow: document.getElementById('child-ages-label-row'),
         childAgeNotificationArea: document.getElementById('child-age-notification-area'),
+        mattressNotification: document.getElementById('mattress-notification'),
         unitCountInput: document.getElementById('unit-count-input'),
         unitCountDisplay: document.getElementById('unit-count-display'),
         priceDisplay: document.getElementById('price-estimate-display'),
@@ -103,8 +104,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 const countryOption = elements.countryResidenceSelect.querySelector(`option[data-iso-code="${countryData.iso2}"]`);
                 if (countryOption) {
                     countryOption.selected = true;
-                    // Manually trigger a change event on the select list if needed by other scripts, though not required for this logic.
-                    // elements.countryResidenceSelect.dispatchEvent(new Event('change'));
                 }
             }
             if (countryData.name) {
@@ -215,22 +214,28 @@ document.addEventListener('DOMContentLoaded', function () {
             messages.push(`Child aged ${rules.child_max_age + 1}-${rules.teen_max_age} are considered guest adults for pricing.`);
         }
 
-        const selectedSeasonNames = Object.keys(seasonRateCounts);
-        if (children.length > 0 && selectedSeasonNames.length > 0) {
-            const seasonsInBooking = rules.seasons.filter(s => selectedSeasonNames.includes(s.name));
-            const payableSeasons = seasonsInBooking.filter(s => s.apply_child_supplement == 1).map(s => s.name);
-            const freeSeasons = seasonsInBooking.filter(s => s.apply_child_supplement != 1).map(s => s.name);
-            let supplementMsg = '';
-            if (payableSeasons.length > 0) {
-                supplementMsg = 'A child supplement is payable for this season(s).';
-            } else if (freeSeasons.length > 0) {
-                supplementMsg = 'Children stay free of charge during this season(s).';
+        if (rules.pricing_model === 'CapacityBased') {
+            if (children.length > 0) {
+                messages.push(`Children above age ${rules.infant_max_age} are counted towards the total guest capacity and may use an extra mattress if the limit is reached.`);
             }
-            if (supplementMsg) {
-                messages.push(supplementMsg);
+        } else {
+            const selectedSeasonNames = Object.keys(seasonRateCounts);
+            if (children.length > 0 && selectedSeasonNames.length > 0) {
+                const seasonsInBooking = rules.seasons.filter(s => selectedSeasonNames.includes(s.name));
+                const payableSeasons = seasonsInBooking.filter(s => s.apply_child_supplement == 1).map(s => s.name);
+                const freeSeasons = seasonsInBooking.filter(s => s.apply_child_supplement != 1).map(s => s.name);
+                let supplementMsg = '';
+                if (payableSeasons.length > 0) {
+                    supplementMsg = 'A child supplement is payable for this season(s).';
+                } else if (freeSeasons.length > 0) {
+                    supplementMsg = 'Children stay free of charge during this season(s).';
+                }
+                if (supplementMsg) {
+                    messages.push(supplementMsg);
+                }
+            } else if (children.length > 0) {
+                messages.push('For children, a supplement may apply depending on the seasons selected.');
             }
-        } else if (children.length > 0) {
-            messages.push('For children, a supplement may apply depending on the seasons selected.');
         }
 
         if (messages.length > 0) {
@@ -301,6 +306,11 @@ document.addEventListener('DOMContentLoaded', function () {
             ? baseCapacity + 1
             : baseCapacity;
 
+        // Reset mattress notification
+        if (elements.mattressNotification) {
+            elements.mattressNotification.style.display = 'none';
+        }
+
         if (totalGuestsForCapacity > baseCapacity) {
             // Recalculate required units based on the effective capacity for the selected model
             requiredUnits = Math.ceil(totalGuestsForCapacity / capacityPerUnit);
@@ -323,6 +333,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 elements.unitCountDisplay.textContent = 'Guest number exceeds the maximum capacity for this property.';
                 isBookingPossible = false;
             }
+        }
+
+        const mattressesNeeded = Math.max(0, totalGuestsForCapacity - (requiredUnits * baseCapacity));
+        if (elements.mattressNotification && mattressesNeeded > 0 && isBookingPossible) {
+            const mattressesUsed = Math.min(requiredUnits, mattressesNeeded);
+            elements.mattressNotification.textContent = `Guest capacity is ${baseCapacity}, an extra mattress will be used for ${mattressesUsed} extra guest(s).`;
+            elements.mattressNotification.style.display = 'block';
         }
 
         const selectedCountry = elements.countryResidenceSelect.value;
@@ -357,7 +374,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 totalSupplementCost += seasonSupplementCost;
             } else if (rules.pricing_model === 'CapacityBased' && rules.allow_extra_mattress && rules.extra_mattress_fee > 0) {
                 // Mattresses are used if total guests exceed the base capacity of the required units
-                const mattressesNeeded = Math.max(0, totalGuestsForCapacity - (requiredUnits * baseCapacity));
                 if (mattressesNeeded > 0) {
                     // The number of mattresses we can actually use is capped by the number of units required.
                     const mattressesUsed = Math.min(requiredUnits, mattressesNeeded);
@@ -394,7 +410,6 @@ document.addEventListener('DOMContentLoaded', function () {
                         seasonSupplementCost += (extraChildren * (rules.child_supplement || 0)) * nightsInSeason;
                     }
                 } else if (rules.pricing_model === 'CapacityBased' && rules.allow_extra_mattress && rules.extra_mattress_fee > 0) {
-                    const mattressesNeeded = Math.max(0, totalGuestsForCapacity - (requiredUnits * baseCapacity));
                     if (mattressesNeeded > 0) {
                         const mattressesUsed = Math.min(requiredUnits, mattressesNeeded);
                         seasonSupplementCost = mattressesUsed * rules.extra_mattress_fee * nightsInSeason;
