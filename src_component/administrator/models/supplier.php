@@ -176,9 +176,9 @@
             if (!empty($toAdd)) {
                 $addQuery = $db->getQuery(true)
                     ->insert($db->quoteName('#__bookingmanager_properties'))
-                    ->columns($db->quoteName('article_id'));
+                    ->columns([$db->quoteName('article_id'), $db->quoteName('max_guests'), $db->quoteName('number_of_units')]);
                 foreach ($toAdd as $addId) {
-                    $addQuery->values((int)$addId);
+                    $addQuery->values((int)$addId . ', 2, 1'); // Default max_guests to 2, number_of_units to 1
                 }
                 $db->setQuery($addQuery)->execute();
             }
