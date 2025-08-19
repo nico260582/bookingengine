@@ -296,26 +296,30 @@ document.addEventListener('DOMContentLoaded', function () {
         const availableUnits = rules.number_of_units || 1;
         isBookingPossible = true; // Reset flag on each calculation
 
-        if (totalGuestsForCapacity > baseCapacity) {
-            let suitableAlternatives = (rules.alternative_properties || []).filter(p => parseInt(p.max_guests, 10) >= totalGuestsForCapacity);
+        // Determine the effective capacity of a single unit based on the pricing model
+        const capacityPerUnit = (rules.pricing_model === 'CapacityBased' && rules.allow_extra_mattress)
+            ? baseCapacity + 1
+            : baseCapacity;
 
+        if (totalGuestsForCapacity > baseCapacity) {
+            // Recalculate required units based on the effective capacity for the selected model
+            requiredUnits = Math.ceil(totalGuestsForCapacity / capacityPerUnit);
+
+            // This logic for showing alternatives is generic and should be triggered if needed
+            let suitableAlternatives = (rules.alternative_properties || []).filter(p => parseInt(p.max_guests, 10) >= totalGuestsForCapacity);
             if (suitableAlternatives.length > 0) {
                 suitableAlternatives.sort((a, b) => parseInt(a.max_guests, 10) - parseInt(b.max_guests, 10));
-
-                // Get only the single best-fit alternative
                 const bestFitAlternative = suitableAlternatives[0];
-
                 const altHtml = `<div class="col-12 mb-2"><div class="card"><a href="${bestFitAlternative.url}" target="_blank">${bestFitAlternative.intro_image ? `<img src="${options.rootUrl}${bestFitAlternative.intro_image}" class="card-img-top" alt="${bestFitAlternative.title}">` : ''}<div class="card-body"><h6 class="card-title">${bestFitAlternative.title}<small class="text-muted">(Max Guests: ${bestFitAlternative.max_guests})</small></h6></div></a></div></div>`;
-                if (alternativesContainer) alternativesContainer.innerHTML = altHtml; // Use '=' to show only one
-
+                if (alternativesContainer) alternativesContainer.innerHTML = altHtml;
                 elements.propertySuggestionAlert.style.display = 'block';
             }
 
-            requiredUnits = Math.ceil(totalGuestsForCapacity / baseCapacity);
             if (requiredUnits > availableUnits) {
                 elements.unitCountDisplay.textContent = `This property has a limit of ${availableUnits} unit(s), but your group requires ${requiredUnits}. Please consider any above alternative properties.`;
                 isBookingPossible = false;
-            } else if (totalGuestsForCapacity > baseCapacity) {
+            } else if (totalGuestsForCapacity > (capacityPerUnit * requiredUnits)) {
+                // This case handles scenarios where guests still exceed capacity even with multiple units.
                 elements.unitCountDisplay.textContent = 'Guest number exceeds the maximum capacity for this property.';
                 isBookingPossible = false;
             }
@@ -351,6 +355,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     seasonSupplementCost += (extraChildren * (rules.child_supplement || 0)) * nightsInSeason;
                 }
                 totalSupplementCost += seasonSupplementCost;
+            } else if (rules.pricing_model === 'CapacityBased' && rules.allow_extra_mattress && rules.extra_mattress_fee > 0) {
+                // Mattresses are used if total guests exceed the base capacity of the required units
+                const mattressesNeeded = Math.max(0, totalGuestsForCapacity - (requiredUnits * baseCapacity));
+                if (mattressesNeeded > 0) {
+                    // The number of mattresses we can actually use is capped by the number of units required.
+                    const mattressesUsed = Math.min(requiredUnits, mattressesNeeded);
+                    totalSupplementCost += mattressesUsed * rules.extra_mattress_fee * nightsInSeason;
+                }
             }
         }
 
@@ -380,6 +392,12 @@ document.addEventListener('DOMContentLoaded', function () {
                     seasonSupplementCost = (extraAdults * (rules.adult_supplement || 0)) * nightsInSeason;
                     if (currentSeason.apply_child_supplement == 1) {
                         seasonSupplementCost += (extraChildren * (rules.child_supplement || 0)) * nightsInSeason;
+                    }
+                } else if (rules.pricing_model === 'CapacityBased' && rules.allow_extra_mattress && rules.extra_mattress_fee > 0) {
+                    const mattressesNeeded = Math.max(0, totalGuestsForCapacity - (requiredUnits * baseCapacity));
+                    if (mattressesNeeded > 0) {
+                        const mattressesUsed = Math.min(requiredUnits, mattressesNeeded);
+                        seasonSupplementCost = mattressesUsed * rules.extra_mattress_fee * nightsInSeason;
                     }
                 }
                 const seasonTotalCost = seasonBaseCost + seasonSupplementCost;

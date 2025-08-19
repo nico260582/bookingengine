@@ -6,6 +6,14 @@ use Joomla\CMS\Table\Table;
 
 class BookingmanagerTableProperty extends Table
 {
+    public $id;
+    public $article_id;
+    public $max_guests;
+    public $allow_extra_mattress = 0;
+    public $number_of_units = 1;
+    public $state;
+    public $ordering;
+
     public function __construct(&$db)
     {
         parent::__construct('#__bookingmanager_properties', 'id', $db);
