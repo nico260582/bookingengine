@@ -85,6 +85,7 @@ class BookingmanagerModelProperty extends AdminModel
                     $ratesData->error = 'This property is not assigned to a supplier.';
                 } else {
                     $rules = json_decode($rulesJson);
+                    $item->pricing_model = $rules->pricing_model ?? '';
                     $seasons = [];
                     if (isset($rules->seasons)) {
                         $seasons = array_values((array) $rules->seasons);
