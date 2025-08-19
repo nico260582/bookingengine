@@ -69,7 +69,9 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    displayStartingPrice(); // Initial display with Global Rate
+    if (elements.startingFromPrice) {
+        elements.startingFromPrice.textContent = 'Loading price...';
+    }
 
     if (elements.couponCodeInput && (!options.pricingRules.coupon_codes || options.pricingRules.coupon_codes.length === 0)) {
         elements.couponCodeInput.closest('.row').style.display = 'none';
@@ -87,24 +89,25 @@ document.addEventListener('DOMContentLoaded', function () {
             geoIpLookup: (callback) => {
                 fetch("https://ipapi.co/json")
                     .then(res => res.json())
-                    .then(data => {
-                        callback(data.country_code);
-                        // Directly update the price after the lookup using the name from the service
-                        if (data.country_name) {
-                            displayStartingPrice(data.country_name);
-                        }
-                    })
-                    .catch(() => {
-                        callback("mu");
-                        // Fallback for the price display if geoIP fails
-                        displayStartingPrice("Mauritius");
-                    });
+                    .then(data => callback(data.country_code))
+                    .catch(() => callback("mu"));
             },
             separateDialCode: true,
             utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.13/js/utils.js",
         });
 
-        // Add a listener for manual changes as well, which is more reliable for user interaction
+        // Per user request, wait 1 second for iti to initialize and then update the price.
+        setTimeout(() => {
+            const selectedCountry = iti.getSelectedCountryData();
+            if (selectedCountry && selectedCountry.name) {
+                displayStartingPrice(selectedCountry.name);
+            } else {
+                // Fallback if iti hasn't selected a country yet
+                displayStartingPrice();
+            }
+        }, 1000);
+
+        // Add a listener for manual changes as well
         elements.telephoneInput.addEventListener('countrychange', function() {
             const selectedCountry = iti.getSelectedCountryData();
             if (selectedCountry.name) {
