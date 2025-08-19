@@ -56,7 +56,7 @@ class ModBookingFormHelper
         $allMarkets = [];
         if ($supplierId) {
             $query->clear()
-                ->select('market_name, currency')
+                ->select('market_name, currency, currency_symbol')
                 ->from('#__bookingmanager_supplier_markets')
                 ->where('supplier_id = ' . (int)$supplierId)
                 ->where('state = 1');
@@ -81,9 +81,10 @@ class ModBookingFormHelper
             $decodedRates = !empty($rateInfo->rates) ? json_decode($rateInfo->rates, true) : [];
             if (!is_array($decodedRates)) $decodedRates = [];
 
-            // Inject currency into each market's rate data
+            // Inject currency and symbol into each market's rate data
             foreach ($decodedRates as $marketName => &$marketData) {
                 $marketData['currency'] = $allMarkets[$marketName]->currency ?? 'EUR';
+                $marketData['currency_symbol'] = $allMarkets[$marketName]->currency_symbol ?? '€';
             }
 
             $ratesBySeason[$seasonName] = $decodedRates;
