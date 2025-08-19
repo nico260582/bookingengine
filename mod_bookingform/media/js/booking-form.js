@@ -36,6 +36,18 @@ document.addEventListener('DOMContentLoaded', function () {
         propertySuggestionAlert: document.getElementById('property-suggestion-alert'),
     };
 
+    function saveBookingDetailsToSession() {
+        const bookingDetails = {
+            startDate: elements.startDateInput.value,
+            endDate: elements.endDateInput.value,
+            adults: elements.guestSelect.value,
+            children: elements.childrenSelect.value,
+            childAges: Array.from(document.querySelectorAll('.child-age-input')).map(input => input.value),
+            country: elements.countryResidenceSelect.value
+        };
+        sessionStorage.setItem('bookingDetails', JSON.stringify(bookingDetails));
+    }
+
     function displayStartingPrice(countryName = null) {
         const rules = options.pricingRules;
         if (!rules.rates || Object.keys(rules.rates).length === 0) return;
@@ -83,6 +95,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let iti = null;
     let couponDiscount = { percent: 0, message: '' };
     let isBookingPossible = true;
+    let picker;
 
     if (elements.telephoneInput) {
         iti = window.intlTelInput(elements.telephoneInput, {
@@ -97,7 +110,6 @@ document.addEventListener('DOMContentLoaded', function () {
             utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.13/js/utils.js",
         });
 
-        // When the telephone country changes, update the main country dropdown and the price
         elements.telephoneInput.addEventListener('countrychange', function() {
             const countryData = iti.getSelectedCountryData();
             if (countryData.iso2) {
@@ -111,13 +123,13 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
-        // When the main country dropdown changes, update the telephone country flag
         elements.countryResidenceSelect.addEventListener('change', function() {
             const selectedOption = this.options[this.selectedIndex];
             const isoCode = selectedOption.getAttribute('data-iso-code');
             if (isoCode) {
                 iti.setCountry(isoCode);
             }
+            saveBookingDetailsToSession();
         });
     }
 
@@ -135,7 +147,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     if (typeof Litepicker !== 'undefined') {
-        new Litepicker({
+        picker = new Litepicker({
             element: elements.datePickerEl,
             singleMode: false,
             minDate: new Date(),
@@ -167,13 +179,14 @@ document.addEventListener('DOMContentLoaded', function () {
                                 elements.minStayAlert.style.display = 'block';
                             } else { elements.minStayAlert.style.display = 'none'; }
                         }
+                        saveBookingDetailsToSession();
                     }
                 });
             }
         });
     }
 
-    function updateChildAgeInputs() {
+    function updateChildAgeInputs(childAges = []) {
         const childrenCount = parseInt(elements.childrenSelect.value, 10);
         elements.childAgesContainer.innerHTML = '';
         if (childrenCount > 0) {
@@ -189,6 +202,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 input.className = 'form-control child-age-input';
                 input.placeholder = `Child ${i} Age`;
                 input.required = true;
+                if(childAges[i-1]) {
+                    input.value = childAges[i-1];
+                }
+                input.addEventListener('change', saveBookingDetailsToSession);
                 col.appendChild(input);
                 elements.childAgesContainer.appendChild(col);
             }
@@ -299,20 +316,17 @@ document.addEventListener('DOMContentLoaded', function () {
         let requiredUnits = 1;
         const baseCapacity = rules.max_guests || 1;
         const availableUnits = rules.number_of_units || 1;
-        isBookingPossible = true; // Reset flag on each calculation
+        isBookingPossible = true;
 
-        // Determine the effective capacity of a single unit based on the pricing model
         const capacityPerUnit = (rules.pricing_model === 'CapacityBased' && rules.allow_extra_mattress)
             ? baseCapacity + 1
             : baseCapacity;
 
-        // Reset mattress notification
         if (elements.mattressNotification) {
             elements.mattressNotification.style.display = 'none';
         }
 
         if (totalGuestsForCapacity > baseCapacity) {
-            // Recalculate required units based on the effective capacity for the selected model
             requiredUnits = Math.ceil(totalGuestsForCapacity / capacityPerUnit);
 
             let suggestionMessage = '';
@@ -320,25 +334,21 @@ document.addEventListener('DOMContentLoaded', function () {
             let showSuggestion = false;
 
             if (requiredUnits > availableUnits) {
-                // Case 1: Booking is impossible.
                 unitCountMessage = `This property has a limit of ${availableUnits} unit(s), but your group requires ${requiredUnits}. Please consider an alternative property above.`;
                 suggestionMessage = `This property has a limit of ${availableUnits} unit(s), but your group requires ${requiredUnits}. Please consider an alternative property below.`;
                 elements.unitCountDisplay.textContent = unitCountMessage;
                 isBookingPossible = false;
                 showSuggestion = true;
             } else if (requiredUnits > 1) {
-                // Case 2: Booking is possible but requires multiple units.
                 if (rules.pricing_model === 'CapacityBased') {
                     suggestionMessage = `Your total guest is ${totalGuestsForCapacity}, ${requiredUnits} units will be required or select an alternative properties below`;
                 }
                 showSuggestion = true;
             } else if (rules.allow_extra_mattress) {
-                 // Case 3: More guests than base capacity but fits in one unit (with mattress).
                  showSuggestion = true;
                  suggestionMessage = "An extra mattress will be provided for your group. You can also consider these larger properties below:";
             }
 
-            // This logic for showing alternatives is generic and should be triggered if needed
             let suitableAlternatives = (rules.alternative_properties || []).filter(p => parseInt(p.max_guests, 10) >= totalGuestsForCapacity);
             if (suitableAlternatives.length > 0 && showSuggestion) {
                 suitableAlternatives.sort((a, b) => parseInt(a.max_guests, 10) - parseInt(b.max_guests, 10));
@@ -346,14 +356,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 const altHtml = `<div class="col-12 mb-2"><div class="card"><a href="${bestFitAlternative.url}" target="_blank">${bestFitAlternative.intro_image ? `<img src="${options.rootUrl}${bestFitAlternative.intro_image}" class="card-img-top" alt="${bestFitAlternative.title}">` : ''}<div class="card-body"><h6 class="card-title">${bestFitAlternative.title}<small class="text-muted">(Max Guests: ${bestFitAlternative.max_guests})</small></h6></div></a></div></div>`;
                 if (alternativesContainer) alternativesContainer.innerHTML = altHtml;
 
-                // Show the suggestion alert and set its message
                 const suggestionTextElement = elements.propertySuggestionAlert.querySelector('p');
                 if (suggestionTextElement && suggestionMessage) {
                     suggestionTextElement.textContent = suggestionMessage;
                 }
                 elements.propertySuggestionAlert.style.display = 'block';
             } else if (requiredUnits > availableUnits) {
-                // If there are no alternatives, just show the error in the unit count display
                 elements.unitCountDisplay.textContent = unitCountMessage;
             }
         }
@@ -368,7 +376,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const selectedCountry = elements.countryResidenceSelect.value;
         const marketName = (rules.active_markets && rules.active_markets.includes(selectedCountry)) ? selectedCountry : 'Global Rate';
 
-        let currencySymbol = '€'; // Default
+        let currencySymbol = '€';
         let totalBaseCost = 0;
         let totalSupplementCost = 0;
         let totalCommission = 0;
@@ -396,9 +404,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
                 totalSupplementCost += seasonSupplementCost;
             } else if (rules.pricing_model === 'CapacityBased' && rules.allow_extra_mattress && rules.extra_mattress_fee > 0) {
-                // Mattresses are used if total guests exceed the base capacity of the required units
                 if (mattressesNeeded > 0) {
-                    // The number of mattresses we can actually use is capped by the number of units required.
                     const mattressesUsed = Math.min(requiredUnits, mattressesNeeded);
                     totalSupplementCost += mattressesUsed * rules.extra_mattress_fee * nightsInSeason;
                 }
@@ -407,7 +413,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         let totalCost = totalBaseCost + totalSupplementCost;
 
-        // Calculate commission on the cost before any discounts
         for (const [seasonName, nightsInSeason] of Object.entries(seasonRateCounts)) {
             const seasonRates = rules.rates[seasonName] || {};
             const marketRateData = seasonRates[marketName] || seasonRates['Global Rate'] || {};
@@ -421,7 +426,6 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             if (commissionRate > 0) {
-                // Calculate the cost for this specific season to apply commission correctly
                 const seasonBaseCost = (parseFloat(marketRateData.rate) || 0) * nightsInSeason * requiredUnits;
                 let seasonSupplementCost = 0;
                 if (rules.pricing_model === 'SupplementPerGuest' && currentSeason) {
@@ -521,7 +525,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (elements.getQuoteButton) {
         elements.getQuoteButton.addEventListener('click', function() {
-            // Clear previous validation errors
             ['dateRangeError', 'childAgesError', 'countryError'].forEach(err => {
                 if (elements[err]) {
                     elements[err].style.display = 'none';
@@ -534,7 +537,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
             let isValid = true;
 
-            // Validate dates
             let minStay = 0;
             let minStaySeason = '';
             const endDate = new Date(elements.endDateInput.value);
@@ -556,7 +558,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 isValid = false;
             }
 
-            // Validate country
             if (!elements.countryResidenceSelect.value) {
                 elements.countryError.textContent = 'Please select your country of residence.';
                 elements.countryError.style.display = 'block';
@@ -564,7 +565,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 isValid = false;
             }
 
-            // Validate child ages
             const childrenCount = parseInt(elements.childrenSelect.value, 10);
             const childAgeInputs = elements.childAgesContainer.querySelectorAll('.child-age-input');
             if (childrenCount > 0) {
@@ -586,14 +586,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
 
-            // If valid, proceed with calculation
             validateCouponCode(function() {
                 updateCalculations();
                 elements.priceSummaryContainer.style.display = 'block';
                 elements.startingFromPrice.style.display = 'none';
                 elements.getQuoteButton.textContent = 'Recalculate Price';
 
-                // Only show the final booking step if the booking is possible
                 if (isBookingPossible) {
                     elements.bookingStep2.style.display = 'block';
                 } else {
@@ -603,14 +601,54 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    elements.childrenSelect.addEventListener('change', updateChildAgeInputs);
+    elements.guestSelect.addEventListener('change', saveBookingDetailsToSession);
+    elements.childrenSelect.addEventListener('change', function() {
+        updateChildAgeInputs();
+        saveBookingDetailsToSession();
+    });
 
     if (elements.childAgesContainer) {
         elements.childAgesContainer.addEventListener('input', function(e) {
             if (e.target && e.target.classList.contains('child-age-input')) {
                 updateChildAgeNotification();
+                saveBookingDetailsToSession();
             }
         });
+    }
+
+    // Load booking details from session storage and then clear it
+    const savedBookingDetails = JSON.parse(sessionStorage.getItem('bookingDetails'));
+    if (savedBookingDetails) {
+        sessionStorage.removeItem('bookingDetails'); // Clear after reading
+
+        if (savedBookingDetails.startDate && savedBookingDetails.endDate) {
+            // Corrected the typo here: savedBookingedDetails -> savedBookingDetails
+            picker.setDateRange(new Date(savedBookingDetails.startDate), new Date(savedBookingDetails.endDate));
+        }
+        if (savedBookingDetails.adults) {
+            elements.guestSelect.value = savedBookingDetails.adults;
+        }
+        if (savedBookingDetails.children) {
+            elements.childrenSelect.value = savedBookingDetails.children;
+            updateChildAgeInputs(savedBookingDetails.childAges || []);
+        }
+        if (savedBookingDetails.country) {
+            elements.countryResidenceSelect.value = savedBookingDetails.country;
+            // Manually trigger change to update the telephone input country if it exists
+            if (iti) {
+                elements.countryResidenceSelect.dispatchEvent(new Event('change'));
+            }
+        }
+
+        // Automatically click the "Get Quote" button if we have enough data
+        if (savedBookingDetails.startDate && savedBookingDetails.endDate && savedBookingDetails.adults) {
+            // A small delay might be needed for all the events to fire and UI to update
+            setTimeout(() => {
+                 if (elements.getQuoteButton) {
+                    elements.getQuoteButton.click();
+                }
+            }, 100);
+        }
     }
 
     updateChildAgeInputs();
