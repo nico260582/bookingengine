@@ -21,12 +21,13 @@ class ModBookingFormHelper
 
         // Fetch property details including number_of_units and allow_extra_mattress
         $propertyQuery = $db->getQuery(true)
-            ->select('p.number_of_units, p.allow_extra_mattress')
+            ->select('p.number_of_units, p.allow_extra_mattress, p.max_guests')
             ->from($db->quoteName('#__bookingmanager_properties', 'p'))
             ->where('p.article_id = ' . (int) $articleId);
         $propertyDetails = $db->setQuery($propertyQuery)->loadObject();
         $numberOfUnits = $propertyDetails ? $propertyDetails->number_of_units : 1;
         $allowExtraMattress = $propertyDetails ? (int)$propertyDetails->allow_extra_mattress : 0;
+        $maxGuests = $propertyDetails ? (int)$propertyDetails->max_guests : 1;
 
 
         $query->select('s.rules')
@@ -101,6 +102,7 @@ class ModBookingFormHelper
         $cleanRules = [
             'number_of_units' => $numberOfUnits,
             'allow_extra_mattress' => $allowExtraMattress,
+            'max_guests' => $maxGuests,
             'pricing_model' => $rules['pricing_model'] ?? 'FlatUnitRate',
             'adult_supplement' => (float)($rules['adult_supplement'] ?? 0),
             'child_supplement' => (float)($rules['child_supplement'] ?? 0),

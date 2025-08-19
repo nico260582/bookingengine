@@ -292,7 +292,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const totalAdultsAndTeens = adults + teens.length;
         let totalGuestsForCapacity = adults + teens.length + children.length;
         let requiredUnits = 1;
-        const baseCapacity = options.totalAccommodationGuests || 1;
+        const baseCapacity = rules.max_guests || 1;
         const availableUnits = rules.number_of_units || 1;
         isBookingPossible = true; // Reset flag on each calculation
 
