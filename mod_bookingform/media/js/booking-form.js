@@ -330,10 +330,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     suggestionMessage = `Your total guest is ${totalGuestsForCapacity}, ${requiredUnits} units will be required or select an alternative properties below`;
                 }
                 showSuggestion = true;
-            } else {
+            } else if (rules.allow_extra_mattress) {
                  // Case 3: More guests than base capacity but fits in one unit (with mattress).
                  showSuggestion = true;
-                 suggestionMessage = 'Your group size exceeds the standard capacity. Consider these alternatives if you prefer more space:';
+                 suggestionMessage = "An extra mattress will be provided for your group. You can also consider these larger properties below:";
             }
 
             // This logic for showing alternatives is generic and should be triggered if needed
@@ -346,7 +346,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 // Show the suggestion alert and set its message
                 const suggestionTextElement = elements.propertySuggestionAlert.querySelector('p');
-                if (suggestionTextElement) {
+                if (suggestionTextElement && suggestionMessage) {
                     suggestionTextElement.textContent = suggestionMessage;
                 }
                 elements.propertySuggestionAlert.style.display = 'block';
