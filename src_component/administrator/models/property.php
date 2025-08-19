@@ -31,8 +31,20 @@ class BookingmanagerModelProperty extends AdminModel
 
         $item = $this->getItem();
 
-        if ($item && isset($item->pricing_model)) {
-            $form->setValue('pricing_model', null, $item->pricing_model);
+        if ($item && !empty($item->article_id)) {
+            $db = Factory::getDbo();
+            $query = $db->getQuery(true)
+                ->select('s.rules')
+                ->from($db->quoteName('#__bookingmanager_property_map', 'm'))
+                ->join('INNER', $db->quoteName('#__bookingmanager_suppliers', 's') . ' ON m.supplier_id = s.id')
+                ->where('m.property_id = ' . (int)$item->article_id);
+            $rulesJson = $db->setQuery($query)->loadResult();
+
+            if (!empty($rulesJson)) {
+                $rules = json_decode($rulesJson);
+                $pricingModel = $rules->pricing_model ?? '';
+                $form->setValue('pricing_model', null, $pricingModel);
+            }
         }
 
         if ($item && !empty($item->id)) {
@@ -89,7 +101,6 @@ class BookingmanagerModelProperty extends AdminModel
                     $ratesData->error = 'This property is not assigned to a supplier.';
                 } else {
                     $rules = json_decode($rulesJson);
-                    $item->pricing_model = $rules->pricing_model ?? '';
                     $seasons = [];
                     if (isset($rules->seasons)) {
                         $seasons = array_values((array) $rules->seasons);
