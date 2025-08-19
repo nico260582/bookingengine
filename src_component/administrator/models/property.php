@@ -31,28 +31,47 @@ class BookingmanagerModelProperty extends AdminModel
 
         $item = $this->getItem();
 
-        if ($item && !empty($item->article_id)) {
-            $db = Factory::getDbo();
-            $query = $db->getQuery(true)
-                ->select('s.rules')
-                ->from($db->quoteName('#__bookingmanager_property_map', 'm'))
-                ->join('INNER', $db->quoteName('#__bookingmanager_suppliers', 's') . ' ON m.supplier_id = s.id')
-                ->where('m.property_id = ' . (int)$item->article_id);
-            $rulesJson = $db->setQuery($query)->loadResult();
-
-            $pricingModel = '';
-            if (!empty($rulesJson)) {
-                $rules = json_decode($rulesJson);
-                $pricingModel = $rules->pricing_model ?? '';
+        // Determine the property ID from the correct context (display vs. save)
+        $propertyId = 0;
+        if ($loadData) {
+            $propertyId = $this->getState($this->getName() . '.id');
+        } else {
+            if (isset($data['id'])) {
+                $propertyId = $data['id'];
             }
+        }
 
-            if ($pricingModel !== 'CapacityBased') {
+        if ($propertyId) {
+            $table = $this->getTable();
+            $table->load($propertyId);
+            $articleId = $table->article_id;
+
+            if ($articleId) {
+                $db = Factory::getDbo();
+                $query = $db->getQuery(true)
+                    ->select('s.rules')
+                    ->from($db->quoteName('#__bookingmanager_property_map', 'm'))
+                    ->join('INNER', $db->quoteName('#__bookingmanager_suppliers', 's') . ' ON m.supplier_id = s.id')
+                    ->where('m.property_id = ' . (int)$articleId);
+                $rulesJson = $db->setQuery($query)->loadResult();
+
+                $pricingModel = '';
+                if (!empty($rulesJson)) {
+                    $rules = json_decode($rulesJson);
+                    $pricingModel = $rules->pricing_model ?? '';
+                }
+
+                if ($pricingModel !== 'CapacityBased') {
+                    $form->removeField('allow_extra_mattress');
+                }
+            } else {
                 $form->removeField('allow_extra_mattress');
             }
         } else {
-            // If it's a new property or not linked, it cannot have this option.
+            // New property, no supplier yet.
             $form->removeField('allow_extra_mattress');
         }
+
 
         if ($item && !empty($item->id)) {
             $form->setFieldAttribute('article_id', 'type', 'text');
