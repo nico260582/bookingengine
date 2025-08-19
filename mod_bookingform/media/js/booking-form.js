@@ -353,7 +353,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (suitableAlternatives.length > 0 && showSuggestion) {
                 suitableAlternatives.sort((a, b) => parseInt(a.max_guests, 10) - parseInt(b.max_guests, 10));
                 const bestFitAlternative = suitableAlternatives[0];
-                const altHtml = `<div class="col-12 mb-2"><div class="card"><a href="${bestFitAlternative.url}" target="_blank">${bestFitAlternative.intro_image ? `<img src="${options.rootUrl}${bestFitAlternative.intro_image}" class="card-img-top" alt="${bestFitAlternative.title}">` : ''}<div class="card-body"><h6 class="card-title">${bestFitAlternative.title}<small class="text-muted">(Max Guests: ${bestFitAlternative.max_guests})</small></h6></div></a></div></div>`;
+                const altHtml = `<div class="col-12 mb-2"><div class="card"><a href="${bestFitAlternative.url}">${bestFitAlternative.intro_image ? `<img src="${options.rootUrl}${bestFitAlternative.intro_image}" class="card-img-top" alt="${bestFitAlternative.title}">` : ''}<div class="card-body"><h6 class="card-title">${bestFitAlternative.title}<small class="text-muted">(Max Guests: ${bestFitAlternative.max_guests})</small></h6></div></a></div></div>`;
                 if (alternativesContainer) alternativesContainer.innerHTML = altHtml;
 
                 const suggestionTextElement = elements.propertySuggestionAlert.querySelector('p');
