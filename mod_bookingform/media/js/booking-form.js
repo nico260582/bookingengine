@@ -302,7 +302,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             requiredUnits = Math.ceil(totalGuestsForCapacity / baseCapacity);
             if (requiredUnits > availableUnits) {
-                elements.unitCountDisplay.textContent = `This property has a limit of ${availableUnits} unit(s), but your group requires ${requiredUnits}. Please consider an alternative property.`;
+                elements.unitCountDisplay.textContent = `This property has a limit of ${availableUnits} unit(s), but your group requires ${requiredUnits}. Please consider any above alternative properties.`;
                 isBookingPossible = false;
             } else if (totalGuestsForCapacity > baseCapacity) {
                 elements.unitCountDisplay.textContent = 'Guest number exceeds the maximum capacity for this property.';
