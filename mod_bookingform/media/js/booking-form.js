@@ -62,10 +62,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const lowestFinalRate = Math.min(...finalRates);
         const firstSeasonName = Object.keys(rules.rates)[0];
-        const currencySymbol = (rules.rates[firstSeasonName][marketName]?.currency || rules.rates[firstSeasonName]['Global Rate']?.currency) || '€';
+        const currencySymbol = (rules.rates[firstSeasonName][marketName]?.currency_symbol || rules.rates[firstSeasonName]['Global Rate']?.currency_symbol) || '€';
 
         if (elements.startingFromPrice && lowestFinalRate > 0 && isFinite(lowestFinalRate)) {
-            elements.startingFromPrice.textContent = `From ${currencySymbol}${Math.ceil(lowestFinalRate)} / night`;
+            elements.startingFromPrice.textContent = `From ${currencySymbol} ${Math.ceil(lowestFinalRate)} / night`;
         }
     }
 
@@ -318,7 +318,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const selectedCountry = elements.countryResidenceSelect.value;
         const marketName = (rules.active_markets && rules.active_markets.includes(selectedCountry)) ? selectedCountry : 'Global Rate';
 
-        let currencySymbol = '€';
+        let currencySymbol = '€'; // Default
         let totalBaseCost = 0;
         let totalSupplementCost = 0;
         let totalCommission = 0;
@@ -331,7 +331,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!marketRateData || !marketRateData.rate) continue;
 
             const nightlyRate = parseFloat(marketRateData.rate);
-            currencySymbol = marketRateData.currency || currencySymbol;
+            currencySymbol = marketRateData.currency_symbol || currencySymbol;
             const seasonBaseCost = nightlyRate * nightsInSeason * requiredUnits;
             totalBaseCost += seasonBaseCost;
 
@@ -419,8 +419,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (numberOfNights > 0) {
             const formattedPrice = totalCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            elements.priceDisplay.textContent = `Est. Price: ${currencySymbol}${formattedPrice}`;
-            elements.priceInput.value = `${currencySymbol}${formattedPrice}`;
+            elements.priceDisplay.textContent = `Est. Price: ${currencySymbol} ${formattedPrice}`;
+            elements.priceInput.value = `${currencySymbol} ${formattedPrice}`;
             elements.nightsDisplay.textContent = `(${numberOfNights} ${numberOfNights > 1 ? 'Nights' : 'Night'})`;
             elements.priceDisclaimer.style.display = 'block';
         } else {
