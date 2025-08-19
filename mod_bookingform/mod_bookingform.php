@@ -67,6 +67,11 @@ if ($pricingRules) {
         return;
     }
 
+    $cssPath = JPATH_SITE . '/modules/mod_bookingform/media/css/booking-form.css';
+    if (file_exists($cssPath)) {
+        $doc->addStyleSheet(Uri::root(true) . '/modules/mod_bookingform/media/css/booking-form.css?v=' . filemtime($cssPath));
+    }
+
     $inlineCss = "
         /* Title style */
         .booking-form-header h5 {
