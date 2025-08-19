@@ -37,6 +37,9 @@ require_once JPATH_ADMINISTRATOR . '/components/com_bookingmanager/helpers/booki
                     <th width="10%">
                         <?php echo JHtml::_('grid.sort', 'Max Guests', 'a.max_guests', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
                     </th>
+                    <th width="10%">
+                        Extra Mattress
+                    </th>
                     <th width="5%">
                         <?php echo JHtml::_('grid.sort', 'Units', 'a.number_of_units', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
                     </th>
@@ -87,6 +90,23 @@ require_once JPATH_ADMINISTRATOR . '/components/com_bookingmanager/helpers/booki
                             </td>
                             <td>
                                 <?php echo (int) $item->max_guests; ?>
+                            </td>
+                            <td>
+                                <?php
+                                $pricingModel = '';
+                                if (!empty($item->rules)) {
+                                    $rules = json_decode($item->rules);
+                                    $pricingModel = $rules->pricing_model ?? '';
+                                }
+
+                                if ($pricingModel !== 'CapacityBased') {
+                                    echo 'N/A';
+                                } elseif ($item->allow_extra_mattress == 1) {
+                                    echo 'On';
+                                } else {
+                                    echo 'Off';
+                                }
+                                ?>
                             </td>
                             <td>
                                 <?php echo (int) $item->number_of_units; ?>
