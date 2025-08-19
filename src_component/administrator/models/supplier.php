@@ -83,13 +83,22 @@
             if (parent::save($data)) {
                 $id = (int) $this->getState($this->getName() . '.id');
 
+                // Get old assignments before updating
+                $db = Factory::getDbo();
+                $query = $db->getQuery(true)
+                    ->select('property_id')
+                    ->from($db->quoteName('#__bookingmanager_property_map'))
+                    ->where($db->quoteName('supplier_id') . ' = ' . $id);
+                $oldAssignedProperties = $db->setQuery($query)->loadColumn();
+
+
                 if ($oldData) {
                     $table->load($id);
                     $newData = $table->getProperties();
                     $this->logChanges($id, $oldData, $newData);
                 }
 
-                $this->updatePropertyAssignments($id, $assignedProperties);
+                $this->updatePropertyAssignments($id, $assignedProperties, $oldAssignedProperties);
                 $this->updateMarkets($id, $markets);
 
                 return true;
@@ -154,24 +163,49 @@
             $data['rules'] = json_encode($rules);
         }
 
-        private function updatePropertyAssignments(int $supplierId, array $assignedProperties)
+        private function updatePropertyAssignments(int $supplierId, array $newlyAssigned, array $previouslyAssigned)
         {
             $db = Factory::getDbo();
-            $assignedProperties = array_map('intval', $assignedProperties);
-            $query = $db->getQuery(true)
+            $newlyAssigned = array_map('intval', $newlyAssigned);
+            $previouslyAssigned = array_map('intval', $previouslyAssigned);
+
+            $toAdd = array_diff($newlyAssigned, $previouslyAssigned);
+            $toRemove = array_diff($previouslyAssigned, $newlyAssigned);
+
+            // Add new properties to the #__bookingmanager_properties table
+            if (!empty($toAdd)) {
+                $addQuery = $db->getQuery(true)
+                    ->insert($db->quoteName('#__bookingmanager_properties'))
+                    ->columns($db->quoteName('article_id'));
+                foreach ($toAdd as $addId) {
+                    $addQuery->values((int)$addId);
+                }
+                $db->setQuery($addQuery)->execute();
+            }
+
+            // Remove unassigned properties from the #__bookingmanager_properties table
+            if (!empty($toRemove)) {
+                $removeQuery = $db->getQuery(true)
+                    ->delete($db->quoteName('#__bookingmanager_properties'))
+                    ->where($db->quoteName('article_id') . ' IN (' . implode(',', $toRemove) . ')');
+                $db->setQuery($removeQuery)->execute();
+            }
+
+            // Now, update the mapping table
+            $mapQuery = $db->getQuery(true)
                 ->delete($db->quoteName('#__bookingmanager_property_map'))
                 ->where($db->quoteName('supplier_id') . ' = ' . $supplierId);
-            $db->setQuery($query)->execute();
+            $db->setQuery($mapQuery)->execute();
 
-            if (!empty($assignedProperties)) {
-                $insertQuery = $db->getQuery(true)
+            if (!empty($newlyAssigned)) {
+                $insertMapQuery = $db->getQuery(true)
                     ->insert($db->quoteName('#__bookingmanager_property_map'))
                     ->columns([$db->quoteName('property_id'), $db->quoteName('supplier_id')]);
 
-                foreach ($assignedProperties as $propId) {
-                    $insertQuery->values($propId . ',' . $supplierId);
+                foreach ($newlyAssigned as $propId) {
+                    $insertMapQuery->values((int)$propId . ',' . $supplierId);
                 }
-                $db->setQuery($insertQuery)->execute();
+                $db->setQuery($insertMapQuery)->execute();
             }
         }
 
