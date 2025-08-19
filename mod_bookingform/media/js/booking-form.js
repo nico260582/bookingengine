@@ -96,22 +96,28 @@ document.addEventListener('DOMContentLoaded', function () {
             utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.13/js/utils.js",
         });
 
-        // Per user request, wait 1 second for iti to initialize and then update the price.
-        setTimeout(() => {
-            const selectedCountry = iti.getSelectedCountryData();
-            if (selectedCountry && selectedCountry.name) {
-                displayStartingPrice(selectedCountry.name);
-            } else {
-                // Fallback if iti hasn't selected a country yet
-                displayStartingPrice();
-            }
-        }, 1000);
-
-        // Add a listener for manual changes as well
+        // When the telephone country changes, update the main country dropdown and the price
         elements.telephoneInput.addEventListener('countrychange', function() {
-            const selectedCountry = iti.getSelectedCountryData();
-            if (selectedCountry.name) {
-                displayStartingPrice(selectedCountry.name);
+            const countryData = iti.getSelectedCountryData();
+            if (countryData.iso2) {
+                const countryOption = elements.countryResidenceSelect.querySelector(`option[data-iso-code="${countryData.iso2}"]`);
+                if (countryOption) {
+                    countryOption.selected = true;
+                    // Manually trigger a change event on the select list if needed by other scripts, though not required for this logic.
+                    // elements.countryResidenceSelect.dispatchEvent(new Event('change'));
+                }
+            }
+            if (countryData.name) {
+                displayStartingPrice(countryData.name);
+            }
+        });
+
+        // When the main country dropdown changes, update the telephone country flag
+        elements.countryResidenceSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            const isoCode = selectedOption.getAttribute('data-iso-code');
+            if (isoCode) {
+                iti.setCountry(isoCode);
             }
         });
     }
