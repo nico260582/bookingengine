@@ -316,12 +316,14 @@ document.addEventListener('DOMContentLoaded', function () {
             requiredUnits = Math.ceil(totalGuestsForCapacity / capacityPerUnit);
 
             let suggestionMessage = '';
+            let unitCountMessage = '';
             let showSuggestion = false;
 
             if (requiredUnits > availableUnits) {
                 // Case 1: Booking is impossible.
-                suggestionMessage = `This property has a limit of ${availableUnits} unit(s), but your group requires ${requiredUnits}. Please consider an alternative property above.`;
-                elements.unitCountDisplay.textContent = suggestionMessage;
+                unitCountMessage = `This property has a limit of ${availableUnits} unit(s), but your group requires ${requiredUnits}. Please consider an alternative property above.`;
+                suggestionMessage = `This property has a limit of ${availableUnits} unit(s), but your group requires ${requiredUnits}. Please consider an alternative property below.`;
+                elements.unitCountDisplay.textContent = unitCountMessage;
                 isBookingPossible = false;
                 showSuggestion = true;
             } else if (requiredUnits > 1) {
@@ -352,7 +354,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 elements.propertySuggestionAlert.style.display = 'block';
             } else if (requiredUnits > availableUnits) {
                 // If there are no alternatives, just show the error in the unit count display
-                elements.unitCountDisplay.textContent = suggestionMessage;
+                elements.unitCountDisplay.textContent = unitCountMessage;
             }
         }
 
