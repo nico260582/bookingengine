@@ -146,15 +146,10 @@ document.addEventListener('DOMContentLoaded', function () {
                         numberOfNights = Object.values(seasonRateCounts).reduce((a, b) => a + b, 0);
                         let minStay = 0;
                         let minStaySeason = '';
-                        if (options.pricingRules && Array.isArray(options.pricingRules.seasons)) {
-                            const seasonsInBooking = options.pricingRules.seasons.filter(s => seasonRateCounts[s.name] && s.min_stay > 0);
-                            if (seasonsInBooking.length > 0) {
-                                minStay = Math.min(...seasonsInBooking.map(s => s.min_stay));
-                                const minStaySeasonObject = seasonsInBooking.find(s => s.min_stay == minStay);
-                                if (minStaySeasonObject) {
-                                    minStaySeason = minStaySeasonObject.name;
-                                }
-                            }
+                        const checkoutSeason = getSeasonForDate(date2.toJSDate());
+                        if (checkoutSeason && checkoutSeason.min_stay > 0) {
+                            minStay = checkoutSeason.min_stay;
+                            minStaySeason = checkoutSeason.name;
                         }
                         if (elements.minStayAlert) {
                             if (numberOfNights > 0 && numberOfNights < minStay) {
@@ -475,15 +470,11 @@ document.addEventListener('DOMContentLoaded', function () {
             // Validate dates
             let minStay = 0;
             let minStaySeason = '';
-            if (options.pricingRules && Array.isArray(options.pricingRules.seasons)) {
-                const seasonsInBooking = options.pricingRules.seasons.filter(s => seasonRateCounts[s.name] && s.min_stay > 0);
-                if (seasonsInBooking.length > 0) {
-                    minStay = Math.max(...seasonsInBooking.map(s => s.min_stay)); // Use Math.max to enforce the strictest policy
-                    const minStaySeasonObject = seasonsInBooking.find(s => s.min_stay == minStay);
-                    if (minStaySeasonObject) {
-                        minStaySeason = minStaySeasonObject.name;
-                    }
-                }
+            const endDate = new Date(elements.endDateInput.value);
+            const checkoutSeason = getSeasonForDate(endDate);
+            if (checkoutSeason && checkoutSeason.min_stay > 0) {
+                minStay = checkoutSeason.min_stay;
+                minStaySeason = checkoutSeason.name;
             }
 
             if (numberOfNights === 0) {
