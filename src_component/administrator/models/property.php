@@ -40,11 +40,18 @@ class BookingmanagerModelProperty extends AdminModel
                 ->where('m.property_id = ' . (int)$item->article_id);
             $rulesJson = $db->setQuery($query)->loadResult();
 
+            $pricingModel = '';
             if (!empty($rulesJson)) {
                 $rules = json_decode($rulesJson);
                 $pricingModel = $rules->pricing_model ?? '';
-                $form->setValue('pricing_model', null, $pricingModel);
             }
+
+            if ($pricingModel !== 'CapacityBased') {
+                $form->removeField('allow_extra_mattress');
+            }
+        } else {
+            // If it's a new property or not linked, it cannot have this option.
+            $form->removeField('allow_extra_mattress');
         }
 
         if ($item && !empty($item->id)) {
