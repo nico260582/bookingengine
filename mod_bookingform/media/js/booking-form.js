@@ -41,19 +41,31 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const marketName = (countryName && rules.active_markets && rules.active_markets.includes(countryName)) ? countryName : 'Global Rate';
 
-        const marketRates = Object.values(rules.rates).map(seasonRates => {
+        const finalRates = Object.entries(rules.rates).map(([seasonName, seasonRates]) => {
             const marketData = seasonRates[marketName] || seasonRates['Global Rate'];
-            return marketData ? marketData.rate : null;
-        }).filter(rate => rate && rate > 0);
+            if (!marketData || !marketData.rate || marketData.rate <= 0) return null;
 
-        if (marketRates.length === 0) return;
+            const baseRate = parseFloat(marketData.rate);
+            const currentSeason = rules.seasons.find(s => s.name === seasonName);
+            let commissionRate = 0;
 
-        const lowestMarketRate = Math.min(...marketRates);
+            if (marketData.override_commission && marketData.commission > 0) {
+                commissionRate = parseFloat(marketData.commission);
+            } else if (currentSeason && currentSeason.admin_commission) {
+                commissionRate = parseFloat(currentSeason.admin_commission);
+            }
+
+            return baseRate * (1 + (commissionRate / 100));
+        }).filter(rate => rate !== null);
+
+        if (finalRates.length === 0) return;
+
+        const lowestFinalRate = Math.min(...finalRates);
         const firstSeasonName = Object.keys(rules.rates)[0];
         const currencySymbol = (rules.rates[firstSeasonName][marketName]?.currency || rules.rates[firstSeasonName]['Global Rate']?.currency) || '€';
 
-        if (elements.startingFromPrice && lowestMarketRate > 0 && isFinite(lowestMarketRate)) {
-            elements.startingFromPrice.textContent = `From ${currencySymbol}${Math.ceil(lowestMarketRate)} / night`;
+        if (elements.startingFromPrice && lowestFinalRate > 0 && isFinite(lowestFinalRate)) {
+            elements.startingFromPrice.textContent = `From ${currencySymbol}${Math.ceil(lowestFinalRate)} / night`;
         }
     }
 
