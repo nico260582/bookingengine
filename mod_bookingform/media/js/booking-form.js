@@ -315,23 +315,34 @@ document.addEventListener('DOMContentLoaded', function () {
             // Recalculate required units based on the effective capacity for the selected model
             requiredUnits = Math.ceil(totalGuestsForCapacity / capacityPerUnit);
 
+            let suggestionMessage = '';
+            if (requiredUnits > availableUnits) {
+                // Case 1: Booking is impossible.
+                suggestionMessage = `This property has a limit of ${availableUnits} unit(s), but your group requires ${requiredUnits}.`;
+                elements.unitCountDisplay.textContent = suggestionMessage;
+                isBookingPossible = false;
+            } else if (requiredUnits > 1 && rules.pricing_model === 'CapacityBased') {
+                // Case 2: Booking is possible but requires multiple units (only for CapacityBased model).
+                suggestionMessage = `Your total guest is ${totalGuestsForCapacity}, a ${requiredUnits} units will be required or select an alternative properties above`;
+            }
+
             // This logic for showing alternatives is generic and should be triggered if needed
             let suitableAlternatives = (rules.alternative_properties || []).filter(p => parseInt(p.max_guests, 10) >= totalGuestsForCapacity);
-            if (suitableAlternatives.length > 0) {
+            if (suitableAlternatives.length > 0 && suggestionMessage) {
                 suitableAlternatives.sort((a, b) => parseInt(a.max_guests, 10) - parseInt(b.max_guests, 10));
                 const bestFitAlternative = suitableAlternatives[0];
                 const altHtml = `<div class="col-12 mb-2"><div class="card"><a href="${bestFitAlternative.url}" target="_blank">${bestFitAlternative.intro_image ? `<img src="${options.rootUrl}${bestFitAlternative.intro_image}" class="card-img-top" alt="${bestFitAlternative.title}">` : ''}<div class="card-body"><h6 class="card-title">${bestFitAlternative.title}<small class="text-muted">(Max Guests: ${bestFitAlternative.max_guests})</small></h6></div></a></div></div>`;
                 if (alternativesContainer) alternativesContainer.innerHTML = altHtml;
-                elements.propertySuggestionAlert.style.display = 'block';
-            }
 
-            if (requiredUnits > availableUnits) {
-                elements.unitCountDisplay.textContent = `This property has a limit of ${availableUnits} unit(s), but your group requires ${requiredUnits}. Please consider any above alternative properties.`;
-                isBookingPossible = false;
-            } else if (totalGuestsForCapacity > (capacityPerUnit * requiredUnits)) {
-                // This case handles scenarios where guests still exceed capacity even with multiple units.
-                elements.unitCountDisplay.textContent = 'Guest number exceeds the maximum capacity for this property.';
-                isBookingPossible = false;
+                // Show the suggestion alert and set its message
+                const suggestionTextElement = elements.propertySuggestionAlert.querySelector('p');
+                if (suggestionTextElement) {
+                    suggestionTextElement.textContent = suggestionMessage;
+                }
+                elements.propertySuggestionAlert.style.display = 'block';
+            } else if (requiredUnits > availableUnits) {
+                // If there are no alternatives, just show the error in the unit count display
+                elements.unitCountDisplay.textContent = suggestionMessage;
             }
         }
 
