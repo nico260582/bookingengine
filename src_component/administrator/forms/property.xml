@@ -26,17 +26,12 @@
             step="1"
         />
         <field
-            name="pricing_model"
-            type="hidden"
-        />
-        <field
             name="allow_extra_mattress"
             type="radio"
             label="COM_BOOKINGMANAGER_PROPERTY_ALLOW_EXTRA_MATTRESS_LABEL"
             description="COM_BOOKINGMANAGER_PROPERTY_ALLOW_EXTRA_MATTRESS_DESC"
             class="btn-group btn-group-yesno"
             default="0"
-            showon="pricing_model:CapacityBased"
         >
             <option value="1">JYES</option>
             <option value="0">JNO</option>
