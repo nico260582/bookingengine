@@ -31,6 +31,10 @@ class BookingmanagerModelProperty extends AdminModel
 
         $item = $this->getItem();
 
+        if ($item && isset($item->pricing_model)) {
+            $form->setValue('pricing_model', null, $item->pricing_model);
+        }
+
         if ($item && !empty($item->id)) {
             $form->setFieldAttribute('article_id', 'type', 'text');
             $form->setFieldAttribute('article_id', 'readonly', 'true');
