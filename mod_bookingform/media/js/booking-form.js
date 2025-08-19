@@ -309,6 +309,7 @@ document.addEventListener('DOMContentLoaded', function () {
         let currencySymbol = '€';
         let totalBaseCost = 0;
         let totalSupplementCost = 0;
+        let totalCommission = 0;
 
         for (const [seasonName, nightsInSeason] of Object.entries(seasonRateCounts)) {
             const seasonRates = rules.rates[seasonName];
@@ -336,6 +337,40 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         let totalCost = totalBaseCost + totalSupplementCost;
+
+        // Calculate commission on the cost before any discounts
+        for (const [seasonName, nightsInSeason] of Object.entries(seasonRateCounts)) {
+            const seasonRates = rules.rates[seasonName] || {};
+            const marketRateData = seasonRates[marketName] || seasonRates['Global Rate'] || {};
+            const currentSeason = rules.seasons.find(s => s.name === seasonName);
+
+            let commissionRate = 0;
+            if (marketRateData.override_commission && marketRateData.commission > 0) {
+                commissionRate = parseFloat(marketRateData.commission);
+            } else if (currentSeason && currentSeason.admin_commission) {
+                commissionRate = parseFloat(currentSeason.admin_commission);
+            }
+
+            if (commissionRate > 0) {
+                // Calculate the cost for this specific season to apply commission correctly
+                const seasonBaseCost = (parseFloat(marketRateData.rate) || 0) * nightsInSeason * requiredUnits;
+                let seasonSupplementCost = 0;
+                if (rules.pricing_model === 'SupplementPerGuest' && currentSeason) {
+                    const guestsCoveredByBaseRate = 2 * requiredUnits;
+                    const extraAdults = Math.max(0, totalAdultsAndTeens - guestsCoveredByBaseRate);
+                    const extraChildren = Math.max(0, (totalAdultsAndTeens + children.length) - guestsCoveredByBaseRate - extraAdults);
+                    seasonSupplementCost = (extraAdults * (rules.adult_supplement || 0)) * nightsInSeason;
+                    if (currentSeason.apply_child_supplement == 1) {
+                        seasonSupplementCost += (extraChildren * (rules.child_supplement || 0)) * nightsInSeason;
+                    }
+                }
+                const seasonTotalCost = seasonBaseCost + seasonSupplementCost;
+                totalCommission += seasonTotalCost * (commissionRate / 100);
+            }
+        }
+
+        totalCost += totalCommission;
+
         let discountPercent = 0;
         let discountNote = '';
 
