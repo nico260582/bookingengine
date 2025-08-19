@@ -111,16 +111,8 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         elements.telephoneInput.addEventListener('countrychange', function() {
-            const countryData = iti.getSelectedCountryData();
-            if (countryData.iso2) {
-                const countryOption = elements.countryResidenceSelect.querySelector(`option[data-iso-code="${countryData.iso2}"]`);
-                if (countryOption) {
-                    countryOption.selected = true;
-                }
-            }
-            if (countryData.name) {
-                displayStartingPrice(countryData.name);
-            }
+            // Intentionally left blank to stop the phone country from changing the residence country.
+            // The initial country is set via geo-ip, which is the desired behavior.
         });
 
         elements.countryResidenceSelect.addEventListener('change', function() {
@@ -129,6 +121,8 @@ document.addEventListener('DOMContentLoaded', function () {
             if (isoCode) {
                 iti.setCountry(isoCode);
             }
+            const countryName = selectedOption.value;
+            displayStartingPrice(countryName);
             saveBookingDetailsToSession();
         });
     }
