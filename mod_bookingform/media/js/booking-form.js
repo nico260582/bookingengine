@@ -97,7 +97,6 @@ document.addEventListener('DOMContentLoaded', function () {
     let iti = null;
     let couponDiscount = { percent: 0, message: '' };
     let isBookingPossible = true;
-    let isDateRangeValid = false;
     let picker;
 
     if (elements.telephoneInput) {
@@ -130,66 +129,16 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    function getRateInfoForDate(date) {
+    function getSeasonForDate(date) {
         const rules = options.pricingRules;
-
-        // The seasons data can be double-encoded. Ensure it's an array.
-        if (rules && typeof rules.seasons === 'string' && rules.seasons.length > 0) {
-            try {
-                rules.seasons = JSON.parse(rules.seasons);
-            } catch (e) {
-                console.error("Failed to parse seasons JSON:", e);
-                return null;
-            }
-        }
-
         if (!rules || !Array.isArray(rules.seasons)) return null;
-
-        const findSeason = (d) => {
-            const year = d.getFullYear();
-            const month = (d.getMonth() + 1).toString().padStart(2, '0');
-            const day = d.getDate().toString().padStart(2, '0');
-            const dateStr = `${year}-${month}-${day}`;
-
-            for (const season of rules.seasons) {
-                // --- DEBUGGING CODE START ---
-                if (!window.debugAlertShown) {
-                    const alertMessage = `DEBUG INFO (Season: ${season.name}):\n\n` +
-                        `Date being checked: ${dateStr}\n` +
-                        `Season Start: ${season.start_date}\n` +
-                        `Season End: ${season.end_date}\n` +
-                        `Comparison Result: ${dateStr >= season.start_date && dateStr <= season.end_date}`;
-                    alert(alertMessage);
-                }
-                // --- DEBUGGING CODE END ---
-
-                if (dateStr >= season.start_date && dateStr <= season.end_date) {
-                    window.debugAlertShown = true; // Stop alerts once a match is found
-                    return season;
-                }
-            }
-
-            // If the loop finishes, show one final alert and then stop.
-            if (!window.debugAlertShown) {
-                alert("DEBUG: Loop completed for date " + dateStr + ". No matching season was found.");
-            }
-            window.debugAlertShown = true;
-            return null;
-        };
-
-        let season = findSeason(date);
-        if (season) {
-            return { season, surcharge: false };
+        const year = date.getFullYear();
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const day = date.getDate().toString().padStart(2, '0');
+        const dateStr = `${year}-${month}-${day}`;
+        for (const season of rules.seasons) {
+            if (dateStr >= season.start_date && dateStr <= season.end_date) return season;
         }
-
-        const priorYearDate = new Date(date);
-        priorYearDate.setFullYear(priorYearDate.getFullYear() - 1);
-        season = findSeason(priorYearDate);
-
-        if (season) {
-            return { season, surcharge: true };
-        }
-
         return null;
     }
 
@@ -209,43 +158,56 @@ document.addEventListener('DOMContentLoaded', function () {
                         let currentDate = date1.toJSDate();
                         let totalNightsInDefinedSeasons = 0;
 
+                        seasonRateCounts = {};
+                        let currentDate = date1.toJSDate();
+                        let allDatesFound = true;
+
                         while(currentDate < date2.toJSDate()){
-                            const rateInfo = getRateInfoForDate(currentDate);
-                            if (rateInfo) {
-                                totalNightsInDefinedSeasons++;
-                                const seasonName = rateInfo.season.name;
+                            let season = getSeasonForDate(currentDate);
+                            let surcharge = false;
+
+                            if (!season) {
+                                const priorYearDate = new Date(currentDate);
+                                priorYearDate.setFullYear(priorYearDate.getFullYear() - 1);
+                                season = getSeasonForDate(priorYearDate);
+                                surcharge = true;
+                            }
+
+                            if (season) {
+                                const seasonName = season.name;
                                 if (!seasonRateCounts[seasonName]) {
                                     seasonRateCounts[seasonName] = { normal: 0, surcharged: 0 };
                                 }
-                                if (rateInfo.surcharge) {
+                                if (surcharge) {
                                     seasonRateCounts[seasonName].surcharged++;
                                 } else {
                                     seasonRateCounts[seasonName].normal++;
                                 }
+                            } else {
+                                allDatesFound = false;
+                                break;
                             }
                             currentDate.setDate(currentDate.getDate() + 1);
                         }
 
                         numberOfNights = (date2.toJSDate() - date1.toJSDate()) / (1000 * 60 * 60 * 24);
 
-                        if (totalNightsInDefinedSeasons < numberOfNights) {
+                        if (!allDatesFound) {
                             elements.dateRangeError.textContent = 'Some of the selected dates are unavailable for booking.';
                             elements.dateRangeError.style.display = 'block';
                             elements.datePickerEl.classList.add('is-invalid');
                             seasonRateCounts = {};
-                            isDateRangeValid = false;
                         } else {
                             elements.dateRangeError.style.display = 'none';
                             elements.datePickerEl.classList.remove('is-invalid');
-                            isDateRangeValid = true;
                         }
 
                         let minStay = 0;
                         let minStaySeason = '';
-                        const checkoutRateInfo = getRateInfoForDate(date2.toJSDate());
-                        if (checkoutRateInfo && checkoutRateInfo.season.min_stay > 0) {
-                            minStay = checkoutRateInfo.season.min_stay;
-                            minStaySeason = checkoutRateInfo.season.name;
+                        const checkoutSeason = getSeasonForDate(date2.toJSDate());
+                        if (checkoutSeason && checkoutSeason.min_stay > 0) {
+                            minStay = checkoutSeason.min_stay;
+                            minStaySeason = checkoutSeason.name;
                         }
                         if (elements.minStayAlert) {
                             if (numberOfNights > 0 && numberOfNights < minStay) {
@@ -652,20 +614,15 @@ document.addEventListener('DOMContentLoaded', function () {
             elements.countryResidenceSelect.classList.remove('is-invalid');
             elements.childAgesContainer.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
 
-            if (!isDateRangeValid && numberOfNights > 0) {
-                elements.datePickerEl.scrollIntoView({ behavior: 'smooth' });
-                return;
-            }
-
             let isValid = true;
 
             let minStay = 0;
             let minStaySeason = '';
             const endDate = new Date(elements.endDateInput.value);
-            const checkoutRateInfo = getRateInfoForDate(endDate);
-            if (checkoutRateInfo && checkoutRateInfo.season.min_stay > 0) {
-                minStay = checkoutRateInfo.season.min_stay;
-                minStaySeason = checkoutRateInfo.season.name;
+            const checkoutSeason = getSeasonForDate(endDate);
+            if (checkoutSeason && checkoutSeason.min_stay > 0) {
+                minStay = checkoutSeason.min_stay;
+                minStaySeason = checkoutSeason.name;
             }
 
             if (numberOfNights === 0) {
