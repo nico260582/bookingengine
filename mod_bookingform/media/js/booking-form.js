@@ -394,9 +394,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const marketName = (rules.active_markets && rules.active_markets.includes(selectedCountry)) ? selectedCountry : 'Global Rate';
 
         let currencySymbol = '€';
-        let totalBaseCost = 0;
-        let totalSupplementCost = 0;
-        let totalCommission = 0;
+        let totalCost = 0;
 
         let discountPercent = 0;
         let discountNote = '';
@@ -434,7 +432,6 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             currencySymbol = marketRateData.currency_symbol || currencySymbol;
             const seasonBaseCost = nightlyRate * nightsInSeason * requiredUnits;
-            totalBaseCost += seasonBaseCost;
 
             const currentSeason = rules.seasons.find(s => s.name === actualSeasonName);
             let seasonSupplementCost = 0;
@@ -446,12 +443,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (currentSeason.apply_child_supplement == 1) {
                     seasonSupplementCost += (extraChildren * (rules.child_supplement || 0)) * nightsInSeason;
                 }
-                totalSupplementCost += seasonSupplementCost;
             } else if (rules.pricing_model === 'CapacityBased' && rules.allow_extra_mattress && rules.extra_mattress_fee > 0) {
                 if (mattressesNeeded > 0) {
                     const mattressesUsed = Math.min(requiredUnits, mattressesNeeded);
                     seasonSupplementCost = mattressesUsed * rules.extra_mattress_fee * nightsInSeason;
-                    totalSupplementCost += seasonSupplementCost;
                 }
             }
 
@@ -467,16 +462,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 commissionRate = parseFloat(currentSeason.admin_commission);
             }
 
+            let seasonCommission = 0;
             if (commissionRate > 0) {
-                totalCommission += seasonTotalCost * (commissionRate / 100);
+                seasonCommission = seasonTotalCost * (commissionRate / 100);
             }
-        }
 
-        let totalCost = totalBaseCost + totalSupplementCost;
-        if (discountPercent > 0) {
-            totalCost *= (1 - (discountPercent / 100));
+            totalCost += seasonTotalCost + seasonCommission;
         }
-        totalCost += totalCommission;
 
         if (elements.discountAlert) {
             if (discountPercent > 0 && totalCost > 0) {
