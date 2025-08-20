@@ -45,6 +45,10 @@
     <fieldset name="discounts" label="Discount Rules">
         <field name="out_of_season_surcharge" type="number" label="Out-of-Season Surcharge %" description="Surcharge for bookings outside of defined seasons." default="10" step="0.01" />
         <field name="global_discount" type="number" label="Global Discount %" description="A global discount that applies if no country-specific discount is available." step="0.01" />
+        <field name="show_discount_notification" type="radio" class="btn-group" default="1" label="Show Discount Notification to Client?">
+            <option value="1">JYES</option>
+            <option value="0">JNO</option>
+        </field>
         <field
             name="country_discounts"
             type="subform"
