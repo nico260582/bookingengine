@@ -150,6 +150,24 @@ document.addEventListener('DOMContentLoaded', function () {
             const month = (d.getMonth() + 1).toString().padStart(2, '0');
             const day = d.getDate().toString().padStart(2, '0');
             const dateStr = `${year}-${month}-${day}`;
+
+            // --- DEBUGGING CODE START ---
+            if (!window.debugAlertShown && rules.seasons && rules.seasons.length > 0) {
+                const firstSeason = rules.seasons[0];
+                const alertMessage = `DEBUG INFO:\n\n` +
+                    `Date being checked (dateStr): ${dateStr}\n` +
+                    `\n--- First Season Data ---\n` +
+                    `Name: ${firstSeason.name}\n` +
+                    `Start Date: ${firstSeason.start_date}\n` +
+                    `End Date: ${firstSeason.end_date}\n` +
+                    `\n--- Comparison Checks ---\n` +
+                    `Is (dateStr >= Start Date)? ${dateStr >= firstSeason.start_date}\n` +
+                    `Is (dateStr <= End Date)? ${dateStr <= firstSeason.end_date}`;
+                alert(alertMessage);
+                window.debugAlertShown = true;
+            }
+            // --- DEBUGGING CODE END ---
+
             for (const season of rules.seasons) {
                 if (dateStr >= season.start_date && dateStr <= season.end_date) return season;
             }
