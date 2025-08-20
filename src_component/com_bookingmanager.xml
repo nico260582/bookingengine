@@ -28,13 +28,13 @@
     <administration>
         <menu link="option=com_bookingmanager">Booking Manager</menu>
         <submenu>
-            <menu view="bookingrequests" link="option=com_bookingmanager&amp;view=bookingrequests">Booking Requests</menu>
-            <menu view="properties" link="option=com_bookingmanager&amp;view=properties">Properties</menu>
-            <menu view="complexes" link="option=com_bookingmanager&amp;view=complexes">Complexes</menu>
-            <menu view="suppliers" link="option=com_bookingmanager&amp;view=suppliers">Suppliers</menu>
-            <menu view="propertyrates" link="option=com_bookingmanager&amp;view=propertyrates">Property Rates</menu>
-            <menu view="templates" link="option=com_bookingmanager&amp;view=templates">Email Templates</menu>
-            <menu view="diagnostic" link="option=com_bookingmanager&amp;view=diagnostic">Diagnostic</menu>
+            <menu view="bookingrequests" link="option=com_bookingmanager&amp;view=bookingrequests" img="class:icon-calendar">Booking Requests</menu>
+            <menu view="properties" link="option=com_bookingmanager&amp;view=properties" img="class:icon-home">Properties</menu>
+            <menu view="complexes" link="option=com_bookingmanager&amp;view=complexes" img="class:icon-folder-open">Complexes</menu>
+            <menu view="suppliers" link="option=com_bookingmanager&amp;view=suppliers" img="class:icon-user">Suppliers</menu>
+            <menu view="propertyrates" link="option=com_bookingmanager&amp;view=propertyrates" img="class:icon-tags">Property Rates</menu>
+            <menu view="templates" link="option=com_bookingmanager&amp;view=templates" img="class:icon-envelope">Email Templates</menu>
+            <menu view="diagnostic" link="option=com_bookingmanager&amp;view=diagnostic" img="class:icon-cogs">Diagnostic</menu>
         </submenu>
         <access aclinfile="access.xml"/>
         <files folder="administrator">
