@@ -301,7 +301,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function updateCalculations() {
-        console.log('Starting price calculation...', { rules: options.pricingRules });
         const adults = parseInt(elements.guestSelect.value, 10);
         const rules = options.pricingRules;
         if (!rules) return;
@@ -382,6 +381,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const selectedCountry = elements.countryResidenceSelect.value;
         const marketName = (rules.active_markets && rules.active_markets.includes(selectedCountry)) ? selectedCountry : 'Global Rate';
 
+        console.log('Starting price calculation...', { rules: options.pricingRules });
         let currencySymbol = '€';
         let totalCost = 0;
 
@@ -462,7 +462,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         if (elements.discountAlert) {
-            if (discountPercent > 0 && totalCost > 0) {
+            if (discountPercent > 0 && totalCost > 0 && rules.show_discount_notification == 1) {
                 elements.discountAlert.textContent = discountNote;
                 elements.discountAlert.style.display = 'block';
                 elements.discountNoteInput.value = discountNote;
@@ -478,7 +478,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         if (numberOfNights > 0) {
-            console.log('Final total cost:', totalCost);
             const formattedPrice = totalCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             elements.priceDisplay.textContent = `Est. Price: ${currencySymbol} ${formattedPrice}`;
             elements.priceInput.value = `${currencySymbol} ${formattedPrice}`;
