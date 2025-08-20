@@ -301,6 +301,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function updateCalculations() {
+        console.log('Starting price calculation...', { rules: options.pricingRules });
         const adults = parseInt(elements.guestSelect.value, 10);
         const rules = options.pricingRules;
         if (!rules) return;
@@ -399,6 +400,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 discountNote = `A ${discountPercent}% global discount has been applied!`;
             }
         }
+        console.log('Discount percent determined:', discountPercent);
 
         for (const [seasonName, nightsInSeason] of Object.entries(seasonRateCounts)) {
             let actualSeasonName = seasonName;
@@ -442,6 +444,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (discountPercent > 0) {
                 seasonTotalCost *= (1 - (discountPercent / 100));
             }
+            console.log('Season:', actualSeasonName, 'Season total cost after discount:', seasonTotalCost);
 
             let commissionRate = 0;
             if (marketRateData.override_commission && marketRateData.commission > 0) {
@@ -475,6 +478,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         if (numberOfNights > 0) {
+            console.log('Final total cost:', totalCost);
             const formattedPrice = totalCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             elements.priceDisplay.textContent = `Est. Price: ${currencySymbol} ${formattedPrice}`;
             elements.priceInput.value = `${currencySymbol} ${formattedPrice}`;
