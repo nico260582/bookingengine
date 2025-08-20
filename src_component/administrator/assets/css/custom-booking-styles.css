@@ -210,3 +210,8 @@ body.dark .property-item.assigned-other {
 .sidebar-nav .nav > li > a > i {
     margin-right: 8px;
 }
+
+/* --- Admin Menu Icon Spacing --- */
+.item > a > span[class^="icon-"] {
+    margin-right: 8px;
+}
