@@ -44,6 +44,23 @@
     </fieldset>
     <fieldset name="discounts" label="Discount Rules">
         <field
+            name="surcharge_percent"
+            type="number"
+            label="Out-of-Season Surcharge %"
+            description="Enter the percentage to add to the daily rate for dates that fall outside of any defined season. The calculation will be based on the previous year's rate."
+            step="0.01"
+            default="10"
+            size="10"
+        />
+        <field
+            name="global_discount_percent"
+            type="number"
+            label="Global Discount %"
+            description="A global discount that applies to all bookings. If a country-specific discount is also applicable, the country discount will be used instead."
+            step="0.01"
+            size="10"
+        />
+        <field
             name="country_discounts"
             type="subform"
             label="Country-Specific Discounts"

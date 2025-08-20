@@ -86,6 +86,7 @@ use Joomla\CMS\HTML\HTMLHelper;
 
         <div class="price-summary" id="price-summary-container" style="display: none;">
             <div id="price-estimate-display" class="price-total">Est. Price: -</div>
+            <div id="surcharge-notification" class="alert alert-warning" style="display: none; margin-top: 10px;"></div>
             <div id="discount-applied-alert" class="alert alert-success" style="display: none;"></div>
             <div id="mattress-notification" class="alert alert-info" style="display: none; margin-top: 10px;"></div>
             <div id="nights-count-display" class="nights-count"></div>

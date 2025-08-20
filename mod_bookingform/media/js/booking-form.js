@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', function () {
         priceDisplay: document.getElementById('price-estimate-display'),
         priceInput: document.getElementById('price-estimate-input'),
         priceDisclaimer: document.getElementById('price-disclaimer'),
+        surchargeNotification: document.getElementById('surcharge-notification'),
         startDateInput: document.getElementById('start-date'),
         endDateInput: document.getElementById('end-date'),
         datePickerEl: document.getElementById('date-range-picker'),
@@ -127,16 +128,34 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    function getSeasonForDate(date) {
+    function getRateInfoForDate(date) {
         const rules = options.pricingRules;
         if (!rules || !Array.isArray(rules.seasons)) return null;
-        const year = date.getFullYear();
-        const month = (date.getMonth() + 1).toString().padStart(2, '0');
-        const day = date.getDate().toString().padStart(2, '0');
-        const dateStr = `${year}-${month}-${day}`;
-        for (const season of rules.seasons) {
-            if (dateStr >= season.start_date && dateStr <= season.end_date) return season;
+
+        const findSeason = (d) => {
+            const year = d.getFullYear();
+            const month = (d.getMonth() + 1).toString().padStart(2, '0');
+            const day = d.getDate().toString().padStart(2, '0');
+            const dateStr = `${year}-${month}-${day}`;
+            for (const season of rules.seasons) {
+                if (dateStr >= season.start_date && dateStr <= season.end_date) return season;
+            }
+            return null;
+        };
+
+        let season = findSeason(date);
+        if (season) {
+            return { season, surcharge: false };
         }
+
+        const priorYearDate = new Date(date);
+        priorYearDate.setFullYear(priorYearDate.getFullYear() - 1);
+        season = findSeason(priorYearDate);
+
+        if (season) {
+            return { season, surcharge: true };
+        }
+
         return null;
     }
 
@@ -154,18 +173,45 @@ document.addEventListener('DOMContentLoaded', function () {
                         elements.endDateInput.value = date2.format('YYYY-MM-DD');
                         seasonRateCounts = {};
                         let currentDate = date1.toJSDate();
+                        let totalNightsInDefinedSeasons = 0;
+
                         while(currentDate < date2.toJSDate()){
-                            const season = getSeasonForDate(currentDate);
-                            if (season) { seasonRateCounts[season.name] = (seasonRateCounts[season.name] || 0) + 1; }
+                            const rateInfo = getRateInfoForDate(currentDate);
+                            if (rateInfo) {
+                                totalNightsInDefinedSeasons++;
+                                const seasonName = rateInfo.season.name;
+                                if (!seasonRateCounts[seasonName]) {
+                                    seasonRateCounts[seasonName] = { normal: 0, surcharged: 0 };
+                                }
+                                if (rateInfo.surcharge) {
+                                    seasonRateCounts[seasonName].surcharged++;
+                                } else {
+                                    seasonRateCounts[seasonName].normal++;
+                                }
+                            }
                             currentDate.setDate(currentDate.getDate() + 1);
                         }
-                        numberOfNights = Object.values(seasonRateCounts).reduce((a, b) => a + b, 0);
+
+                        numberOfNights = (date2.toJSDate() - date1.toJSDate()) / (1000 * 60 * 60 * 24);
+
+                        if (totalNightsInDefinedSeasons < numberOfNights) {
+                            elements.dateRangeError.textContent = 'Some of the selected dates are unavailable for booking.';
+                            elements.dateRangeError.style.display = 'block';
+                            elements.datePickerEl.classList.add('is-invalid');
+                            // Clear results if dates are invalid
+                            seasonRateCounts = {};
+                            numberOfNights = 0;
+                        } else {
+                            elements.dateRangeError.style.display = 'none';
+                            elements.datePickerEl.classList.remove('is-invalid');
+                        }
+
                         let minStay = 0;
                         let minStaySeason = '';
-                        const checkoutSeason = getSeasonForDate(date2.toJSDate());
-                        if (checkoutSeason && checkoutSeason.min_stay > 0) {
-                            minStay = checkoutSeason.min_stay;
-                            minStaySeason = checkoutSeason.name;
+                        const checkoutRateInfo = getRateInfoForDate(date2.toJSDate());
+                        if (checkoutRateInfo && checkoutRateInfo.season.min_stay > 0) {
+                            minStay = checkoutRateInfo.season.min_stay;
+                            minStaySeason = checkoutRateInfo.season.name;
                         }
                         if (elements.minStayAlert) {
                             if (numberOfNights > 0 && numberOfNights < minStay) {
@@ -380,8 +426,9 @@ document.addEventListener('DOMContentLoaded', function () {
         let totalBaseCost = 0;
         let totalSupplementCost = 0;
         let totalCommission = 0;
+        let hasSurcharge = false;
 
-        for (const [seasonName, nightsInSeason] of Object.entries(seasonRateCounts)) {
+        for (const [seasonName, counts] of Object.entries(seasonRateCounts)) {
             const seasonRates = rules.rates[seasonName];
             if (!seasonRates) continue;
 
@@ -390,10 +437,20 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const nightlyRate = parseFloat(marketRateData.rate);
             currencySymbol = marketRateData.currency_symbol || currencySymbol;
-            const seasonBaseCost = nightlyRate * nightsInSeason * requiredUnits;
-            totalBaseCost += seasonBaseCost;
+
+            // Calculate cost for normal nights
+            totalBaseCost += nightlyRate * counts.normal * requiredUnits;
+
+            // Calculate cost for surcharged nights
+            if (counts.surcharged > 0) {
+                hasSurcharge = true;
+                const surchargePercent = rules.surcharge_percent || 10;
+                totalBaseCost += (nightlyRate * (1 + (surchargePercent / 100))) * counts.surcharged * requiredUnits;
+            }
 
             const currentSeason = rules.seasons.find(s => s.name === seasonName);
+            const nightsInSeason = counts.normal + counts.surcharged;
+
             if (rules.pricing_model === 'SupplementPerGuest' && currentSeason) {
                 const guestsCoveredByBaseRate = 2 * requiredUnits;
                 const extraAdults = Math.max(0, totalAdultsAndTeens - guestsCoveredByBaseRate);
@@ -413,10 +470,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
         let totalCost = totalBaseCost + totalSupplementCost;
 
-        for (const [seasonName, nightsInSeason] of Object.entries(seasonRateCounts)) {
+        for (const [seasonName, counts] of Object.entries(seasonRateCounts)) {
             const seasonRates = rules.rates[seasonName] || {};
             const marketRateData = seasonRates[marketName] || seasonRates['Global Rate'] || {};
             const currentSeason = rules.seasons.find(s => s.name === seasonName);
+            const nightsInSeason = counts.normal + counts.surcharged;
 
             let commissionRate = 0;
             if (marketRateData.override_commission && marketRateData.commission > 0) {
@@ -426,7 +484,14 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             if (commissionRate > 0) {
-                const seasonBaseCost = (parseFloat(marketRateData.rate) || 0) * nightsInSeason * requiredUnits;
+                let seasonBaseCost = 0;
+                const baseRate = parseFloat(marketRateData.rate) || 0;
+                seasonBaseCost += baseRate * counts.normal * requiredUnits;
+                if (counts.surcharged > 0) {
+                    const surchargePercent = rules.surcharge_percent || 10;
+                    seasonBaseCost += (baseRate * (1 + (surchargePercent / 100))) * counts.surcharged * requiredUnits;
+                }
+
                 let seasonSupplementCost = 0;
                 if (rules.pricing_model === 'SupplementPerGuest' && currentSeason) {
                     const guestsCoveredByBaseRate = 2 * requiredUnits;
@@ -455,11 +520,19 @@ document.addEventListener('DOMContentLoaded', function () {
         if (couponDiscount.percent > 0) {
             discountPercent = couponDiscount.percent;
             discountNote = couponDiscount.message;
-        } else if (rules.country_discounts && selectedCountry) {
-            const countryRule = rules.country_discounts.find(d => d.country === selectedCountry);
-            if (countryRule && countryRule.discount_percent) {
-                discountPercent = parseFloat(countryRule.discount_percent);
-                discountNote = countryRule.note || `A ${discountPercent}% discount has been applied!`;
+        } else {
+            let countryRuleFound = false;
+            if (rules.country_discounts && selectedCountry) {
+                const countryRule = rules.country_discounts.find(d => d.country === selectedCountry);
+                if (countryRule && countryRule.discount_percent) {
+                    discountPercent = parseFloat(countryRule.discount_percent);
+                    discountNote = countryRule.note || `A ${discountPercent}% discount has been applied!`;
+                    countryRuleFound = true;
+                }
+            }
+            if (!countryRuleFound && rules.global_discount_percent > 0) {
+                discountPercent = parseFloat(rules.global_discount_percent);
+                discountNote = `A ${discountPercent}% global discount has been applied!`;
             }
         }
 
@@ -475,6 +548,16 @@ document.addEventListener('DOMContentLoaded', function () {
             } else {
                 elements.discountAlert.style.display = 'none';
                 elements.discountNoteInput.value = '';
+            }
+        }
+
+        if (elements.surchargeNotification) {
+            if (hasSurcharge) {
+                const surchargePercent = rules.surcharge_percent || 10;
+                elements.surchargeNotification.textContent = `A ${surchargePercent}% surcharge has been applied to some dates that are outside of the defined seasons.`;
+                elements.surchargeNotification.style.display = 'block';
+            } else {
+                elements.surchargeNotification.style.display = 'none';
             }
         }
 
