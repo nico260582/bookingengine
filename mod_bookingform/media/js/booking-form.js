@@ -97,6 +97,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let iti = null;
     let couponDiscount = { percent: 0, message: '' };
     let isBookingPossible = true;
+    let isDateRangeValid = false;
     let picker;
 
     if (elements.telephoneInput) {
@@ -199,12 +200,12 @@ document.addEventListener('DOMContentLoaded', function () {
                             elements.dateRangeError.textContent = 'Some of the selected dates are unavailable for booking.';
                             elements.dateRangeError.style.display = 'block';
                             elements.datePickerEl.classList.add('is-invalid');
-                            // Clear results if dates are invalid
                             seasonRateCounts = {};
-                            numberOfNights = 0;
+                            isDateRangeValid = false;
                         } else {
                             elements.dateRangeError.style.display = 'none';
                             elements.datePickerEl.classList.remove('is-invalid');
+                            isDateRangeValid = true;
                         }
 
                         let minStay = 0;
@@ -618,6 +619,11 @@ document.addEventListener('DOMContentLoaded', function () {
             elements.datePickerEl.classList.remove('is-invalid');
             elements.countryResidenceSelect.classList.remove('is-invalid');
             elements.childAgesContainer.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+
+            if (!isDateRangeValid && numberOfNights > 0) {
+                elements.datePickerEl.scrollIntoView({ behavior: 'smooth' });
+                return;
+            }
 
             let isValid = true;
 
