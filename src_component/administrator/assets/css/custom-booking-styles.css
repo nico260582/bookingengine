@@ -207,7 +207,6 @@ body.dark .property-item.assigned-other {
     display: block;
 }
 
-.sidebar-nav .nav > li.active > a {
-    border-color: #ddd;
-    background-color: #f5f5f5;
+.sidebar-nav .nav > li > a > i {
+    margin-right: 8px;
 }
