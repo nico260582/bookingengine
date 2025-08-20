@@ -387,17 +387,22 @@ document.addEventListener('DOMContentLoaded', function () {
 
         let discountPercent = 0;
         let discountNote = '';
+        let discountType = '';
+
         if (couponDiscount.percent > 0) {
             discountPercent = couponDiscount.percent;
             discountNote = couponDiscount.message;
+            discountType = 'coupon';
         } else {
             const countryRule = rules.country_discounts && selectedCountry ? rules.country_discounts.find(d => d.country === selectedCountry) : null;
             if (countryRule && countryRule.discount_percent) {
                 discountPercent = parseFloat(countryRule.discount_percent);
                 discountNote = countryRule.note || `A ${discountPercent}% discount has been applied!`;
+                discountType = 'country';
             } else if (rules.global_discount > 0) {
                 discountPercent = rules.global_discount;
                 discountNote = `A ${discountPercent}% global discount has been applied!`;
+                discountType = 'global';
             }
         }
         console.log('Discount percent determined:', discountPercent);
@@ -462,7 +467,18 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         if (elements.discountAlert) {
-            if (discountPercent > 0 && totalCost > 0 && rules.show_discount_notification == 1) {
+            let showNotification = false;
+            if (discountPercent > 0 && totalCost > 0) {
+                if (discountType === 'global') {
+                    if (rules.show_global_discount_notification == 1) {
+                        showNotification = true;
+                    }
+                } else { // For 'coupon' and 'country'
+                    showNotification = true;
+                }
+            }
+
+            if (showNotification) {
                 elements.discountAlert.textContent = discountNote;
                 elements.discountAlert.style.display = 'block';
                 elements.discountNoteInput.value = discountNote;

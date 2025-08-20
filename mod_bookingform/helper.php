@@ -30,7 +30,7 @@ class ModBookingFormHelper
         $maxGuests = $propertyDetails ? (int)$propertyDetails->max_guests : 1;
 
 
-        $query->select('s.rules, s.out_of_season_surcharge, s.global_discount, s.show_discount_notification')
+        $query->select('s.rules, s.out_of_season_surcharge, s.global_discount, s.show_global_discount_notification')
             ->from($db->quoteName('#__bookingmanager_property_map', 'm'))
             ->join('INNER', $db->quoteName('#__bookingmanager_suppliers', 's') . ' ON m.supplier_id = s.id')
             ->where('m.property_id = ' . (int) $articleId);
@@ -119,7 +119,7 @@ class ModBookingFormHelper
             'coupon_codes' => isset($rules['coupon_codes']) && is_array($rules['coupon_codes']) ? array_values($rules['coupon_codes']) : [],
             'out_of_season_surcharge' => (float)($supplierData->out_of_season_surcharge ?? 10),
             'global_discount' => (float)($supplierData->global_discount ?? 0),
-            'show_discount_notification' => (int)($supplierData->show_discount_notification ?? 1),
+            'show_global_discount_notification' => (int)($supplierData->show_global_discount_notification ?? 1),
             'alternative_properties' => self::getAlternativeProperties($articleId)
         ];
 
