@@ -1,3 +1,4 @@
+// Cache-busting comment
 document.addEventListener('DOMContentLoaded', function () {
     const options = Joomla.getOptions('mod_bookingform');
     if (!options || !options.pricingRules) { return; }
