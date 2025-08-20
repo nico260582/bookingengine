@@ -190,7 +190,7 @@ body.dark .property-item.assigned-other {
 
 /* --- Horizontal Admin Menu --- */
 .sidebar-nav .nav {
-    flex-direction: row;
+    flex-direction: row !important; /* Override Bootstrap's !important */
     border-bottom: 1px solid #ddd;
     margin-bottom: 15px;
     padding-bottom: 10px;
