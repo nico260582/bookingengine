@@ -623,10 +623,10 @@ document.addEventListener('DOMContentLoaded', function () {
             let minStay = 0;
             let minStaySeason = '';
             const endDate = new Date(elements.endDateInput.value);
-            const checkoutSeason = getSeasonForDate(endDate);
-            if (checkoutSeason && checkoutSeason.min_stay > 0) {
-                minStay = checkoutSeason.min_stay;
-                minStaySeason = checkoutSeason.name;
+            const checkoutRateInfo = getRateInfoForDate(endDate);
+            if (checkoutRateInfo && checkoutRateInfo.season.min_stay > 0) {
+                minStay = checkoutRateInfo.season.min_stay;
+                minStaySeason = checkoutRateInfo.season.name;
             }
 
             if (numberOfNights === 0) {
