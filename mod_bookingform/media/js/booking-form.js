@@ -1,4 +1,3 @@
-// Cache-busting comment
 document.addEventListener('DOMContentLoaded', function () {
     const options = Joomla.getOptions('mod_bookingform');
     if (!options || !options.pricingRules) { return; }
@@ -17,7 +16,6 @@ document.addEventListener('DOMContentLoaded', function () {
         priceDisplay: document.getElementById('price-estimate-display'),
         priceInput: document.getElementById('price-estimate-input'),
         priceDisclaimer: document.getElementById('price-disclaimer'),
-        surchargeNotification: document.getElementById('surcharge-notification'),
         startDateInput: document.getElementById('start-date'),
         endDateInput: document.getElementById('end-date'),
         datePickerEl: document.getElementById('date-range-picker'),
@@ -113,8 +111,16 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         elements.telephoneInput.addEventListener('countrychange', function() {
-            // Intentionally left blank to stop the phone country from changing the residence country.
-            // The initial country is set via geo-ip, which is the desired behavior.
+            const countryData = iti.getSelectedCountryData();
+            if (countryData.iso2) {
+                const countryOption = elements.countryResidenceSelect.querySelector(`option[data-iso-code="${countryData.iso2}"]`);
+                if (countryOption) {
+                    countryOption.selected = true;
+                }
+            }
+            if (countryData.name) {
+                displayStartingPrice(countryData.name);
+            }
         });
 
         elements.countryResidenceSelect.addEventListener('change', function() {
@@ -123,8 +129,6 @@ document.addEventListener('DOMContentLoaded', function () {
             if (isoCode) {
                 iti.setCountry(isoCode);
             }
-            const countryName = selectedOption.value;
-            displayStartingPrice(countryName);
             saveBookingDetailsToSession();
         });
     }
@@ -156,52 +160,12 @@ document.addEventListener('DOMContentLoaded', function () {
                         elements.endDateInput.value = date2.format('YYYY-MM-DD');
                         seasonRateCounts = {};
                         let currentDate = date1.toJSDate();
-                        let totalNightsInDefinedSeasons = 0;
-
-                        seasonRateCounts = {};
-                        let currentDate = date1.toJSDate();
-                        let allDatesFound = true;
-
                         while(currentDate < date2.toJSDate()){
-                            let season = getSeasonForDate(currentDate);
-                            let surcharge = false;
-
-                            if (!season) {
-                                const priorYearDate = new Date(currentDate);
-                                priorYearDate.setFullYear(priorYearDate.getFullYear() - 1);
-                                season = getSeasonForDate(priorYearDate);
-                                surcharge = true;
-                            }
-
-                            if (season) {
-                                const seasonName = season.name;
-                                if (!seasonRateCounts[seasonName]) {
-                                    seasonRateCounts[seasonName] = { normal: 0, surcharged: 0 };
-                                }
-                                if (surcharge) {
-                                    seasonRateCounts[seasonName].surcharged++;
-                                } else {
-                                    seasonRateCounts[seasonName].normal++;
-                                }
-                            } else {
-                                allDatesFound = false;
-                                break;
-                            }
+                            const season = getSeasonForDate(currentDate);
+                            if (season) { seasonRateCounts[season.name] = (seasonRateCounts[season.name] || 0) + 1; }
                             currentDate.setDate(currentDate.getDate() + 1);
                         }
-
-                        numberOfNights = (date2.toJSDate() - date1.toJSDate()) / (1000 * 60 * 60 * 24);
-
-                        if (!allDatesFound) {
-                            elements.dateRangeError.textContent = 'Some of the selected dates are unavailable for booking.';
-                            elements.dateRangeError.style.display = 'block';
-                            elements.datePickerEl.classList.add('is-invalid');
-                            seasonRateCounts = {};
-                        } else {
-                            elements.dateRangeError.style.display = 'none';
-                            elements.datePickerEl.classList.remove('is-invalid');
-                        }
-
+                        numberOfNights = Object.values(seasonRateCounts).reduce((a, b) => a + b, 0);
                         let minStay = 0;
                         let minStaySeason = '';
                         const checkoutSeason = getSeasonForDate(date2.toJSDate());
@@ -267,15 +231,9 @@ document.addEventListener('DOMContentLoaded', function () {
             messages.push(`Child aged ${rules.child_max_age + 1}-${rules.teen_max_age} are considered guest adults for pricing.`);
         }
 
-        if (rules.pricing_model === 'CapacityBased' || rules.pricing_model === 'FlatUnitRate') {
+        if (rules.pricing_model === 'CapacityBased') {
             if (children.length > 0) {
-                let message = `Children above age ${rules.infant_max_age} are counted towards the total guest capacity`;
-                if (rules.pricing_model === 'CapacityBased' && rules.allow_extra_mattress) {
-                    message += ' and may use an extra mattress if the limit is reached.';
-                } else {
-                    message += '.';
-                }
-                messages.push(message);
+                messages.push(`Children above age ${rules.infant_max_age} are counted towards the total guest capacity and may use an extra mattress if the limit is reached.`);
             }
         } else {
             const selectedSeasonNames = Object.keys(seasonRateCounts);
@@ -386,7 +344,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     suggestionMessage = `Your total guest is ${totalGuestsForCapacity}, ${requiredUnits} units will be required or select an alternative properties below`;
                 }
                 showSuggestion = true;
-            } else if (rules.pricing_model === 'CapacityBased' && rules.allow_extra_mattress) {
+            } else if (rules.allow_extra_mattress) {
                  showSuggestion = true;
                  suggestionMessage = "An extra mattress will be provided for your group. You can also consider these larger properties below:";
             }
@@ -422,9 +380,8 @@ document.addEventListener('DOMContentLoaded', function () {
         let totalBaseCost = 0;
         let totalSupplementCost = 0;
         let totalCommission = 0;
-        let hasSurcharge = false;
 
-        for (const [seasonName, counts] of Object.entries(seasonRateCounts)) {
+        for (const [seasonName, nightsInSeason] of Object.entries(seasonRateCounts)) {
             const seasonRates = rules.rates[seasonName];
             if (!seasonRates) continue;
 
@@ -433,20 +390,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const nightlyRate = parseFloat(marketRateData.rate);
             currencySymbol = marketRateData.currency_symbol || currencySymbol;
-
-            // Calculate cost for normal nights
-            totalBaseCost += nightlyRate * counts.normal * requiredUnits;
-
-            // Calculate cost for surcharged nights
-            if (counts.surcharged > 0) {
-                hasSurcharge = true;
-                const surchargePercent = rules.surcharge_percent || 10;
-                totalBaseCost += (nightlyRate * (1 + (surchargePercent / 100))) * counts.surcharged * requiredUnits;
-            }
+            const seasonBaseCost = nightlyRate * nightsInSeason * requiredUnits;
+            totalBaseCost += seasonBaseCost;
 
             const currentSeason = rules.seasons.find(s => s.name === seasonName);
-            const nightsInSeason = counts.normal + counts.surcharged;
-
             if (rules.pricing_model === 'SupplementPerGuest' && currentSeason) {
                 const guestsCoveredByBaseRate = 2 * requiredUnits;
                 const extraAdults = Math.max(0, totalAdultsAndTeens - guestsCoveredByBaseRate);
@@ -466,11 +413,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
         let totalCost = totalBaseCost + totalSupplementCost;
 
-        for (const [seasonName, counts] of Object.entries(seasonRateCounts)) {
+        for (const [seasonName, nightsInSeason] of Object.entries(seasonRateCounts)) {
             const seasonRates = rules.rates[seasonName] || {};
             const marketRateData = seasonRates[marketName] || seasonRates['Global Rate'] || {};
             const currentSeason = rules.seasons.find(s => s.name === seasonName);
-            const nightsInSeason = counts.normal + counts.surcharged;
 
             let commissionRate = 0;
             if (marketRateData.override_commission && marketRateData.commission > 0) {
@@ -480,14 +426,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             if (commissionRate > 0) {
-                let seasonBaseCost = 0;
-                const baseRate = parseFloat(marketRateData.rate) || 0;
-                seasonBaseCost += baseRate * counts.normal * requiredUnits;
-                if (counts.surcharged > 0) {
-                    const surchargePercent = rules.surcharge_percent || 10;
-                    seasonBaseCost += (baseRate * (1 + (surchargePercent / 100))) * counts.surcharged * requiredUnits;
-                }
-
+                const seasonBaseCost = (parseFloat(marketRateData.rate) || 0) * nightsInSeason * requiredUnits;
                 let seasonSupplementCost = 0;
                 if (rules.pricing_model === 'SupplementPerGuest' && currentSeason) {
                     const guestsCoveredByBaseRate = 2 * requiredUnits;
@@ -516,19 +455,11 @@ document.addEventListener('DOMContentLoaded', function () {
         if (couponDiscount.percent > 0) {
             discountPercent = couponDiscount.percent;
             discountNote = couponDiscount.message;
-        } else {
-            let countryRuleFound = false;
-            if (rules.country_discounts && selectedCountry) {
-                const countryRule = rules.country_discounts.find(d => d.country === selectedCountry);
-                if (countryRule && countryRule.discount_percent) {
-                    discountPercent = parseFloat(countryRule.discount_percent);
-                    discountNote = countryRule.note || `A ${discountPercent}% discount has been applied!`;
-                    countryRuleFound = true;
-                }
-            }
-            if (!countryRuleFound && rules.global_discount_percent > 0) {
-                discountPercent = parseFloat(rules.global_discount_percent);
-                discountNote = `A ${discountPercent}% global discount has been applied!`;
+        } else if (rules.country_discounts && selectedCountry) {
+            const countryRule = rules.country_discounts.find(d => d.country === selectedCountry);
+            if (countryRule && countryRule.discount_percent) {
+                discountPercent = parseFloat(countryRule.discount_percent);
+                discountNote = countryRule.note || `A ${discountPercent}% discount has been applied!`;
             }
         }
 
@@ -544,16 +475,6 @@ document.addEventListener('DOMContentLoaded', function () {
             } else {
                 elements.discountAlert.style.display = 'none';
                 elements.discountNoteInput.value = '';
-            }
-        }
-
-        if (elements.surchargeNotification) {
-            if (hasSurcharge) {
-                const surchargePercent = rules.surcharge_percent || 10;
-                elements.surchargeNotification.textContent = `A ${surchargePercent}% surcharge has been applied to some dates that are outside of the defined seasons.`;
-                elements.surchargeNotification.style.display = 'block';
-            } else {
-                elements.surchargeNotification.style.display = 'none';
             }
         }
 
@@ -729,4 +650,6 @@ document.addEventListener('DOMContentLoaded', function () {
             }, 100);
         }
     }
+
+    updateChildAgeInputs();
 });
