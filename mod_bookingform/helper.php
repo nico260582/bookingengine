@@ -30,17 +30,18 @@ class ModBookingFormHelper
         $maxGuests = $propertyDetails ? (int)$propertyDetails->max_guests : 1;
 
 
-        $query->select('s.rules')
+        $query->select('s.rules, s.out_of_season_surcharge, s.global_discount')
             ->from($db->quoteName('#__bookingmanager_property_map', 'm'))
             ->join('INNER', $db->quoteName('#__bookingmanager_suppliers', 's') . ' ON m.supplier_id = s.id')
             ->where('m.property_id = ' . (int) $articleId);
 
-        $rulesJson = $db->setQuery($query)->loadResult();
+        $supplierData = $db->setQuery($query)->loadObject();
 
-        if (!$rulesJson) {
+        if (!$supplierData) {
             return null;
         }
 
+        $rulesJson = $supplierData->rules;
         $rules = json_decode($rulesJson, true);
 
         if (isset($rules['seasons']) && is_string($rules['seasons'])) {
@@ -116,6 +117,8 @@ class ModBookingFormHelper
             'active_markets' => $activeMarkets,
             'country_discounts' => isset($rules['country_discounts']) && is_array($rules['country_discounts']) ? array_values($rules['country_discounts']) : [],
             'coupon_codes' => isset($rules['coupon_codes']) && is_array($rules['coupon_codes']) ? array_values($rules['coupon_codes']) : [],
+            'out_of_season_surcharge' => (float)($supplierData->out_of_season_surcharge ?? 10),
+            'global_discount' => (float)($supplierData->global_discount ?? 0),
             'alternative_properties' => self::getAlternativeProperties($articleId)
         ];
 

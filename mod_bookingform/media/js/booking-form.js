@@ -133,16 +133,30 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    function getSeasonForDate(date) {
+    function getSeasonForDate(date, isRetry = false) {
         const rules = options.pricingRules;
         if (!rules || !Array.isArray(rules.seasons)) return null;
+
         const year = date.getFullYear();
         const month = (date.getMonth() + 1).toString().padStart(2, '0');
         const day = date.getDate().toString().padStart(2, '0');
         const dateStr = `${year}-${month}-${day}`;
+
         for (const season of rules.seasons) {
-            if (dateStr >= season.start_date && dateStr <= season.end_date) return season;
+            if (dateStr >= season.start_date && dateStr <= season.end_date) {
+                return season;
+            }
         }
+
+        if (!isRetry) {
+            const lastYearDate = new Date(date);
+            lastYearDate.setFullYear(lastYearDate.getFullYear() - 1);
+            const lastYearSeason = getSeasonForDate(lastYearDate, true);
+            if (lastYearSeason) {
+                return { ...lastYearSeason, isSurcharge: true };
+            }
+        }
+
         return null;
     }
 
@@ -162,7 +176,10 @@ document.addEventListener('DOMContentLoaded', function () {
                         let currentDate = date1.toJSDate();
                         while(currentDate < date2.toJSDate()){
                             const season = getSeasonForDate(currentDate);
-                            if (season) { seasonRateCounts[season.name] = (seasonRateCounts[season.name] || 0) + 1; }
+                            if (season) {
+                                const seasonName = season.isSurcharge ? `${season.name}-surcharge` : season.name;
+                                seasonRateCounts[seasonName] = (seasonRateCounts[seasonName] || 0) + 1;
+                            }
                             currentDate.setDate(currentDate.getDate() + 1);
                         }
                         numberOfNights = Object.values(seasonRateCounts).reduce((a, b) => a + b, 0);
@@ -381,24 +398,51 @@ document.addEventListener('DOMContentLoaded', function () {
         let totalSupplementCost = 0;
         let totalCommission = 0;
 
+        let discountPercent = 0;
+        let discountNote = '';
+        if (couponDiscount.percent > 0) {
+            discountPercent = couponDiscount.percent;
+            discountNote = couponDiscount.message;
+        } else {
+            const countryRule = rules.country_discounts && selectedCountry ? rules.country_discounts.find(d => d.country === selectedCountry) : null;
+            if (countryRule && countryRule.discount_percent) {
+                discountPercent = parseFloat(countryRule.discount_percent);
+                discountNote = countryRule.note || `A ${discountPercent}% discount has been applied!`;
+            } else if (rules.global_discount > 0) {
+                discountPercent = rules.global_discount;
+                discountNote = `A ${discountPercent}% global discount has been applied!`;
+            }
+        }
+
         for (const [seasonName, nightsInSeason] of Object.entries(seasonRateCounts)) {
-            const seasonRates = rules.rates[seasonName];
+            let actualSeasonName = seasonName;
+            let applySurcharge = false;
+            if (seasonName.endsWith('-surcharge')) {
+                actualSeasonName = seasonName.replace('-surcharge', '');
+                applySurcharge = true;
+            }
+
+            const seasonRates = rules.rates[actualSeasonName];
             if (!seasonRates) continue;
 
             const marketRateData = seasonRates[marketName] || seasonRates['Global Rate'];
             if (!marketRateData || !marketRateData.rate) continue;
 
-            const nightlyRate = parseFloat(marketRateData.rate);
+            let nightlyRate = parseFloat(marketRateData.rate);
+            if (applySurcharge) {
+                nightlyRate *= (1 + (rules.out_of_season_surcharge / 100));
+            }
             currencySymbol = marketRateData.currency_symbol || currencySymbol;
             const seasonBaseCost = nightlyRate * nightsInSeason * requiredUnits;
             totalBaseCost += seasonBaseCost;
 
-            const currentSeason = rules.seasons.find(s => s.name === seasonName);
+            const currentSeason = rules.seasons.find(s => s.name === actualSeasonName);
+            let seasonSupplementCost = 0;
             if (rules.pricing_model === 'SupplementPerGuest' && currentSeason) {
                 const guestsCoveredByBaseRate = 2 * requiredUnits;
                 const extraAdults = Math.max(0, totalAdultsAndTeens - guestsCoveredByBaseRate);
                 const extraChildren = Math.max(0, (totalAdultsAndTeens + children.length) - guestsCoveredByBaseRate - extraAdults);
-                let seasonSupplementCost = (extraAdults * (rules.adult_supplement || 0)) * nightsInSeason;
+                seasonSupplementCost = (extraAdults * (rules.adult_supplement || 0)) * nightsInSeason;
                 if (currentSeason.apply_child_supplement == 1) {
                     seasonSupplementCost += (extraChildren * (rules.child_supplement || 0)) * nightsInSeason;
                 }
@@ -406,17 +450,15 @@ document.addEventListener('DOMContentLoaded', function () {
             } else if (rules.pricing_model === 'CapacityBased' && rules.allow_extra_mattress && rules.extra_mattress_fee > 0) {
                 if (mattressesNeeded > 0) {
                     const mattressesUsed = Math.min(requiredUnits, mattressesNeeded);
-                    totalSupplementCost += mattressesUsed * rules.extra_mattress_fee * nightsInSeason;
+                    seasonSupplementCost = mattressesUsed * rules.extra_mattress_fee * nightsInSeason;
+                    totalSupplementCost += seasonSupplementCost;
                 }
             }
-        }
 
-        let totalCost = totalBaseCost + totalSupplementCost;
-
-        for (const [seasonName, nightsInSeason] of Object.entries(seasonRateCounts)) {
-            const seasonRates = rules.rates[seasonName] || {};
-            const marketRateData = seasonRates[marketName] || seasonRates['Global Rate'] || {};
-            const currentSeason = rules.seasons.find(s => s.name === seasonName);
+            let seasonTotalCost = seasonBaseCost + seasonSupplementCost;
+            if (discountPercent > 0) {
+                seasonTotalCost *= (1 - (discountPercent / 100));
+            }
 
             let commissionRate = 0;
             if (marketRateData.override_commission && marketRateData.commission > 0) {
@@ -426,46 +468,15 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             if (commissionRate > 0) {
-                const seasonBaseCost = (parseFloat(marketRateData.rate) || 0) * nightsInSeason * requiredUnits;
-                let seasonSupplementCost = 0;
-                if (rules.pricing_model === 'SupplementPerGuest' && currentSeason) {
-                    const guestsCoveredByBaseRate = 2 * requiredUnits;
-                    const extraAdults = Math.max(0, totalAdultsAndTeens - guestsCoveredByBaseRate);
-                    const extraChildren = Math.max(0, (totalAdultsAndTeens + children.length) - guestsCoveredByBaseRate - extraAdults);
-                    seasonSupplementCost = (extraAdults * (rules.adult_supplement || 0)) * nightsInSeason;
-                    if (currentSeason.apply_child_supplement == 1) {
-                        seasonSupplementCost += (extraChildren * (rules.child_supplement || 0)) * nightsInSeason;
-                    }
-                } else if (rules.pricing_model === 'CapacityBased' && rules.allow_extra_mattress && rules.extra_mattress_fee > 0) {
-                    if (mattressesNeeded > 0) {
-                        const mattressesUsed = Math.min(requiredUnits, mattressesNeeded);
-                        seasonSupplementCost = mattressesUsed * rules.extra_mattress_fee * nightsInSeason;
-                    }
-                }
-                const seasonTotalCost = seasonBaseCost + seasonSupplementCost;
                 totalCommission += seasonTotalCost * (commissionRate / 100);
             }
         }
 
-        totalCost += totalCommission;
-
-        let discountPercent = 0;
-        let discountNote = '';
-
-        if (couponDiscount.percent > 0) {
-            discountPercent = couponDiscount.percent;
-            discountNote = couponDiscount.message;
-        } else if (rules.country_discounts && selectedCountry) {
-            const countryRule = rules.country_discounts.find(d => d.country === selectedCountry);
-            if (countryRule && countryRule.discount_percent) {
-                discountPercent = parseFloat(countryRule.discount_percent);
-                discountNote = countryRule.note || `A ${discountPercent}% discount has been applied!`;
-            }
-        }
-
+        let totalCost = totalBaseCost + totalSupplementCost;
         if (discountPercent > 0) {
             totalCost *= (1 - (discountPercent / 100));
         }
+        totalCost += totalCommission;
 
         if (elements.discountAlert) {
             if (discountPercent > 0 && totalCost > 0) {
