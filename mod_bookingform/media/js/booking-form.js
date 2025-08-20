@@ -654,5 +654,4 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    updateChildAgeInputs();
 });
