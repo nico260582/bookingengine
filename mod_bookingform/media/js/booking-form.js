@@ -110,18 +110,6 @@ document.addEventListener('DOMContentLoaded', function () {
             utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.13/js/utils.js",
         });
 
-        elements.telephoneInput.addEventListener('countrychange', function() {
-            const countryData = iti.getSelectedCountryData();
-            if (countryData.iso2) {
-                const countryOption = elements.countryResidenceSelect.querySelector(`option[data-iso-code="${countryData.iso2}"]`);
-                if (countryOption) {
-                    countryOption.selected = true;
-                }
-            }
-            if (countryData.name) {
-                displayStartingPrice(countryData.name);
-            }
-        });
 
         elements.countryResidenceSelect.addEventListener('change', function() {
             const selectedOption = this.options[this.selectedIndex];
