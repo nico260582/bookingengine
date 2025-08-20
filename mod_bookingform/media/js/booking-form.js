@@ -150,9 +150,30 @@ document.addEventListener('DOMContentLoaded', function () {
             const month = (d.getMonth() + 1).toString().padStart(2, '0');
             const day = d.getDate().toString().padStart(2, '0');
             const dateStr = `${year}-${month}-${day}`;
+
             for (const season of rules.seasons) {
-                if (dateStr >= season.start_date && dateStr <= season.end_date) return season;
+                // --- DEBUGGING CODE START ---
+                if (!window.debugAlertShown) {
+                    const alertMessage = `DEBUG INFO (Season: ${season.name}):\n\n` +
+                        `Date being checked: ${dateStr}\n` +
+                        `Season Start: ${season.start_date}\n` +
+                        `Season End: ${season.end_date}\n` +
+                        `Comparison Result: ${dateStr >= season.start_date && dateStr <= season.end_date}`;
+                    alert(alertMessage);
+                }
+                // --- DEBUGGING CODE END ---
+
+                if (dateStr >= season.start_date && dateStr <= season.end_date) {
+                    window.debugAlertShown = true; // Stop alerts once a match is found
+                    return season;
+                }
             }
+
+            // If the loop finishes, show one final alert and then stop.
+            if (!window.debugAlertShown) {
+                alert("DEBUG: Loop completed for date " + dateStr + ". No matching season was found.");
+            }
+            window.debugAlertShown = true;
             return null;
         };
 
