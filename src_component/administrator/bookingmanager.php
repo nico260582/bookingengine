@@ -14,6 +14,11 @@ if (!Factory::getUser()->authorise('core.manage', 'com_bookingmanager'))
 // Register the helper
 JLoader::register('BookingmanagerHelper', __DIR__ . '/helpers/bookingmanager.php');
 
+// Load component CSS
+$doc = Factory::getDocument();
+$doc->addStyleSheet('components/com_bookingmanager/assets/css/bookingmanager.css');
+$doc->addStyleSheet('components/com_bookingmanager/assets/css/custom-booking-styles.css');
+
 // Get an instance of the controller prefixed by Bookingmanager
 $controller = BaseController::getInstance('Bookingmanager');
 
