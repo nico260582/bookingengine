@@ -132,6 +132,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function getRateInfoForDate(date) {
         const rules = options.pricingRules;
+
+        // The seasons data can be double-encoded. Ensure it's an array.
+        if (rules && typeof rules.seasons === 'string' && rules.seasons.length > 0) {
+            try {
+                rules.seasons = JSON.parse(rules.seasons);
+            } catch (e) {
+                console.error("Failed to parse seasons JSON:", e);
+                return null;
+            }
+        }
+
         if (!rules || !Array.isArray(rules.seasons)) return null;
 
         const findSeason = (d) => {
