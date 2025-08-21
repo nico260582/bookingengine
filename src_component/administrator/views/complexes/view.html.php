@@ -9,13 +9,13 @@ use Joomla\CMS\MVC\Model\BaseModel;
 
 class BookingmanagerViewComplexes extends BaseHtmlView
 {
-    protected $items;
-    protected $pagination;
-    protected $state;
-    protected $sidebar;
-    protected $regionsItems;
-    protected $regionsPagination;
-    protected $regionsState;
+    public $items;
+    public $pagination;
+    public $state;
+    public $sidebar;
+    public $regionsItems;
+    public $regionsPagination;
+    public $regionsState;
 
     public function display($tpl = null)
     {
