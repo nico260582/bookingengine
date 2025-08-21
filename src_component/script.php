@@ -274,8 +274,16 @@ class com_bookingmanagerInstallerScript
             try { $db->setQuery($query)->execute(); } catch (Exception $e) {}
         }
 
-        // Add main_region_id and sub_region_id to #__bookingmanager_properties
+        // Add columns to #__bookingmanager_properties
         $columns = $db->getTableColumns('#__bookingmanager_properties');
+        if (!isset($columns['number_of_units'])) {
+            $query = "ALTER TABLE `#__bookingmanager_properties` ADD COLUMN `number_of_units` INT(11) NOT NULL DEFAULT 1;";
+            try { $db->setQuery($query)->execute(); } catch (Exception $e) {}
+        }
+        if (!isset($columns['allow_extra_mattress'])) {
+            $query = "ALTER TABLE `#__bookingmanager_properties` ADD COLUMN `allow_extra_mattress` tinyint(1) NOT NULL DEFAULT 0;";
+            try { $db->setQuery($query)->execute(); } catch (Exception $e) {}
+        }
         if (!isset($columns['main_region_id'])) {
             $query = "ALTER TABLE `#__bookingmanager_properties` ADD COLUMN `main_region_id` INT(11) NULL DEFAULT NULL;";
             try { $db->setQuery($query)->execute(); } catch (Exception $e) {}
