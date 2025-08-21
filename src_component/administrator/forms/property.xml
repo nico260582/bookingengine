@@ -26,6 +26,12 @@
             step="1"
         />
         <field
+            name="region"
+            type="text"
+            label="COM_BOOKINGMANAGER_PROPERTY_REGION_LABEL"
+            description="COM_BOOKINGMANAGER_PROPERTY_REGION_DESC"
+        />
+        <field
             name="allow_extra_mattress"
             type="radio"
             label="COM_BOOKINGMANAGER_PROPERTY_ALLOW_EXTRA_MATTRESS_LABEL"

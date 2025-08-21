@@ -9,6 +9,7 @@ class BookingmanagerTableProperty extends Table
 	public $id;
 	public $article_id;
 	public $max_guests;
+	public $region;
 	public $allow_extra_mattress = 0;
 	public $number_of_units = 1;
 	public $state;
