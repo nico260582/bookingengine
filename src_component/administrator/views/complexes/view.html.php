@@ -13,7 +13,7 @@ class BookingmanagerViewComplexes extends BaseHtmlView
     protected $state;
     protected $sidebar;
     public $nestedItems;
-    public $regionForm;
+    public $form;
 
     public function display($tpl = null)
     {
@@ -45,7 +45,7 @@ class BookingmanagerViewComplexes extends BaseHtmlView
             }
         }
         $this->nestedItems = $nestedItems;
-        $this->regionForm = JModelLegacy::getInstance('Region', 'BookingmanagerModel')->getForm();
+        $this->form = JModelLegacy::getInstance('Region', 'BookingmanagerModel')->getForm();
 
 
         // Load the sidebar
