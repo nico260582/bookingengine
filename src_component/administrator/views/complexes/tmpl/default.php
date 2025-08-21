@@ -80,9 +80,9 @@ HTMLHelper::_('bootstrap.tab', '#myTab');
             </div>
             <div class="tab-pane" id="regions">
                 <?php
-                if ($this->regionsView) {
-                    $this->regionsView->display();
-                }
+                // Manually render the regions view content
+                $this->form = $this->regionForm; // The regions template expects $this->form
+                include JPATH_COMPONENT_ADMINISTRATOR . '/views/regions/tmpl/default.php';
                 ?>
             </div>
         </div>
