@@ -80,10 +80,12 @@ HTMLHelper::_('bootstrap.tab', '#myTab');
             </div>
             <div class="tab-pane" id="regions">
                 <?php
-                // The regions template expects $this->form, so we must set it before including
-                $this->form = $this->regionForm;
-                // Manually render the regions view content
-                include JPATH_COMPONENT_ADMINISTRATOR . '/views/regions/tmpl/default.php';
+                // Display the rendered regions view content
+                if (isset($this->regionsViewContent)) {
+                    echo $this->regionsViewContent;
+                } else {
+                    echo '<div class="alert alert-error">Could not load the regions view.</div>';
+                }
                 ?>
             </div>
         </div>
