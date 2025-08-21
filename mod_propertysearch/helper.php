@@ -10,14 +10,14 @@ class ModPropertysearchHelper
         $db = Factory::getDbo();
         $query = $db->getQuery(true);
 
-        $query->select($db->quoteName('main_region'))
-            ->from($db->quoteName('#__bookingmanager_properties'))
-            ->where($db->quoteName('main_region') . ' IS NOT NULL')
-            ->group($db->quoteName('main_region'))
-            ->order($db->quoteName('main_region') . ' ASC');
+        $query->select($db->quoteName(array('id', 'name')))
+            ->from($db->quoteName('#__bookingmanager_regions'))
+            ->where($db->quoteName('parent_id') . ' = 0')
+            ->where($db->quoteName('state') . ' = 1')
+            ->order($db->quoteName('name') . ' ASC');
 
         $db->setQuery($query);
 
-        return $db->loadColumn();
+        return $db->loadObjectList();
     }
 }

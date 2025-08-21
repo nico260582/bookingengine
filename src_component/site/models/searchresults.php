@@ -10,7 +10,7 @@ class BookingmanagerModelSearchresults extends ListModel
     {
         if (empty($config['filter_fields'])) {
             $config['filter_fields'] = array(
-                'main_region', 'guests', 'dates'
+                'main_region_id', 'guests', 'dates'
             );
         }
 
@@ -23,17 +23,19 @@ class BookingmanagerModelSearchresults extends ListModel
         $query = $db->getQuery(true);
         $app = Factory::getApplication();
 
-        $query->select('p.id, p.article_id, p.max_guests, p.main_region, p.sub_region, c.title')
+        $query->select('p.id, p.article_id, p.max_guests, main_r.name AS main_region, sub_r.name AS sub_region, c.title')
             ->from($db->quoteName('#__bookingmanager_properties', 'p'))
-            ->join('LEFT', $db->quoteName('#__content', 'c') . ' ON ' . $db->quoteName('p.article_id') . ' = ' . $db->quoteName('c.id'));
+            ->join('LEFT', $db->quoteName('#__content', 'c') . ' ON ' . $db->quoteName('p.article_id') . ' = ' . $db->quoteName('c.id'))
+            ->join('LEFT', $db->quoteName('#__bookingmanager_regions', 'main_r') . ' ON ' . $db->quoteName('p.main_region_id') . ' = ' . $db->quoteName('main_r.id'))
+            ->join('LEFT', $db->quoteName('#__bookingmanager_regions', 'sub_r') . ' ON ' . $db->quoteName('p.sub_region_id') . ' = ' . $db->quoteName('sub_r.id'));
 
         // Get filter values
-        $mainRegion = $app->input->get('main_region', '', 'string');
+        $mainRegionId = $app->input->get('main_region_id', 0, 'int');
         $guests = $app->input->get('guests', 0, 'int');
         $dates = $app->input->get('dates', '', 'string');
 
-        if (!empty($mainRegion)) {
-            $query->where($db->quoteName('p.main_region') . ' = ' . $db->quote($mainRegion));
+        if ($mainRegionId > 0) {
+            $query->where($db->quoteName('p.main_region_id') . ' = ' . (int)$mainRegionId);
         }
 
         if ($guests > 0) {

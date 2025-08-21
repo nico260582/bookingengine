@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<form>
+    <fieldset>
+        <field
+            name="id"
+            type="hidden"
+        />
+        <field
+            name="name"
+            type="text"
+            label="Name"
+            required="true"
+        />
+        <field
+            name="parent_id"
+            type="sql"
+            label="Parent Region"
+            query="SELECT id AS value, name AS name FROM #__bookingmanager_regions WHERE parent_id = 0"
+            header="Select a Parent Region"
+        />
+        <field
+            name="state"
+            type="list"
+            label="State"
+            default="1"
+            >
+            <option value="1">Published</option>
+            <option value="0">Unpublished</option>
+        </field>
+    </fieldset>
+</form>

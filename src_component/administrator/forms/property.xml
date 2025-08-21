@@ -26,16 +26,20 @@
             step="1"
         />
         <field
-            name="main_region"
-            type="text"
-            label="COM_BOOKINGMANAGER_PROPERTY_MAIN_REGION_LABEL"
-            description="COM_BOOKINGMANAGER_PROPERTY_MAIN_REGION_DESC"
+            name="main_region_id"
+            type="sql"
+            label="COM_BOOKINGMANAGER_PROPERTY_MAIN_REGION_ID_LABEL"
+            description="COM_BOOKINGMANAGER_PROPERTY_MAIN_REGION_ID_DESC"
+            query="SELECT id AS value, name FROM #__bookingmanager_regions WHERE parent_id = 0 ORDER BY name"
+            header="Select Main Region"
         />
         <field
-            name="sub_region"
-            type="text"
-            label="COM_BOOKINGMANAGER_PROPERTY_SUB_REGION_LABEL"
-            description="COM_BOOKINGMANAGER_PROPERTY_SUB_REGION_DESC"
+            name="sub_region_id"
+            type="sql"
+            label="COM_BOOKINGMANAGER_PROPERTY_SUB_REGION_ID_LABEL"
+            description="COM_BOOKINGMANAGER_PROPERTY_SUB_REGION_ID_DESC"
+            query="SELECT id AS value, name FROM #__bookingmanager_regions WHERE parent_id != 0 ORDER BY name"
+            header="Select Sub Region"
         />
         <field
             name="allow_extra_mattress"
