@@ -45,10 +45,7 @@ class BookingmanagerViewComplexes extends BaseHtmlView
             }
         }
         $this->nestedItems = $nestedItems;
-        $this->regionForm = $regionsModel->getForm();
-        if (!$this->regionForm) {
-            $this->regionForm = JModelLegacy::getInstance('Region', 'BookingmanagerModel')->getForm();
-        }
+        $this->regionForm = JModelLegacy::getInstance('Region', 'BookingmanagerModel')->getForm();
 
 
         // Load the sidebar
