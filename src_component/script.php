@@ -178,7 +178,7 @@ class com_bookingmanagerInstallerScript
 
     private function runUninstallQueries($parent) {
         $db = Factory::getDbo();
-        $queries = array("DROP TABLE IF EXISTS `#__booking_communication`;", "DROP TABLE IF EXISTS `#__booking_requests`;", "DROP TABLE IF EXISTS `#__booking_request_logs`;", "DROP TABLE IF EXISTS `#__booking_supplier_logs`;", "DROP TABLE IF EXISTS `#__bookingmanager_suppliers`;", "DROP TABLE IF EXISTS `#__bookingmanager_property_map`;", "DROP TABLE IF EXISTS `#__bookingmanager_rates`;", "DROP TABLE IF EXISTS `#__bookingmanager_templates`;", "DROP TABLE IF EXISTS `#__booking_attachments`;", "DROP TABLE IF EXISTS `#__bookingmanager_clients`;", "DROP TABLE IF EXISTS `#__booking_client_activity_logs`;", "DROP TABLE IF EXISTS `#__bookingmanager_regions`;");
+        $queries = array("DROP TABLE IF EXISTS `#__booking_communication`;", "DROP TABLE IF EXISTS `#__booking_requests`;", "DROP TABLE IF EXISTS `#__booking_request_logs`;", "DROP TABLE IF EXISTS `#__booking_supplier_logs`;", "DROP TABLE IF EXISTS `#__bookingmanager_suppliers`;", "DROP TABLE IF EXISTS `#__bookingmanager_property_map`;", "DROP TABLE IF EXISTS `#__bookingmanager_rates`;", "DROP TABLE IF EXISTS `#__bookingmanager_templates`;", "DROP TABLE IF EXISTS `#__booking_attachments`;", "DROP TABLE IF EXISTS `#__bookingmanager_clients`;", "DROP TABLE IF EXISTS `#__booking_client_activity_logs`;", "DROP TABLE IF EXISTS `#__bookingmanager_regions`;", "DROP TABLE IF EXISTS `#__bookingmanager_properties`;", "DROP TABLE IF EXISTS `#__bookingmanager_complexes`;", "DROP TABLE IF EXISTS `#__bookingmanager_complex_property_map`;");
         foreach ($queries as $query) { $db->setQuery($query); try { $db->execute(); } catch (Exception $e) {} }
     }
 
@@ -271,6 +271,17 @@ class com_bookingmanagerInstallerScript
         }
         if (!isset($columns['admin_commission'])) {
             $query = "ALTER TABLE `#__bookingmanager_rates` ADD COLUMN `admin_commission` DECIMAL(5,2) NULL DEFAULT NULL AFTER `override_admin_commission`;";
+            try { $db->setQuery($query)->execute(); } catch (Exception $e) {}
+        }
+
+        // Add main_region_id and sub_region_id to #__bookingmanager_properties
+        $columns = $db->getTableColumns('#__bookingmanager_properties');
+        if (!isset($columns['main_region_id'])) {
+            $query = "ALTER TABLE `#__bookingmanager_properties` ADD COLUMN `main_region_id` INT(11) NULL DEFAULT NULL;";
+            try { $db->setQuery($query)->execute(); } catch (Exception $e) {}
+        }
+        if (!isset($columns['sub_region_id'])) {
+            $query = "ALTER TABLE `#__bookingmanager_properties` ADD COLUMN `sub_region_id` INT(11) NULL DEFAULT NULL;";
             try { $db->setQuery($query)->execute(); } catch (Exception $e) {}
         }
     }

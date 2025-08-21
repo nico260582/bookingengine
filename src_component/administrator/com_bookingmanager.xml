@@ -7,7 +7,7 @@
     <license>GNU General Public License version 2 or later; see LICENSE.txt</license>
     <authorEmail>contact@rt-holidays.com</authorEmail>
     <authorUrl>https://www.book-holidays-mauritius.com</authorUrl>
-    <version>2.0.0</version>
+    <version>3.0.0</version>
     <description>A component to manage booking requests and suppliers.</description>
     <scriptfile>script.php</scriptfile>
     
@@ -35,13 +35,15 @@
             <filename>script.php</filename>
             <folder>assets</folder>
             <folder>controllers</folder>
+            <filename>controllers/region.php</filename>
+            <filename>controllers/regions.php</filename>
             <folder>forms</folder>
             <folder>helpers</folder>
             <folder>language</folder>
             <folder>layouts</folder>
             <folder>models</folder>
-            <folder>sql</folder>
             <folder>tables</folder>
+            <filename>tables/region.php</filename>
             <folder>views</folder>
         </files>
         <languages folder="administrator/language">
@@ -49,10 +51,4 @@
             <language tag="en-GB">en-GB/en-GB.com_bookingmanager.sys.ini</language>
         </languages>
     </administration>
-
-    <update>
-        <schemas>
-            <schemapath type="mysql">sql/updates/mysql</schemapath>
-        </schemas>
-    </update>
 </extension>
