@@ -4,7 +4,6 @@ defined('_JEXEC') or die;
 use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
 use Joomla\CMS\Toolbar\ToolbarHelper;
 use Joomla\CMS\Factory;
-use Joomla\CMS\Helper\ContentHelper;
 
 class BookingmanagerViewComplexes extends BaseHtmlView
 {
@@ -12,9 +11,7 @@ class BookingmanagerViewComplexes extends BaseHtmlView
     protected $pagination;
     protected $state;
     protected $sidebar;
-    public $nestedItems;
-    public $form;
-    public $regionForm; // Add this line
+    public $regionsViewContent; // Property to hold the rendered regions view
 
     public function display($tpl = null)
     {
@@ -22,33 +19,12 @@ class BookingmanagerViewComplexes extends BaseHtmlView
         $this->pagination = $this->get('Pagination');
         $this->state      = $this->get('State');
 
-        // --- Prepare data for the regions tab ---
-        $regionsModel = JModelLegacy::getInstance('Regions', 'BookingmanagerModel');
-        $regionsModel->setState('list.limit', 0);
-        $regions = $regionsModel->getItems();
-
-        $nestedItems = [];
-        $children = [];
-        foreach ($regions as $item) {
-            if (!isset($item->children)) {
-                $item->children = [];
-            }
-            if ($item->parent_id > 0) {
-                $children[$item->parent_id][] = $item;
-            }
+        // --- Correctly load and render the Regions view ---
+        $regionsView = $this->getView('Regions', 'html');
+        if ($regionsView) {
+            $this->regionsViewContent = $regionsView->display();
         }
-        foreach ($regions as $item) {
-            if ($item->parent_id == 0) {
-                if (isset($children[$item->id])) {
-                    $item->children = $children[$item->id];
-                }
-                $nestedItems[] = $item;
-            }
-        }
-        $this->nestedItems = $nestedItems;
-        // Correctly get and assign the region form
-        $this->regionForm = JModelLegacy::getInstance('Region', 'BookingmanagerModel')->getForm();
-
+        // --- End of new code ---
 
         // Load the sidebar
         require_once JPATH_COMPONENT_ADMINISTRATOR . '/helpers/bookingmanager.php';
@@ -62,7 +38,7 @@ class BookingmanagerViewComplexes extends BaseHtmlView
 
     protected function addToolbar()
     {
-        ToolbarHelper::title('Region & Complexes');
+        ToolbarHelper::title('Complexes & Regions'); // Updated title
         ToolbarHelper::addNew('complex.add');
         ToolbarHelper::editList('complex.edit');
         ToolbarHelper::deleteList('Are you sure?', 'complexes.delete');
