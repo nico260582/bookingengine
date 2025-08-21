@@ -51,7 +51,7 @@ use Joomla\CMS\Language\Text;
         </tbody>
     </table>
 
-    <?php echo $this->regionsPagination->getListFooter(); ?>
+    <?php if ($this->regionsPagination) { echo $this->regionsPagination->getListFooter(); } ?>
     <input type="hidden" name="task" value="" />
     <input type="hidden" name="boxchecked" value="0" />
     <?php echo HTMLHelper::_('form.token'); ?>
