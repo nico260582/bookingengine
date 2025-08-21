@@ -35,6 +35,8 @@
             <filename>script.php</filename>
             <folder>assets</folder>
             <folder>controllers</folder>
+            <filename>controllers/region.php</filename>
+            <filename>controllers/regions.php</filename>
             <folder>forms</folder>
             <folder>helpers</folder>
             <folder>language</folder>
