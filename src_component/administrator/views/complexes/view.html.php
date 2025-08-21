@@ -12,13 +12,44 @@ class BookingmanagerViewComplexes extends BaseHtmlView
     protected $pagination;
     protected $state;
     protected $sidebar;
-    public $regionsView;
+    public $nestedItems;
+    public $regionForm;
 
     public function display($tpl = null)
     {
         $this->items      = $this->get('Items');
         $this->pagination = $this->get('Pagination');
         $this->state      = $this->get('State');
+
+        // --- Prepare data for the regions tab ---
+        $regionsModel = JModelLegacy::getInstance('Regions', 'BookingmanagerModel');
+        $regionsModel->setState('list.limit', 0);
+        $regions = $regionsModel->getItems();
+
+        $nestedItems = [];
+        $children = [];
+        foreach ($regions as $item) {
+            if (!isset($item->children)) {
+                $item->children = [];
+            }
+            if ($item->parent_id > 0) {
+                $children[$item->parent_id][] = $item;
+            }
+        }
+        foreach ($regions as $item) {
+            if ($item->parent_id == 0) {
+                if (isset($children[$item->id])) {
+                    $item->children = $children[$item->id];
+                }
+                $nestedItems[] = $item;
+            }
+        }
+        $this->nestedItems = $nestedItems;
+        $this->regionForm = $regionsModel->getForm();
+        if (!$this->regionForm) {
+            $this->regionForm = JModelLegacy::getInstance('Region', 'BookingmanagerModel')->getForm();
+        }
+
 
         // Load the sidebar
         require_once JPATH_COMPONENT_ADMINISTRATOR . '/helpers/bookingmanager.php';
