@@ -20,9 +20,6 @@ class BookingmanagerViewComplexes extends BaseHtmlView
         $this->pagination = $this->get('Pagination');
         $this->state      = $this->get('State');
 
-        // Get the regions view
-        $this->regionsView = $this->getView('Regions', 'html', 'BookingmanagerView');
-
         // Load the sidebar
         require_once JPATH_COMPONENT_ADMINISTRATOR . '/helpers/bookingmanager.php';
         BookingmanagerHelper::addSubmenu('complexes');
