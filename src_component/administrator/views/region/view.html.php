@@ -4,6 +4,7 @@ defined('_JEXEC') or die;
 use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
 use Joomla\CMS\Toolbar\ToolbarHelper;
 use Joomla\CMS\Language\Text;
+use Joomla\CMS\HTML\HTMLHelper;
 
 class BookingmanagerViewRegion extends BaseHtmlView
 {
@@ -23,6 +24,7 @@ class BookingmanagerViewRegion extends BaseHtmlView
         BookingmanagerHelper::addSubmenu('regions');
         $this->sidebar = JHtmlSidebar::render();
 
+        HTMLHelper::_('behavior.formvalidator');
         $this->addToolbar();
 
         parent::display($tpl);
