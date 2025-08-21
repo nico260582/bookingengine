@@ -51,6 +51,23 @@
             label="COM_BOOKINGMANAGER_PROPERTY_COMPLEX_ASSIGNMENT_LABEL"
             description="COM_BOOKINGMANAGER_PROPERTY_COMPLEX_ASSIGNMENT_DESC"
         />
+        <field
+            name="main_region_id"
+            type="sql"
+            query="SELECT id AS value, name AS name FROM #__bookingmanager_regions WHERE parent_id = 0 ORDER BY name"
+            key_field="value"
+            value_field="name"
+            label="Main Region"
+            header="Select a Main Region"
+        />
+        <field
+            name="sub_region_id"
+            type="list"
+            label="Sub Region"
+            header="Select a Sub Region"
+        >
+            <option value="">Select a main region first</option>
+        </field>
         <!-- This field tells Joomla to allow the 'rates' data to pass validation -->
         <field
             name="rates"
