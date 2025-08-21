@@ -9,12 +9,17 @@ use Joomla\CMS\Toolbar\ToolbarHelper;
 use Joomla\CMS\Language\Text;
 
 HTMLHelper::_('behavior.multiselect');
-HTMLHelper::_('bootstrap.startTabSet', 'myTab', array('active' => 'complexes'));
 
-HTMLHelper::_('bootstrap.addTab', 'myTab', 'complexes', Text::_('Complexes'));
+$activeTab = Factory::getApplication()->input->get('active', 'complexes');
+HTMLHelper::_('bootstrap.startTabSet', 'myTab', array('active' => $activeTab));
+
+$complexesUrl = Route::_('index.php?option=com_bookingmanager&view=complexes&active=complexes');
+$regionsUrl = Route::_('index.php?option=com_bookingmanager&view=complexes&active=regions');
+
+HTMLHelper::_('bootstrap.addTab', 'myTab', 'complexes', Text::_('Complexes'), $complexesUrl);
 ?>
-<div class="tab-pane active" id="complexes">
-    <form action="<?php echo Route::_('index.php?option=com_bookingmanager&view=complexes'); ?>" method="post" name="adminForm" id="adminForm">
+<div class="tab-pane <?php if ($activeTab == 'complexes') echo 'active'; ?>" id="complexes">
+    <form action="<?php echo $complexesUrl; ?>" method="post" name="adminForm" id="adminForm">
         <table class="table table-striped" id="complexList">
             <thead>
                 <tr>
@@ -47,7 +52,7 @@ HTMLHelper::_('bootstrap.addTab', 'myTab', 'complexes', Text::_('Complexes'));
             <?php endforeach; ?>
             </tbody>
         </table>
-        <?php echo $this->pagination->getListFooter(); ?>
+        <?php if ($this->pagination) { echo $this->pagination->getListFooter(); } ?>
         <input type="hidden" name="task" value="" />
         <input type="hidden" name="boxchecked" value="0" />
         <?php echo HTMLHelper::_('form.token'); ?>
@@ -56,9 +61,9 @@ HTMLHelper::_('bootstrap.addTab', 'myTab', 'complexes', Text::_('Complexes'));
 <?php
 HTMLHelper::_('bootstrap.endTab');
 
-HTMLHelper::_('bootstrap.addTab', 'myTab', 'regions', Text::_('Regions'));
+HTMLHelper::_('bootstrap.addTab', 'myTab', 'regions', Text::_('Regions'), $regionsUrl);
 ?>
-<div class="tab-pane" id="regions">
+<div class="tab-pane <?php if ($activeTab == 'regions') echo 'active'; ?>" id="regions">
     <?php echo LayoutHelper::render(
         'regions_list',
         array(
