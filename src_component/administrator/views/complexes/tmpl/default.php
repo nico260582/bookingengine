@@ -80,12 +80,8 @@ HTMLHelper::_('bootstrap.tab', '#myTab');
             </div>
             <div class="tab-pane" id="regions">
                 <?php
-                // Display the rendered regions view content
-                if (isset($this->regionsViewContent)) {
-                    echo $this->regionsViewContent;
-                } else {
-                    echo '<div class="alert alert-error">Could not load the regions view.</div>';
-                }
+                // The regions template uses $this->nestedItems and $this->form
+                include JPATH_COMPONENT_ADMINISTRATOR . '/views/regions/tmpl/default.php';
                 ?>
             </div>
         </div>
