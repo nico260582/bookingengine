@@ -27,7 +27,8 @@
         <submenu>
             <menu view="bookingrequests" link="option=com_bookingmanager&amp;view=bookingrequests" img="class:icon-calendar">Booking Requests</menu>
             <menu view="properties" link="option=com_bookingmanager&amp;view=properties" img="class:icon-home">Properties</menu>
-            <menu view="complexes" link="option=com_bookingmanager&amp;view=complexes" img="class:icon-folder-open">Region &amp; Complexes</menu>
+            <menu view="complexes" link="option=com_bookingmanager&amp;view=complexes" img="class:icon-folder-open">Complexes</menu>
+            <menu view="regions" link="option=com_bookingmanager&amp;view=regions" img="class:icon-map-marker">Regions</menu>
             <menu view="suppliers" link="option=com_bookingmanager&amp;view=suppliers" img="class:icon-user">Suppliers</menu>
             <menu view="propertyrates" link="option=com_bookingmanager&amp;view=propertyrates" img="class:icon-tags">Property Rates</menu>
             <menu view="templates" link="option=com_bookingmanager&amp;view=templates" img="class:icon-envelope">Email Templates</menu>
