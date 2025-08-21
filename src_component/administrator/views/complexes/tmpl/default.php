@@ -59,7 +59,14 @@ HTMLHelper::_('bootstrap.endTab');
 HTMLHelper::_('bootstrap.addTab', 'myTab', 'regions', Text::_('Regions'));
 ?>
 <div class="tab-pane" id="regions">
-    <?php echo LayoutHelper::render('regions_list', $this, JPATH_COMPONENT_ADMINISTRATOR . '/views/complexes/tmpl'); ?>
+    <?php echo LayoutHelper::render(
+        'regions_list',
+        array(
+            'items' => $this->regionsItems,
+            'pagination' => $this->regionsPagination
+        ),
+        JPATH_COMPONENT_ADMINISTRATOR . '/views/complexes/tmpl'
+    ); ?>
 </div>
 <?php
 HTMLHelper::_('bootstrap.endTab');
