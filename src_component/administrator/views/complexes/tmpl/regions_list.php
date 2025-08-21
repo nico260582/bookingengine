@@ -27,8 +27,8 @@ use Joomla\CMS\Language\Text;
             </tr>
         </thead>
         <tbody>
-        <?php if (!empty($this->regionsItems)) : ?>
-            <?php foreach ($this->regionsItems as $i => $item) : ?>
+        <?php if (!empty($this->items)) : ?>
+            <?php foreach ($this->items as $i => $item) : ?>
                 <tr class="row<?php echo $i % 2; ?>">
                     <td class="center">
                     <?php echo HTMLHelper::_('grid.id', $i, $item->id); ?>
@@ -59,7 +59,7 @@ use Joomla\CMS\Language\Text;
         </tbody>
     </table>
 
-    <?php if ($this->regionsPagination) { echo $this->regionsPagination->getListFooter(); } ?>
+    <?php if ($this->pagination) { echo $this->pagination->getListFooter(); } ?>
     <input type="hidden" name="task" value="" />
     <input type="hidden" name="boxchecked" value="0" />
     <?php echo HTMLHelper::_('form.token'); ?>
