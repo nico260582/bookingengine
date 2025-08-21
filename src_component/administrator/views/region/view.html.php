@@ -10,6 +10,7 @@ class BookingmanagerViewRegion extends BaseHtmlView
     protected $form;
     protected $item;
     protected $state;
+    protected $sidebar;
 
     public function display($tpl = null)
     {
@@ -19,7 +20,7 @@ class BookingmanagerViewRegion extends BaseHtmlView
 
         // Load the sidebar
         require_once JPATH_COMPONENT_ADMINISTRATOR . '/helpers/bookingmanager.php';
-        BookingmanagerHelper::addSubmenu('region');
+        BookingmanagerHelper::addSubmenu('regions');
         $this->sidebar = JHtmlSidebar::render();
 
         $this->addToolbar();
