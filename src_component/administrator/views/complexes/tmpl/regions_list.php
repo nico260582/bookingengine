@@ -27,7 +27,7 @@ use Joomla\CMS\Language\Text;
             </tr>
         </thead>
         <tbody>
-        <?php if (!empty($this->items)) : ?>
+        <?php if (property_exists($this, 'items') && !empty($this->items)) : ?>
             <?php foreach ($this->items as $i => $item) : ?>
                 <tr class="row<?php echo $i % 2; ?>">
                     <td class="center">
@@ -59,7 +59,7 @@ use Joomla\CMS\Language\Text;
         </tbody>
     </table>
 
-    <?php if ($this->pagination) { echo $this->pagination->getListFooter(); } ?>
+    <?php if (property_exists($this, 'pagination') && $this->pagination) { echo $this->pagination->getListFooter(); } ?>
     <input type="hidden" name="task" value="" />
     <input type="hidden" name="boxchecked" value="0" />
     <?php echo HTMLHelper::_('form.token'); ?>
