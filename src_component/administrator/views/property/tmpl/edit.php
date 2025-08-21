@@ -17,6 +17,8 @@
         <?php echo $this->form->renderField('allow_extra_mattress'); ?>
         <?php echo $this->form->renderField('number_of_units'); ?>
         <?php echo $this->form->renderField('complexes'); ?>
+        <?php echo $this->form->renderField('main_region_id'); ?>
+        <?php echo $this->form->renderField('sub_region_id'); ?>
     </fieldset>
 
     <hr>
@@ -158,6 +160,45 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
         });
+
+        // Sub-region dynamic population
+        const mainRegionSelect = document.getElementById('jform_main_region_id');
+        const subRegionSelect = document.getElementById('jform_sub_region_id');
+        const currentSubRegionId = '<?php echo $this->item->sub_region_id; ?>';
+
+        function fetchSubRegions(parentId, selectedSubRegionId) {
+            if (!parentId) {
+                subRegionSelect.innerHTML = '<option value="">Select a main region first</option>';
+                return;
+            }
+
+            const url = `index.php?option=com_bookingmanager&task=properties.getSubRegions&format=json&parent_id=${parentId}`;
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    subRegionSelect.innerHTML = '<option value="">Select a Sub Region</option>';
+                    if (data && data.data && data.data.length > 0) {
+                        data.data.forEach(subRegion => {
+                            const option = new Option(subRegion.name, subRegion.id);
+                            subRegionSelect.add(option);
+                        });
+                    }
+                    if (selectedSubRegionId) {
+                        subRegionSelect.value = selectedSubRegionId;
+                    }
+                })
+                .catch(error => console.error('Error fetching sub-regions:', error));
+        }
+
+        mainRegionSelect.addEventListener('change', function() {
+            fetchSubRegions(this.value, null);
+        });
+
+        // On page load, if a main region is selected, fetch its sub-regions
+        if (mainRegionSelect.value) {
+            fetchSubRegions(mainRegionSelect.value, currentSubRegionId);
+        }
     }
 });
 </script>

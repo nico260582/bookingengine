@@ -12,12 +12,16 @@ class BookingmanagerViewComplexes extends BaseHtmlView
     protected $pagination;
     protected $state;
     protected $sidebar;
+    public $regionsView;
 
     public function display($tpl = null)
     {
         $this->items      = $this->get('Items');
         $this->pagination = $this->get('Pagination');
         $this->state      = $this->get('State');
+
+        // Get the regions view
+        $this->regionsView = $this->getView('Regions', 'html', 'BookingmanagerView');
 
         // Load the sidebar
         require_once JPATH_COMPONENT_ADMINISTRATOR . '/helpers/bookingmanager.php';
@@ -31,7 +35,7 @@ class BookingmanagerViewComplexes extends BaseHtmlView
 
     protected function addToolbar()
     {
-        ToolbarHelper::title('Complexes');
+        ToolbarHelper::title('Region & Complexes');
         ToolbarHelper::addNew('complex.add');
         ToolbarHelper::editList('complex.edit');
         ToolbarHelper::deleteList('Are you sure?', 'complexes.delete');
