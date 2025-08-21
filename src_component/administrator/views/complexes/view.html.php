@@ -5,6 +5,7 @@ use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
 use Joomla\CMS\Toolbar\ToolbarHelper;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Helper\ContentHelper;
+use Joomla\CMS\MVC\Model\BaseModel;
 
 class BookingmanagerViewComplexes extends BaseHtmlView
 {
@@ -23,7 +24,7 @@ class BookingmanagerViewComplexes extends BaseHtmlView
         $this->state      = $this->get('State');
 
         // Get data for the regions tab
-        $regionsModel = $this->getModel('Regions');
+        $regionsModel = \Joomla\CMS\MVC\Model\BaseModel::getInstance('Regions', 'BookingmanagerModel', ['ignore_request' => true]);
         $this->regionsItems      = $regionsModel->getItems();
         $this->regionsPagination = $regionsModel->getPagination();
         $this->regionsState      = $regionsModel->getState();
