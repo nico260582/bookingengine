@@ -17,6 +17,7 @@
             label="Parent Region"
             query="SELECT id AS value, name AS name FROM #__bookingmanager_regions WHERE parent_id = 0"
             header="Select a Parent Region"
+            default="0"
         />
         <field
             name="state"

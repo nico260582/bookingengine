@@ -26,22 +26,6 @@
             step="1"
         />
         <field
-            name="main_region_id"
-            type="sql"
-            label="COM_BOOKINGMANAGER_PROPERTY_MAIN_REGION_ID_LABEL"
-            description="COM_BOOKINGMANAGER_PROPERTY_MAIN_REGION_ID_DESC"
-            query="SELECT id AS value, name FROM #__bookingmanager_regions WHERE parent_id = 0 AND state = 1 ORDER BY name"
-            header="Select Main Region"
-        />
-        <field
-            name="sub_region_id"
-            type="sql"
-            label="COM_BOOKINGMANAGER_PROPERTY_SUB_REGION_ID_LABEL"
-            description="COM_BOOKINGMANAGER_PROPERTY_SUB_REGION_ID_DESC"
-            query="SELECT id AS value, name FROM #__bookingmanager_regions WHERE parent_id != 0 AND state = 1 ORDER BY name"
-            header="Select Sub Region"
-        />
-        <field
             name="allow_extra_mattress"
             type="radio"
             label="COM_BOOKINGMANAGER_PROPERTY_ALLOW_EXTRA_MATTRESS_LABEL"
