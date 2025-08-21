@@ -3,10 +3,9 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
 use Joomla\CMS\Toolbar\ToolbarHelper;
-use Joomla\CMS\Factory;
-use Joomla\CMS\Helper\ContentHelper;
+use Joomla\CMS\Language\Text;
 
-class BookingmanagerViewComplexes extends BaseHtmlView
+class BookingmanagerViewRegions extends BaseHtmlView
 {
     protected $items;
     protected $pagination;
@@ -21,7 +20,7 @@ class BookingmanagerViewComplexes extends BaseHtmlView
 
         // Load the sidebar
         require_once JPATH_COMPONENT_ADMINISTRATOR . '/helpers/bookingmanager.php';
-        BookingmanagerHelper::addSubmenu('complexes');
+        BookingmanagerHelper::addSubmenu('regions');
         $this->sidebar = JHtmlSidebar::render();
 
         $this->addToolbar();
@@ -31,9 +30,9 @@ class BookingmanagerViewComplexes extends BaseHtmlView
 
     protected function addToolbar()
     {
-        ToolbarHelper::title('Complexes');
-        ToolbarHelper::addNew('complex.add');
-        ToolbarHelper::editList('complex.edit');
-        ToolbarHelper::deleteList('Are you sure?', 'complexes.delete');
+        ToolbarHelper::title(Text::_('Regions'));
+        ToolbarHelper::addNew('region.add');
+        ToolbarHelper::editList('region.edit');
+        ToolbarHelper::deleteList('Are you sure?', 'regions.delete');
     }
 }
