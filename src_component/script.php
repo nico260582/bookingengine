@@ -292,5 +292,15 @@ class com_bookingmanagerInstallerScript
             $query = "ALTER TABLE `#__bookingmanager_properties` ADD COLUMN `sub_region_id` INT(11) NULL DEFAULT NULL;";
             try { $db->setQuery($query)->execute(); } catch (Exception $e) {}
         }
+
+        // Clean up obsolete region columns
+        if (isset($columns['main_region'])) {
+            $query = "ALTER TABLE `#__bookingmanager_properties` DROP COLUMN `main_region`;";
+            try { $db->setQuery($query)->execute(); } catch (Exception $e) {}
+        }
+        if (isset($columns['sub_region'])) {
+            $query = "ALTER TABLE `#__bookingmanager_properties` DROP COLUMN `sub_region`;";
+            try { $db->setQuery($query)->execute(); } catch (Exception $e) {}
+        }
     }
 }
