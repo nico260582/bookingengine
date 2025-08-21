@@ -6,9 +6,8 @@ use Joomla\CMS\Toolbar\ToolbarHelper;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Helper\ContentHelper;
 
-// Manually include the required models as the autoloader seems to be failing.
-require_once JPATH_COMPONENT_ADMINISTRATOR . '/models/regions.php';
-require_once JPATH_COMPONENT_ADMINISTRATOR . '/models/region.php';
+// Ensure the model path is included
+JModelLegacy::addIncludePath(JPATH_COMPONENT_ADMINISTRATOR . '/models');
 
 class BookingmanagerViewRegions extends BaseHtmlView
 {
@@ -18,22 +17,36 @@ class BookingmanagerViewRegions extends BaseHtmlView
     protected $sidebar;
     protected $nestedItems;
     public $form;
+    public $item;
 
     public function display($tpl = null)
     {
-        $this->state      = $this->get('State');
-        $this->form       = $this->getModel('Region')->getForm();
+        $this->state = $this->get('State');
 
-        // Get all items to build the nested structure
+        $regionModel = JModelLegacy::getInstance('Region', 'BookingmanagerModel');
+        if ($regionModel) {
+            $this->form = $regionModel->getForm();
+            $this->item = $regionModel->getItem(); // This gets a new, empty item
+        } else {
+            JFactory::getApplication()->enqueueMessage('Error: Could not load the Region model.', 'error');
+            return;
+        }
+
+        // For a new item, ensure the object has the default properties the form expects.
+        if (empty($this->item->id)) {
+            $this->item->id = 0;
+            $this->item->name = '';
+            $this->item->parent_id = 0;
+            $this->item->state = 1;
+        }
+
+        // Get all items to build the nested structure for the list
         $this->state->set('list.limit', 0);
         $items = $this->get('Items');
 
-        // Create a nested structure
         $nestedItems = [];
         $children = [];
-
         foreach ($items as $item) {
-            // Ensure children is an array
             if (!isset($item->children)) {
                 $item->children = [];
             }
@@ -41,7 +54,6 @@ class BookingmanagerViewRegions extends BaseHtmlView
                 $children[$item->parent_id][] = $item;
             }
         }
-
         foreach ($items as $item) {
             if ($item->parent_id == 0) {
                 if (isset($children[$item->id])) {
@@ -50,7 +62,6 @@ class BookingmanagerViewRegions extends BaseHtmlView
                 $nestedItems[] = $item;
             }
         }
-
         $this->nestedItems = $nestedItems;
 
         // Load the sidebar

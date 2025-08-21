@@ -2,14 +2,14 @@
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Router\Route;
-use Joomla\CMS\Layout\LayoutHelper;
 use Joomla\CMS\HTML\HTMLHelper;
 
 HTMLHelper::_('behavior.formvalidator');
 HTMLHelper::_('behavior.keepalive');
 
-$listOrder = $this->state->get('list.ordering');
-$listDirn  = $this->state->get('list.direction');
+// Bind the form to the item data from the view.
+$this->form->bind($this->item);
+
 ?>
 
 <form action="<?php echo Route::_('index.php?option=com_bookingmanager&view=regions'); ?>" method="post" name="adminForm" id="adminForm" class="form-validate">
@@ -26,7 +26,7 @@ $listDirn  = $this->state->get('list.direction');
                     </fieldset>
                 </div>
             </div>
-            <button type="submit" class="btn btn-primary"><?php echo JText::_('JSAVE'); ?></button>
+            <button type="button" class="btn btn-primary" onclick="Joomla.submitbutton('region.save')"><?php echo JText::_('JSAVE'); ?></button>
             <button type="button" class="btn" onclick="Joomla.submitbutton('region.cancel')"><?php echo JText::_('JCANCEL'); ?></button>
         </div>
 
@@ -34,7 +34,6 @@ $listDirn  = $this->state->get('list.direction');
             <?php
             function buildNestedList($items, $level = 0) {
                 if (empty($items)) return;
-
                 echo '<ul class="list-group list-group-nested level-' . $level . '">';
                 foreach ($items as $item) {
                     $deleteUrl = 'index.php?option=com_bookingmanager&task=regions.delete&cid[]=' . (int) $item->id;
@@ -57,13 +56,12 @@ $listDirn  = $this->state->get('list.direction');
                 }
                 echo '</ul>';
             }
-
             buildNestedList($this->nestedItems);
             ?>
         </div>
     </div>
 
-    <input type="hidden" name="task" value="region.save" />
+    <input type="hidden" name="task" value="" />
     <input type="hidden" name="boxchecked" value="0" />
     <?php echo HTMLHelper::_('form.token'); ?>
 </form>
@@ -80,7 +78,7 @@ $listDirn  = $this->state->get('list.direction');
         if (task == 'region.cancel') {
             document.getElementById('jform_id').value = '';
             document.getElementById('adminForm').reset();
-            Joomla.submitform(task, document.getElementById('adminForm'));
+            return;
         } else if (document.formvalidator.isValid(document.id('adminForm'))) {
             Joomla.submitform(task, document.getElementById('adminForm'));
         } else {
