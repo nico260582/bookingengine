@@ -10,7 +10,7 @@ class BookingmanagerModelSearchresults extends ListModel
     {
         if (empty($config['filter_fields'])) {
             $config['filter_fields'] = array(
-                'region', 'guests', 'dates'
+                'main_region', 'guests', 'dates'
             );
         }
 
@@ -23,17 +23,17 @@ class BookingmanagerModelSearchresults extends ListModel
         $query = $db->getQuery(true);
         $app = Factory::getApplication();
 
-        $query->select('p.id, p.article_id, p.max_guests, p.region, c.title')
+        $query->select('p.id, p.article_id, p.max_guests, p.main_region, p.sub_region, c.title')
             ->from($db->quoteName('#__bookingmanager_properties', 'p'))
             ->join('LEFT', $db->quoteName('#__content', 'c') . ' ON ' . $db->quoteName('p.article_id') . ' = ' . $db->quoteName('c.id'));
 
         // Get filter values
-        $region = $app->input->get('region', '', 'string');
+        $mainRegion = $app->input->get('main_region', '', 'string');
         $guests = $app->input->get('guests', 0, 'int');
         $dates = $app->input->get('dates', '', 'string');
 
-        if (!empty($region)) {
-            $query->where($db->quoteName('p.region') . ' = ' . $db->quote($region));
+        if (!empty($mainRegion)) {
+            $query->where($db->quoteName('p.main_region') . ' = ' . $db->quote($mainRegion));
         }
 
         if ($guests > 0) {

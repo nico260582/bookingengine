@@ -14,7 +14,8 @@ defined('_JEXEC') or die;
                         <?php echo htmlspecialchars($item->title, ENT_QUOTES, 'UTF-8'); ?>
                     </a>
                 </h2>
-                <p>Region: <?php echo htmlspecialchars($item->region, ENT_QUOTES, 'UTF-8'); ?></p>
+                <p>Main Region: <?php echo htmlspecialchars($item->main_region, ENT_QUOTES, 'UTF-8'); ?></p>
+                <p>Sub Region: <?php echo htmlspecialchars($item->sub_region, ENT_QUOTES, 'UTF-8'); ?></p>
                 <p>Max Guests: <?php echo (int)$item->max_guests; ?></p>
             </li>
         <?php endforeach; ?>

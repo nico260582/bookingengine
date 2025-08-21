@@ -26,10 +26,16 @@
             step="1"
         />
         <field
-            name="region"
+            name="main_region"
             type="text"
-            label="COM_BOOKINGMANAGER_PROPERTY_REGION_LABEL"
-            description="COM_BOOKINGMANAGER_PROPERTY_REGION_DESC"
+            label="COM_BOOKINGMANAGER_PROPERTY_MAIN_REGION_LABEL"
+            description="COM_BOOKINGMANAGER_PROPERTY_MAIN_REGION_DESC"
+        />
+        <field
+            name="sub_region"
+            type="text"
+            label="COM_BOOKINGMANAGER_PROPERTY_SUB_REGION_LABEL"
+            description="COM_BOOKINGMANAGER_PROPERTY_SUB_REGION_DESC"
         />
         <field
             name="allow_extra_mattress"

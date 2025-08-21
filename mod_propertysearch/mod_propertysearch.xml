@@ -3,7 +3,7 @@
     <name>mod_propertysearch</name>
     <author>Jules</author>
     <version>1.0.0</version>
-    <description>A module to search for properties by region, guests, and dates.</description>
+    <description>A module to search for properties by main region, guests, and dates.</description>
     <files>
         <filename module="mod_propertysearch">mod_propertysearch.php</filename>
         <folder>tmpl</folder>
