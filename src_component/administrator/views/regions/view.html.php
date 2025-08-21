@@ -6,6 +6,9 @@ use Joomla\CMS\Toolbar\ToolbarHelper;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Helper\ContentHelper;
 
+// It's a good practice to ensure the model is loaded
+JModelLegacy::addIncludePath(JPATH_COMPONENT_ADMINISTRATOR . '/models');
+
 class BookingmanagerViewRegions extends BaseHtmlView
 {
     protected $items;
