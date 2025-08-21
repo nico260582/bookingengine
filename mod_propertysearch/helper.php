@@ -5,16 +5,16 @@ use Joomla\CMS\Factory;
 
 class ModPropertysearchHelper
 {
-    public static function getRegions()
+    public static function getMainRegions()
     {
         $db = Factory::getDbo();
         $query = $db->getQuery(true);
 
-        $query->select($db->quoteName('region'))
+        $query->select($db->quoteName('main_region'))
             ->from($db->quoteName('#__bookingmanager_properties'))
-            ->where($db->quoteName('region') . ' IS NOT NULL')
-            ->group($db->quoteName('region'))
-            ->order($db->quoteName('region') . ' ASC');
+            ->where($db->quoteName('main_region') . ' IS NOT NULL')
+            ->group($db->quoteName('main_region'))
+            ->order($db->quoteName('main_region') . ' ASC');
 
         $db->setQuery($query);
 

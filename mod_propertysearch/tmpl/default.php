@@ -1,10 +1,10 @@
 <?php defined('_JEXEC') or die; ?>
 <form action="index.php?option=com_bookingmanager&view=searchresults" method="get">
     <div class="form-group">
-        <label for="region">Region</label>
-        <select name="region" id="region" class="form-control">
+        <label for="main_region">Main Region</label>
+        <select name="main_region" id="main_region" class="form-control">
             <option value="">All Regions</option>
-            <?php foreach ($regions as $region) : ?>
+            <?php foreach ($mainRegions as $region) : ?>
                 <option value="<?php echo htmlspecialchars($region, ENT_QUOTES, 'UTF-8'); ?>">
                     <?php echo htmlspecialchars($region, ENT_QUOTES, 'UTF-8'); ?>
                 </option>
