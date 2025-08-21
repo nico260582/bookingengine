@@ -6,8 +6,9 @@ use Joomla\CMS\Toolbar\ToolbarHelper;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Helper\ContentHelper;
 
-// It's a good practice to ensure the model is loaded
-JModelLegacy::addIncludePath(JPATH_COMPONENT_ADMINISTRATOR . '/models');
+// Manually include the required models as the autoloader seems to be failing.
+require_once JPATH_COMPONENT_ADMINISTRATOR . '/models/regions.php';
+require_once JPATH_COMPONENT_ADMINISTRATOR . '/models/region.php';
 
 class BookingmanagerViewRegions extends BaseHtmlView
 {
