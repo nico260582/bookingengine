@@ -1,27 +1,37 @@
 <?php
 defined('_JEXEC') or die;
 
-use Joomla\CMS\Factory;
-use Joomla\CMS\Language\Text;
-// Access check.
-if (!Factory::getUser()->authorise('core.manage', 'com_bookingmanager'))
+use Joomla\CMS\Component\ComponentHelper;
+use Joomla\CMS\Extension\ComponentInterface;
+use Joomla\CMS\Extension\Service\Provider\ComponentDispatcherFactory;
+use Joomla\CMS\Extension\Service\Provider\MVCFactory;
+use Joomla\CMS\MVC\Factory\MVCFactoryInterface;
+use Psr\Container\ContainerInterface;
+
+return new class implements ComponentInterface
 {
-	throw new \Exception(Text::_('JERROR_ALERTNOAUTHOR'), 403);
-}
+    public function getContainer(ContainerInterface $parent): ContainerInterface
+    {
+        $parent->registerServiceProvider(new MVCFactory($this->getNamespace()));
+        $parent->registerServiceProvider(new ComponentDispatcherFactory($this->getNamespace()));
 
-// Register the helper
-JLoader::register('BookingmanagerHelper', __DIR__ . '/helpers/bookingmanager.php');
+        return $parent;
+    }
 
-// Load component CSS
-$doc = Factory::getDocument();
-$doc->addStyleSheet('components/com_bookingmanager/assets/css/bookingmanager.css');
-$doc->addStyleSheet('components/com_bookingmanager/assets/css/custom-booking-styles.css');
+    public function dispatch(MVCFactoryInterface $factory): void
+    {
+        $dispatcher = $factory->createDispatcher();
 
-// Get an instance of the controller prefixed by Bookingmanager
-$controller = JControllerLegacy::getInstance('Bookingmanager');
+        // Access check.
+        if (!ComponentHelper::getParams('com_bookingmanager')->get('enabled', true)) {
+            throw new \Exception('Component disabled', 404);
+        }
 
-// Perform the Request task
-$controller->execute(Factory::getApplication()->input->getCmd('task'));
+        $dispatcher->dispatch();
+    }
 
-// Redirect if set by the controller
-$controller->redirect();
+    protected function getNamespace(): string
+    {
+        return 'Rtholidays\\Component\\Bookingmanager';
+    }
+};
