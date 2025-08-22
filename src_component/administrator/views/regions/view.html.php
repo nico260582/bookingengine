@@ -1,4 +1,6 @@
 <?php
+namespace Rtholidays\Component\Bookingmanager\Administrator\View\Regions;
+
 defined('_JEXEC') or die;
 
 use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
@@ -6,10 +8,7 @@ use Joomla\CMS\Toolbar\ToolbarHelper;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Helper\ContentHelper;
 
-// Ensure the model path is included
-JModelLegacy::addIncludePath(JPATH_COMPONENT_ADMINISTRATOR . '/models');
-
-class BookingmanagerViewRegions extends BaseHtmlView
+class RegionsView extends BaseHtmlView
 {
     protected $items;
     protected $pagination;
@@ -22,17 +21,9 @@ class BookingmanagerViewRegions extends BaseHtmlView
     public function display($tpl = null)
     {
         $this->state = $this->get('State');
+        $this->form  = $this->getModel('Region')->getForm();
+        $this->item  = $this->getModel('Region')->getItem();
 
-        $regionModel = JModelLegacy::getInstance('Region', 'BookingmanagerModel');
-        if ($regionModel) {
-            $this->form = $regionModel->getForm();
-            $this->item = $regionModel->getItem();
-        } else {
-            JFactory::getApplication()->enqueueMessage('Error: Could not load the Region model.', 'error');
-            return;
-        }
-
-        // --- FINAL FIX FOR WARNINGS ---
         // For a new item, ensure the object has the default properties the form expects.
         if (empty($this->item->id)) {
             $this->item->id = 0;
@@ -40,11 +31,10 @@ class BookingmanagerViewRegions extends BaseHtmlView
             $this->item->parent_id = 0;
             $this->item->state = 1;
         }
-        // --- END OF FIX ---
 
         // Get all items to build the nested structure for the list
         $this->state->set('list.limit', 0);
-        $items = $this->get('Items');
+        $items = $this->get('Items'); // Note: This uses the default model for the view (Regions)
 
         $nestedItems = [];
         $children = [];
@@ -67,9 +57,12 @@ class BookingmanagerViewRegions extends BaseHtmlView
         $this->nestedItems = $nestedItems;
 
         // Load the sidebar
-        require_once JPATH_COMPONENT_ADMINISTRATOR . '/helpers/bookingmanager.php';
-        BookingmanagerHelper::addSubmenu('regions');
-        $this->sidebar = JHtmlSidebar::render();
+        if (Factory::getUser()->authorise('core.manage', 'com_bookingmanager'))
+        {
+            require_once JPATH_COMPONENT_ADMINISTRATOR . '/helpers/bookingmanager.php';
+            \BookingmanagerHelper::addSubmenu('regions');
+            $this->sidebar = \JHtmlSidebar::render();
+        }
 
         $this->addToolbar();
 
