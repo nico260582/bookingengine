@@ -1,14 +1,16 @@
 <?php
+namespace Rtholidays\Component\Bookingmanager\Administrator\Model;
+
 defined('_JEXEC') or die;
 
 use Joomla\CMS\MVC\Model\AdminModel;
 use Joomla\CMS\Factory;
 
-class BookingmanagerModelRegion extends AdminModel
+class RegionModel extends AdminModel
 {
     public function getTable($type = 'Region', $prefix = 'BookingmanagerTable', $config = array())
     {
-        return JTable::getInstance($type, $prefix, $config);
+        return \JTable::getInstance($type, $prefix, $config);
     }
 
     public function getForm($data = array(), $loadData = true)

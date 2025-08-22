@@ -1,9 +1,11 @@
 <?php
+namespace Rtholidays\Component\Bookingmanager\Administrator\Model;
+
 defined('_JEXEC') or die;
 
 use Joomla\CMS\MVC\Model\ListModel;
 
-class BookingmanagerModelRegions extends ListModel
+class RegionsModel extends ListModel
 {
     public function __construct($config = array())
     {
