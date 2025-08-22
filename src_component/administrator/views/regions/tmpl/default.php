@@ -12,22 +12,20 @@ $this->form->bind($this->item);
 
 ?>
 
-<form action="<?php echo Route::_('index.php?option=com_bookingmanager&view=regions'); ?>" method="post" name="adminForm" id="adminForm" class="form-validate">
+<form action="<?php echo Route::_('index.php?option=com_bookingmanager&view=regions&layout=edit&id='.(int) $this->item->id); ?>" method="post" name="adminForm" id="adminForm" class="form-validate">
     <div class="row-fluid">
         <div class="span4">
             <div class="card">
                 <h5 class="card-header"><?php echo JText::_('COM_BOOKINGMANAGER_ADD_OR_EDIT_REGION'); ?></h5>
                 <div class="card-body">
                     <fieldset class="form-horizontal">
-                        <input type="hidden" name="jform[id]" id="jform_id" value="">
+                        <input type="hidden" name="jform[id]" id="jform_id" value="<?php echo $this->item->id; ?>">
                         <?php echo $this->form->renderField('name'); ?>
                         <?php echo $this->form->renderField('parent_id'); ?>
                         <?php echo $this->form->renderField('state'); ?>
                     </fieldset>
                 </div>
             </div>
-            <button type="button" class="btn btn-primary" onclick="Joomla.submitbutton('region.save')"><?php echo JText::_('JSAVE'); ?></button>
-            <button type="button" class="btn" onclick="Joomla.submitbutton('region.cancel')"><?php echo JText::_('JCANCEL'); ?></button>
         </div>
 
         <div class="span8">
@@ -67,22 +65,20 @@ $this->form->bind($this->item);
 </form>
 
 <script type="text/javascript">
+    Joomla.submitbutton = function(task) {
+        if (task == 'region.cancel' || document.formvalidator.isValid(document.getElementById('adminForm'))) {
+            Joomla.submitform(task, document.getElementById('adminForm'));
+        }
+    };
+
     function populateForm(data) {
+        // Reset the form for new item
+        Joomla.submitbutton('region.cancel');
+
+        // Populate the form with the data of the selected region
         document.getElementById('jform_id').value = data.id;
         document.getElementById('jform_name').value = data.name;
         document.getElementById('jform_parent_id').value = data.parent_id;
         document.getElementById('jform_state').value = data.state;
-    }
-
-    Joomla.submitbutton = function(task) {
-        if (task == 'region.cancel') {
-            document.getElementById('jform_id').value = '';
-            document.getElementById('adminForm').reset();
-            return;
-        } else if (document.formvalidator.isValid(document.id('adminForm'))) {
-            Joomla.submitform(task, document.getElementById('adminForm'));
-        } else {
-            alert('<?php echo $this->escape(JText::_('JGLOBAL_VALIDATION_FORM_FAILED'));?>');
-        }
     }
 </script>
