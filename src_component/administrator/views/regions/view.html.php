@@ -84,5 +84,8 @@ $state;
     protected function addToolbar()
     {
         ToolbarHelper::title('Regions');
+        ToolbarHelper::apply('region.apply', 'JTOOLBAR_APPLY');
+        ToolbarHelper::save('region.save', 'JTOOLBAR_SAVE');
+        ToolbarHelper::cancel('region.cancel', 'JTOOLBAR_CANCEL');
     }
 }
