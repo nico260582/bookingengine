@@ -32,6 +32,7 @@ class BookingmanagerViewRegions extends BaseHtmlView
             return;
         }
 
+        // --- FINAL FIX FOR WARNINGS ---
         // For a new item, ensure the object has the default properties the form expects.
         if (empty($this->item->id)) {
             $this->item->id = 0;
@@ -39,6 +40,7 @@ class BookingmanagerViewRegions extends BaseHtmlView
             $this->item->parent_id = 0;
             $this->item->state = 1;
         }
+        // --- END OF FIX ---
 
         // Get all items to build the nested structure for the list
         $this->state->set('list.limit', 0);
@@ -77,8 +79,5 @@ class BookingmanagerViewRegions extends BaseHtmlView
     protected function addToolbar()
     {
         ToolbarHelper::title('Regions');
-        ToolbarHelper::apply('region.apply', 'JTOOLBAR_APPLY');
-        ToolbarHelper::save('region.save', 'JTOOLBAR_SAVE');
-        ToolbarHelper::cancel('region.cancel', 'JTOOLBAR_CANCEL');
     }
 }

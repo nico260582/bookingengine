@@ -12,7 +12,7 @@ $this->form->bind($this->item);
 
 ?>
 
-<form action="<?php echo Route::_('index.php?option=com_bookingmanager&view=regions&layout=edit&id='.(int) $this->item->id); ?>" method="post" name="adminForm" id="adminForm" class="form-validate">
+<form action="<?php echo Route::_('index.php?option=com_bookingmanager&view=regions'); ?>" method="post" name="adminForm" id="adminForm" class="form-validate">
     <div class="row-fluid">
         <div class="span4">
             <div class="card">
@@ -26,6 +26,8 @@ $this->form->bind($this->item);
                     </fieldset>
                 </div>
             </div>
+            <button type="button" class="btn btn-primary" onclick="Joomla.submitbutton('region.save')"><?php echo JText::_('JSAVE'); ?></button>
+            <button type="button" class="btn" onclick="Joomla.submitbutton('region.cancel')"><?php echo JText::_('JCANCEL'); ?></button>
         </div>
 
         <div class="span8">
@@ -65,17 +67,20 @@ $this->form->bind($this->item);
 </form>
 
 <script type="text/javascript">
+    function populateForm(data) {
+        document.getElementById('jform_id').value = data.id;
+        document.getElementById('jform_name').value = data.name;
+        document.getElementById('jform_parent_id').value = data.parent_id;
+        document.getElementById('jform_state').value = data.state;
+    }
+
     Joomla.submitbutton = function(task) {
         if (task == 'region.cancel') {
             Joomla.submitform(task, document.getElementById('adminForm'));
-        } else if (document.formvalidator.isValid(document.getElementById('adminForm'))) {
+        } else if (document.formvalidator.isValid(document.getElementById('adminForm'))) { // Use getElementById instead of document.id
             Joomla.submitform(task, document.getElementById('adminForm'));
+        } else {
+            alert('<?php echo $this->escape(JText::_('JGLOBAL_VALIDATION_FORM_FAILED'));?>');
         }
-    };
-
-    function populateForm(data) {
-        // This function will now just submit the form with the correct ID to load the edit view
-        document.getElementById('adminForm').id.value = data.id;
-        Joomla.submitform('region.edit', document.getElementById('adminForm'));
     }
 </script>
