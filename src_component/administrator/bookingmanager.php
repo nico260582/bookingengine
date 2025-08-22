@@ -15,8 +15,8 @@ return new class implements ServiceProviderInterface, BootableExtensionInterface
 {
     public function register(Container $container)
     {
-        $container->registerServiceProvider(new MVCFactory('\\Rtholidays\\Component\\Bookingmanager'));
-        $container->registerServiceProvider(new ComponentDispatcherFactory('\\Rtholidays\\Component\\Bookingmanager'));
+        $container->registerServiceProvider(new MVCFactory());
+        $container->registerServiceProvider(new ComponentDispatcherFactory());
 
         $container->set(
             ComponentInterface::class,
