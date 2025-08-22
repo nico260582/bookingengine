@@ -1,6 +1,7 @@
 <?php
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Application\CMSApplicationInterface;
 use Joomla\CMS\Dispatcher\DispatcherInterface;
 use Joomla\CMS\Extension\ComponentInterface;
 use Joomla\CMS\Extension\Service\Provider\ComponentDispatcherFactory;
@@ -18,9 +19,9 @@ return new class implements ComponentInterface
         return $parent;
     }
 
-    public function getDispatcher(MVCFactoryInterface $factory): DispatcherInterface
+    public function getDispatcher(CMSApplicationInterface $application): DispatcherInterface
     {
-        return $factory->createDispatcher();
+        return $application->getContainer()->get(MVCFactoryInterface::class)->createDispatcher();
     }
 
     protected function getNamespace(): string
