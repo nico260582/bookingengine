@@ -1,6 +1,8 @@
 <?php
 defined('_JEXEC') or die;
 
-class BookingmanagerControllerBookingrequests extends JControllerAdmin
+use Joomla\CMS\MVC\Controller\AdminController;
+
+class BookingmanagerControllerBookingrequests extends AdminController
 {
 }
