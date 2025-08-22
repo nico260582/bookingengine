@@ -1,9 +1,11 @@
 <?php
+namespace Rtholidays\Component\Bookingmanager\Administrator\Table;
+
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Table\Table;
 
-class BookingmanagerTableRegion extends Table
+class RegionTable extends Table
 {
     public function __construct(&$db)
     {

@@ -8,10 +8,6 @@ use Joomla\CMS\Factory;
 
 class RegionModel extends AdminModel
 {
-    public function getTable($type = 'Region', $prefix = 'BookingmanagerTable', $config = array())
-    {
-        return \JTable::getInstance($type, $prefix, $config);
-    }
 
     public function getForm($data = array(), $loadData = true)
     {
