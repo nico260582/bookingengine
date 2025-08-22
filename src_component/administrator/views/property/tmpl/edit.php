@@ -109,13 +109,13 @@
 </form>
 <script>
 jQuery(document).ready(function($) {
-    const container = $('#item-form');
+    var container = $('#item-form');
 
     if (container.length) {
         // Commission checkbox logic
         container.on('change', '.override-commission-checkbox', function() {
-            const checkbox = $(this);
-            const commissionInput = checkbox.closest('td').next().find('.commission-value-input');
+            var checkbox = $(this);
+            var commissionInput = checkbox.closest('td').next().find('.commission-value-input');
             if (commissionInput.length) {
                 commissionInput.prop('disabled', !checkbox.prop('checked'));
             }
@@ -123,16 +123,16 @@ jQuery(document).ready(function($) {
 
         // Market activation logic
         container.on('change', '.market-activation-checkbox', function() {
-            const activationCheckbox = $(this);
-            const marketName = activationCheckbox.data('marketName').replace(/ /g, '-');
-            const isChecked = activationCheckbox.prop('checked');
+            var activationCheckbox = $(this);
+            var marketName = activationCheckbox.data('marketName').replace(/ /g, '-');
+            var isChecked = activationCheckbox.prop('checked');
 
-            const inputsToToggle = container.find('.market-col-' + marketName + ' input');
+            var inputsToToggle = container.find('.market-col-' + marketName + ' input');
             inputsToToggle.prop('disabled', !isChecked);
 
             // Re-apply commission logic
             inputsToToggle.filter('.commission-value-input').each(function() {
-                const overrideCheckbox = $(this).closest('tr').find('.market-col-' + marketName + ' .override-commission-checkbox');
+                var overrideCheckbox = $(this).closest('tr').find('.market-col-' + marketName + ' .override-commission-checkbox');
                 if (overrideCheckbox.length && !overrideCheckbox.prop('checked')) {
                     $(this).prop('disabled', true);
                 }
@@ -140,35 +140,36 @@ jQuery(document).ready(function($) {
         });
 
         // Sub-region dynamic population
-        const mainRegionSelect = $('#jform_main_region_id');
-        const subRegionSelect = $('#jform_sub_region_id');
-        const currentSubRegionId = '<?php echo $this->item->sub_region_id; ?>';
+        var mainRegionSelect = $('#jform_main_region_id');
+        var subRegionSelect = $('#jform_sub_region_id');
+        var currentSubRegionId = '<?php echo $this->item->sub_region_id; ?>';
 
         function fetchSubRegions(parentId, selectedSubRegionId) {
             if (!parentId) {
                 subRegionSelect.html('<option value="">Select a main region first</option>');
-                subRegionSelect.trigger("chosen:updated"); // For chosen dropdowns
+                subRegionSelect.trigger("chosen:updated");
                 return;
             }
 
             $.ajax({
-                url: 'index.php?option=com_bookingmanager&task=properties.getSubRegions&format=json',
+                url: 'index.php?option=com_bookingmanager&task=properties.getSubRegions&format=raw',
                 type: 'GET',
                 data: { 'parent_id': parentId },
+                dataType: 'json',
                 success: function(response) {
                     subRegionSelect.html('<option value="">Select a Sub Region</option>');
-                    if (response.success && response.data && response.data.length > 0) {
-                        $.each(response.data, function(index, subRegion) {
+                    if (response && response.length > 0) {
+                        $.each(response, function(index, subRegion) {
                             subRegionSelect.append(new Option(subRegion.name, subRegion.id));
                         });
                     }
                     if (selectedSubRegionId) {
                         subRegionSelect.val(selectedSubRegionId);
                     }
-                    subRegionSelect.trigger("chosen:updated"); // For chosen dropdowns
+                    subRegionSelect.trigger("chosen:updated");
                 },
                 error: function(xhr, status, error) {
-                    console.error('Error fetching sub-regions:', error);
+                    console.error('Error fetching sub-regions:', error, xhr.responseText);
                 }
             });
         }

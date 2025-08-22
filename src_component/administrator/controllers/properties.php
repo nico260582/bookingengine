@@ -4,8 +4,6 @@ defined('_JEXEC') or die;
 use Joomla\CMS\MVC\Controller\AdminController;
 
 use Joomla\CMS\Factory;
-use Joomla\CMS\Response\Json\JsonResponse;
-
 class BookingmanagerControllerProperties extends AdminController
 {
     public function getModel($name = 'Property', $prefix = 'BookingmanagerModel', $config = array('ignore_request' => true))
@@ -27,7 +25,8 @@ class BookingmanagerControllerProperties extends AdminController
         $db->setQuery($query);
         $subRegions = $db->loadObjectList();
 
-        echo new JsonResponse($subRegions);
+        // Use a more compatible way to return JSON
+        echo json_encode($subRegions);
         $app->close();
     }
 }
