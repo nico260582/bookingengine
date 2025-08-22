@@ -13,7 +13,9 @@ class BookingmanagerViewRegions extends BaseHtmlView
 {
     protected $items;
     protected $pagination;
-    protected $state;
+    protected
+
+$state;
     protected $sidebar;
     protected $nestedItems;
     public $form;
@@ -24,21 +26,26 @@ class BookingmanagerViewRegions extends BaseHtmlView
         $this->state = $this->get('State');
 
         $regionModel = JModelLegacy::getInstance('Region', 'BookingmanagerModel');
-        if ($regionModel) {
-            $this->form = $regionModel->getForm();
-            $this->item = $regionModel->getItem(); // This gets a new, empty item
-        } else {
+
+        // Ensure the model loaded
+        if (!$regionModel) {
             JFactory::getApplication()->enqueueMessage('Error: Could not load the Region model.', 'error');
             return;
         }
 
-        // For a new item, ensure the object has the default properties the form expects.
-        if (empty($this->item->id)) {
-            $this->item->id = 0;
-            $this->item->name = '';
-            $this->item->parent_id = 0;
-            $this->item->state = 1;
+        $this->form = $regionModel->getForm();
+        $this->item = $regionModel->getItem();
+
+        // If getItem() returns false or null, create a new empty object.
+        if (!$this->item) {
+            $this->item = new stdClass();
         }
+
+        // Ensure all required properties exist on the item object to prevent warnings.
+        $this->item->id        = $this->item->id ?? 0;
+        $this->item->name      = $this->item->name ?? '';
+        $this->item->parent_id = $this->item->parent_id ?? 0;
+        $this->item->state     = $this->item->state ?? 1;
 
         // Get all items to build the nested structure for the list
         $this->state->set('list.limit', 0);
