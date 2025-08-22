@@ -1,31 +1,32 @@
 <?php
+
 defined('_JEXEC') or die;
 
-use Joomla\CMS\Application\CMSApplicationInterface;
-use Joomla\CMS\Dispatcher\DispatcherInterface;
+use Joomla\CMS\Extension\BootableExtensionInterface;
 use Joomla\CMS\Extension\ComponentInterface;
+use Joomla\CMS\Extension\MVCComponent;
 use Joomla\CMS\Extension\Service\Provider\ComponentDispatcherFactory;
 use Joomla\CMS\Extension\Service\Provider\MVCFactory;
-use Joomla\CMS\MVC\Factory\MVCFactoryInterface;
-use Psr\Container\ContainerInterface;
+use Joomla\DI\Container;
+use Joomla\DI\ServiceProviderInterface;
 
-return new class implements ComponentInterface
+return new class implements ServiceProviderInterface, BootableExtensionInterface
 {
-    public function getContainer(ContainerInterface $parent): ContainerInterface
+    public function register(Container $container)
     {
-        $parent->registerServiceProvider(new MVCFactory($this->getNamespace()));
-        $parent->registerServiceProvider(new ComponentDispatcherFactory($this->getNamespace()));
+        $container->registerServiceProvider(new MVCFactory('\\Rtholidays\\Component\\Bookingmanager'));
+        $container->registerServiceProvider(new ComponentDispatcherFactory('\\Rtholidays\\Component\\Bookingmanager'));
 
-        return $parent;
+        $container->set(
+            ComponentInterface::class,
+            function (Container $container) {
+                $component = new MVCComponent($container->get(\Joomla\CMS\Dispatcher\DispatcherInterface::class));
+                return $component;
+            }
+        );
     }
 
-    public function getDispatcher(CMSApplicationInterface $application): DispatcherInterface
+    public function boot(Container $container)
     {
-        return $application->getContainer()->get(MVCFactoryInterface::class)->createDispatcher();
-    }
-
-    protected function getNamespace(): string
-    {
-        return 'Rtholidays\\Component\\Bookingmanager';
     }
 };
