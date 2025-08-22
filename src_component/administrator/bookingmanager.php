@@ -1,7 +1,7 @@
 <?php
 defined('_JEXEC') or die;
 
-use Joomla\CMS\Component\ComponentHelper;
+use Joomla\CMS\Dispatcher\DispatcherInterface;
 use Joomla\CMS\Extension\ComponentInterface;
 use Joomla\CMS\Extension\Service\Provider\ComponentDispatcherFactory;
 use Joomla\CMS\Extension\Service\Provider\MVCFactory;
@@ -18,16 +18,9 @@ return new class implements ComponentInterface
         return $parent;
     }
 
-    public function dispatch(MVCFactoryInterface $factory): void
+    public function getDispatcher(MVCFactoryInterface $factory): DispatcherInterface
     {
-        $dispatcher = $factory->createDispatcher();
-
-        // Access check.
-        if (!ComponentHelper::getParams('com_bookingmanager')->get('enabled', true)) {
-            throw new \Exception('Component disabled', 404);
-        }
-
-        $dispatcher->dispatch();
+        return $factory->createDispatcher();
     }
 
     protected function getNamespace(): string
