@@ -1,9 +1,7 @@
 <?php
 defined('_JEXEC') or die;
 
-use Joomla\CMS\MVC\Controller\LegacyController;
-
-class BookingmanagerController extends LegacyController
+class BookingmanagerController extends JControllerLegacy
 {
     protected $default_view = 'bookingrequests';
 }
