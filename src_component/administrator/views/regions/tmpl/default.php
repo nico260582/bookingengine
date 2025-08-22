@@ -7,7 +7,7 @@ use Joomla\CMS\HTML\HTMLHelper;
 HTMLHelper::_('behavior.formvalidator');
 HTMLHelper::_('behavior.keepalive');
 
-// Bind the form to the item data from the view.
+// This is the crucial step: Bind the form to the item data from the view.
 $this->form->bind($this->item);
 
 ?>
@@ -19,7 +19,7 @@ $this->form->bind($this->item);
                 <h5 class="card-header"><?php echo JText::_('COM_BOOKINGMANAGER_ADD_OR_EDIT_REGION'); ?></h5>
                 <div class="card-body">
                     <fieldset class="form-horizontal">
-                        <input type="hidden" name="jform[id]" id="jform_id" value="<?php echo $this->item->id; ?>">
+                        <?php echo $this->form->renderField('id'); ?>
                         <?php echo $this->form->renderField('name'); ?>
                         <?php echo $this->form->renderField('parent_id'); ?>
                         <?php echo $this->form->renderField('state'); ?>
@@ -66,19 +66,16 @@ $this->form->bind($this->item);
 
 <script type="text/javascript">
     Joomla.submitbutton = function(task) {
-        if (task == 'region.cancel' || document.formvalidator.isValid(document.getElementById('adminForm'))) {
+        if (task == 'region.cancel') {
+            Joomla.submitform(task, document.getElementById('adminForm'));
+        } else if (document.formvalidator.isValid(document.getElementById('adminForm'))) {
             Joomla.submitform(task, document.getElementById('adminForm'));
         }
     };
 
     function populateForm(data) {
-        // Reset the form for new item
-        Joomla.submitbutton('region.cancel');
-
-        // Populate the form with the data of the selected region
-        document.getElementById('jform_id').value = data.id;
-        document.getElementById('jform_name').value = data.name;
-        document.getElementById('jform_parent_id').value = data.parent_id;
-        document.getElementById('jform_state').value = data.state;
+        // This function will now just submit the form with the correct ID to load the edit view
+        document.getElementById('adminForm').id.value = data.id;
+        Joomla.submitform('region.edit', document.getElementById('adminForm'));
     }
 </script>
