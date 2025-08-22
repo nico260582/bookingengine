@@ -6,6 +6,7 @@
     use Joomla\CMS\Factory;
 
     HTMLHelper::_('behavior.formvalidator');
+    HTMLHelper::_('jquery.framework');
 ?>
 
 <form action="<?php echo Route::_('index.php?option=com_bookingmanager&layout=edit&id=' . (int) $this->item->id); ?>" method="post" name="adminForm" id="item-form" class="form-validate">
@@ -107,97 +108,78 @@
     <?php echo HTMLHelper::_('form.token'); ?>
 </form>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const container = document.getElementById('item-form');
+jQuery(document).ready(function($) {
+    const container = $('#item-form');
 
-    if (container) {
+    if (container.length) {
         // Commission checkbox logic
-        container.addEventListener('change', function(e) {
-            if (e.target.classList.contains('override-commission-checkbox')) {
-                const checkbox = e.target;
-                const commissionInput = checkbox.closest('td').nextElementSibling.querySelector('.commission-value-input');
-                if (commissionInput) {
-                    commissionInput.disabled = !checkbox.checked;
-                }
+        container.on('change', '.override-commission-checkbox', function() {
+            const checkbox = $(this);
+            const commissionInput = checkbox.closest('td').next().find('.commission-value-input');
+            if (commissionInput.length) {
+                commissionInput.prop('disabled', !checkbox.prop('checked'));
             }
         });
 
         // Market activation logic
-        container.addEventListener('change', function(e) {
-            if (e.target.classList.contains('market-activation-checkbox')) {
-                const activationCheckbox = e.target;
-                const marketName = activationCheckbox.dataset.marketName.replace(/ /g, '-');
-                const isChecked = activationCheckbox.checked;
+        container.on('change', '.market-activation-checkbox', function() {
+            const activationCheckbox = $(this);
+            const marketName = activationCheckbox.data('marketName').replace(/ /g, '-');
+            const isChecked = activationCheckbox.prop('checked');
 
-                const inputsToToggle = container.querySelectorAll('.market-col-' + marketName + ' input');
-                inputsToToggle.forEach(function(input) {
-                    input.disabled = !isChecked;
-                    // Re-apply commission logic
-                    if (input.classList.contains('commission-value-input')) {
-                        const overrideCheckbox = input.closest('tr').querySelector('.market-col-' + marketName + ' .override-commission-checkbox');
-                        if (overrideCheckbox && !overrideCheckbox.checked) {
-                            input.disabled = true;
-                        }
-                    }
-                });
-            }
-        });
+            const inputsToToggle = container.find('.market-col-' + marketName + ' input');
+            inputsToToggle.prop('disabled', !isChecked);
 
-        // Set initial state for market activation on page load
-        document.querySelectorAll('.market-activation-checkbox').forEach(function(activationCheckbox) {
-            const marketName = activationCheckbox.dataset.marketName.replace(/ /g, '-');
-            const isChecked = activationCheckbox.checked;
-
-            const inputsToToggle = container.querySelectorAll('.market-col-' + marketName + ' input');
-            inputsToToggle.forEach(function(input) {
-                input.disabled = !isChecked;
-                // Re-apply commission logic
-                if (input.classList.contains('commission-value-input')) {
-                    const overrideCheckbox = input.closest('tr').querySelector('.market-col-' + marketName + ' .override-commission-checkbox');
-                    if (overrideCheckbox && !overrideCheckbox.checked) {
-                        input.disabled = true;
-                    }
+            // Re-apply commission logic
+            inputsToToggle.filter('.commission-value-input').each(function() {
+                const overrideCheckbox = $(this).closest('tr').find('.market-col-' + marketName + ' .override-commission-checkbox');
+                if (overrideCheckbox.length && !overrideCheckbox.prop('checked')) {
+                    $(this).prop('disabled', true);
                 }
             });
         });
 
         // Sub-region dynamic population
-        const mainRegionSelect = document.getElementById('jform_main_region_id');
-        const subRegionSelect = document.getElementById('jform_sub_region_id');
+        const mainRegionSelect = $('#jform_main_region_id');
+        const subRegionSelect = $('#jform_sub_region_id');
         const currentSubRegionId = '<?php echo $this->item->sub_region_id; ?>';
 
         function fetchSubRegions(parentId, selectedSubRegionId) {
             if (!parentId) {
-                subRegionSelect.innerHTML = '<option value="">Select a main region first</option>';
+                subRegionSelect.html('<option value="">Select a main region first</option>');
+                subRegionSelect.trigger("chosen:updated"); // For chosen dropdowns
                 return;
             }
 
-            const url = `index.php?option=com_bookingmanager&task=properties.getSubRegions&format=json&parent_id=${parentId}`;
-
-            fetch(url)
-                .then(response => response.json())
-                .then(data => {
-                    subRegionSelect.innerHTML = '<option value="">Select a Sub Region</option>';
-                    if (data && data.data && data.data.length > 0) {
-                        data.data.forEach(subRegion => {
-                            const option = new Option(subRegion.name, subRegion.id);
-                            subRegionSelect.add(option);
+            $.ajax({
+                url: 'index.php?option=com_bookingmanager&task=properties.getSubRegions&format=json',
+                type: 'GET',
+                data: { 'parent_id': parentId },
+                success: function(response) {
+                    subRegionSelect.html('<option value="">Select a Sub Region</option>');
+                    if (response.success && response.data && response.data.length > 0) {
+                        $.each(response.data, function(index, subRegion) {
+                            subRegionSelect.append(new Option(subRegion.name, subRegion.id));
                         });
                     }
                     if (selectedSubRegionId) {
-                        subRegionSelect.value = selectedSubRegionId;
+                        subRegionSelect.val(selectedSubRegionId);
                     }
-                })
-                .catch(error => console.error('Error fetching sub-regions:', error));
+                    subRegionSelect.trigger("chosen:updated"); // For chosen dropdowns
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error fetching sub-regions:', error);
+                }
+            });
         }
 
-        mainRegionSelect.addEventListener('change', function() {
-            fetchSubRegions(this.value, null);
+        mainRegionSelect.on('change', function() {
+            fetchSubRegions($(this).val(), null);
         });
 
         // On page load, if a main region is selected, fetch its sub-regions
-        if (mainRegionSelect.value) {
-            fetchSubRegions(mainRegionSelect.value, currentSubRegionId);
+        if (mainRegionSelect.val()) {
+            fetchSubRegions(mainRegionSelect.val(), currentSubRegionId);
         }
     }
 });
