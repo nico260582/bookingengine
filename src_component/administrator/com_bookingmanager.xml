@@ -49,6 +49,8 @@
             <filename>controllers/properties.php</filename>
             <filename>controllers/property.php</filename>
             <filename>controllers/propertyrates.php</filename>
+            <filename>controllers/region.php</filename>
+            <filename>controllers/regions.php</filename>
             <filename>controllers/supplier.php</filename>
             <filename>controllers/suppliers.php</filename>
             <filename>controllers/template.php</filename>
