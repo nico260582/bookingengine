@@ -9,6 +9,7 @@ use Joomla\CMS\Extension\Service\Provider\ComponentDispatcherFactory;
 use Joomla\CMS\Extension\Service\Provider\MVCFactory;
 use Joomla\DI\Container;
 use Joomla\DI\ServiceProviderInterface;
+use Psr\Container\ContainerInterface;
 
 return new class implements ServiceProviderInterface, BootableExtensionInterface
 {
@@ -26,7 +27,7 @@ return new class implements ServiceProviderInterface, BootableExtensionInterface
         );
     }
 
-    public function boot(Container $container)
+    public function boot(ContainerInterface $container)
     {
     }
 };
