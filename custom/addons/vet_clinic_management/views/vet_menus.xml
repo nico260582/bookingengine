@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Main Menu -->
+        <menuitem
+            id="menu_vet_clinic_root"
+            name="Veterinary Clinic"
+            sequence="10"/>
+
+        <!-- Clients Menu -->
+        <menuitem
+            id="menu_vet_clinic_clients_menu"
+            name="Clients"
+            parent="menu_vet_clinic_root"
+            sequence="10"/>
+
+        <menuitem
+            id="menu_vet_clinic_owners"
+            name="Owners"
+            parent="menu_vet_clinic_clients_menu"
+            action="action_vet_owner"
+            sequence="10"/>
+
+        <!-- Patients Menu -->
+        <menuitem
+            id="menu_vet_clinic_patients_menu"
+            name="Patients"
+            parent="menu_vet_clinic_root"
+            sequence="20"/>
+
+        <menuitem
+            id="menu_vet_clinic_animals"
+            name="Animals"
+            parent="menu_vet_clinic_patients_menu"
+            action="action_vet_animal"
+            sequence="10"/>
+    </data>
+</odoo>
