@@ -3,8 +3,6 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
-use Joomla\CMS\MVC\Controller\BaseController;
-
 // Access check.
 if (!Factory::getUser()->authorise('core.manage', 'com_bookingmanager'))
 {
@@ -20,7 +18,7 @@ $doc->addStyleSheet('components/com_bookingmanager/assets/css/bookingmanager.css
 $doc->addStyleSheet('components/com_bookingmanager/assets/css/custom-booking-styles.css');
 
 // Get an instance of the controller prefixed by Bookingmanager
-$controller = BaseController::getInstance('Bookingmanager');
+$controller = JControllerLegacy::getInstance('Bookingmanager');
 
 // Perform the Request task
 $controller->execute(Factory::getApplication()->input->getCmd('task'));
