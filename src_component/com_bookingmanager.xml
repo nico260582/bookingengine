@@ -16,7 +16,6 @@
     <files folder="site">
         <folder>src</folder>
         <folder>language</folder>
-        <folder>views</folder>
     </files>
 
     <administration>
