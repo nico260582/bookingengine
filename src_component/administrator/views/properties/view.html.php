@@ -4,7 +4,8 @@ defined('_JEXEC') or die;
 use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
 use Joomla\CMS\Toolbar\ToolbarHelper;
 use Joomla\CMS\Factory;
-use Joomla\CMS\Helper\ContentHelper; // <-- Added
+use Joomla\CMS\Helper\ContentHelper;
+use Joomla\CMS\HTML\Helpers\Sidebar;
 
 class BookingmanagerViewProperties extends BaseHtmlView
 {
@@ -22,13 +23,12 @@ class BookingmanagerViewProperties extends BaseHtmlView
         $this->pagination    = $this->get('Pagination');
         $this->state         = $this->get('State');
         // Get the filter form and active filters.
-        $this->filterForm    = $this->get('FilterForm'); // <-- Added
-        $this->activeFilters = $this->get('ActiveFilters'); // <-- Added
+        $this->filterForm    = $this->get('FilterForm');
+        $this->activeFilters = $this->get('ActiveFilters');
 
         // Load the sidebar
-        require_once JPATH_COMPONENT_ADMINISTRATOR . '/helpers/bookingmanager.php';
         BookingmanagerHelper::addSubmenu('properties');
-        $this->sidebar = JHtmlSidebar::render();
+        $this->sidebar = Sidebar::render();
 
         $this->addToolbar();
 
