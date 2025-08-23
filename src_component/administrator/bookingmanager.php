@@ -15,6 +15,8 @@ return new class implements ServiceProviderInterface, BootableExtensionInterface
 {
     public function register(Container $container)
     {
+        \Joomla\CMS\Loader::register('BookingmanagerHelper', JPATH_ADMINISTRATOR . '/components/com_bookingmanager/helpers/bookingmanager.php');
+
         $container->registerServiceProvider(new MVCFactory());
         $container->registerServiceProvider(new ComponentDispatcherFactory());
 

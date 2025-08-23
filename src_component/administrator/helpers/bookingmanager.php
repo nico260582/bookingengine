@@ -1,6 +1,8 @@
 <?php
 defined('_JEXEC') or die;
 
+die('helper loaded');
+
 use Joomla\CMS\Factory;
 use Joomla\CMS\Mail\MailHelper;
 use Joomla\CMS\Date\Date;
