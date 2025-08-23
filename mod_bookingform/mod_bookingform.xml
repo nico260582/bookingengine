@@ -1,12 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<extension type="module" version="3.1" client="site" method="upgrade">
+<extension type="module" version="4.0" client="site" method="upgrade">
     <name>mod_bookingform</name>
     <author>RT-Holidays</author>
-    <version>3.8.0</version>
+    <version>5.0.0</version>
     <description>A compact booking form that integrates with com_bookingmanager.</description>
+
+    <namespace>RTHolidays\Module\BookingForm</namespace>
+
     <files>
         <filename module="mod_bookingform">mod_bookingform.php</filename>
-        <filename>helper.php</filename>
+        <folder>src</folder>
         <folder>tmpl</folder>
         <folder>media</folder>
     </files>

@@ -1,5 +1,8 @@
 <?php
+namespace RTHolidays\Component\BookingManager\Site\Controller;
+
 defined('_JEXEC') or die;
+
 use Joomla\CMS\Factory;
 use Joomla\CMS\Date\Date;
 use Joomla\CMS\Log\Log;
@@ -9,8 +12,14 @@ use Joomla\CMS\User\UserHelper;
 use Joomla\CMS\Filesystem\File;
 use Joomla\CMS\Filesystem\Folder;
 use Joomla\CMS\Router\Route;
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\Table\Table;
+use RTHolidays\Component\BookingManager\Administrator\Helper\BookingmanagerHelper;
+use RTHolidays\Module\BookingForm\Site\Helper\BookingFormHelper;
+use \Exception;
 
-class BookingmanagerController extends BaseController
+
+class DisplayController extends BaseController
 {
     public function display($cachable = false, $urlparams = false)
     {
@@ -29,7 +38,7 @@ class BookingmanagerController extends BaseController
         $app = Factory::getApplication();
         try {
             if (!Session::checkToken('post')) { throw new Exception('Invalid Token', 403); }
-            JTable::addIncludePath(JPATH_ADMINISTRATOR . '/components/com_bookingmanager/tables');
+
             $input = $app->input;
             $data = [
                 'property_name'  => $input->post->get('accommodation', '', 'string'),
@@ -57,10 +66,10 @@ class BookingmanagerController extends BaseController
             }
 
             // User creation logic
-            $userId = (int) \Joomla\CMS\User\UserHelper::getUserId($data['client_email']);
+            $userId = (int) UserHelper::getUserId($data['client_email']);
             if (!$userId) {
                 $user = Factory::getUser(0);
-                $password = \Joomla\CMS\User\UserHelper::genRandomPassword(10);
+                $password = UserHelper::genRandomPassword(10);
                 $userData = [
                     'name'      => $data['client_name'],
                     'username'  => $data['client_email'],
@@ -94,16 +103,15 @@ class BookingmanagerController extends BaseController
 
             $data['booking_ref'] = 'BHM-' . $supplierAbbreviation . '-' . date('dmy') . '-' . strtoupper(substr(md5(uniqid(rand(), true)), 0, 4));
             $data['pin'] = substr(str_shuffle("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"), 0, 6);
-            $table = JTable::getInstance('Bookingrequest', 'BookingmanagerTable');
+            $table = Table::getInstance('Bookingrequest', 'RTHolidays\\Component\\BookingManager\\Administrator\\Table');
             if (!$table->save($data)) { throw new Exception('Database save error: ' . $table->getError()); }
             
             if (!empty($data['client_message'])) {
-                $commTable = JTable::getInstance('Communication', 'BookingmanagerTable');
+                $commTable = Table::getInstance('Communication', 'RTHolidays\\Component\\BookingManager\\Administrator\\Table');
                 $commData = [ 'request_id' => $table->id, 'created_at' => $data['created_at'], 'author' => $data['client_name'] . ' (Client)', 'message' => $data['client_message'] ];
                 $commTable->save($commData);
             }
 
-            JLoader::register('BookingmanagerHelper', JPATH_ADMINISTRATOR . '/components/com_bookingmanager/helpers/bookingmanager.php');
             BookingmanagerHelper::sendNotificationEmails($table->id, 'all', '', $data['new_user_password'] ?? '');
             
             $this->logClientActivity($table->id, $userId, 'Booking Created', 'Initial submission from booking form.');
@@ -133,8 +141,7 @@ class BookingmanagerController extends BaseController
                 throw new Exception('Permission Denied. You do not have access to this booking.', 403);
             }
 
-            JTable::addIncludePath(JPATH_ADMINISTRATOR . '/components/com_bookingmanager/tables');
-            $table = JTable::getInstance('Bookingrequest', 'BookingmanagerTable');
+            $table = Table::getInstance('Bookingrequest', 'RTHolidays\\Component\\BookingManager\\Administrator\\Table');
             if (!$table->load($bookingId)) {
                 throw new Exception('Booking request not found.', 404);
             }
@@ -171,7 +178,6 @@ class BookingmanagerController extends BaseController
                 $this->logClientActivity($bookingId, $userId, 'Booking Modified', implode(', ', $details));
             }
 
-            JLoader::register('BookingmanagerHelper', JPATH_ADMINISTRATOR . '/components/com_bookingmanager/helpers/bookingmanager.php');
             BookingmanagerHelper::sendNotificationEmails($bookingId, 'admin_client_update');
 
             echo json_encode(['success' => true, 'message' => 'Your request has been updated.']);
@@ -211,8 +217,7 @@ class BookingmanagerController extends BaseController
                 throw new Exception('Could not find associated property.', 404);
             }
 
-            JLoader::register('ModBookingFormHelper', JPATH_SITE . '/modules/mod_bookingform/helper.php');
-            $pricingRules = ModBookingFormHelper::getPricingDataForArticle($articleId);
+            $pricingRules = BookingFormHelper::getPricingDataForArticle($articleId);
 
             echo json_encode(['success' => true, 'pricingRules' => $pricingRules]);
 
@@ -228,7 +233,7 @@ class BookingmanagerController extends BaseController
     public function upload()
     {
         if (!Session::checkToken('post')) {
-            echo new \Joomla\CMS\Response\JsonResponse(null, JText::_('JINVALID_TOKEN'), true);
+            echo new \Joomla\CMS\Response\JsonResponse(null, Text::_('JINVALID_TOKEN'), true);
             Factory::getApplication()->close();
             return;
         }
@@ -239,7 +244,7 @@ class BookingmanagerController extends BaseController
         $requestId = $input->getInt('request_id');
 
         if (empty($file) || $file['error'] !== UPLOAD_ERR_OK) {
-            echo new \Joomla\CMS\Response\JsonResponse(null, JText::_('COM_BOOKINGMANAGER_ERROR_NO_FILE_UPLOADED'), true);
+            echo new \Joomla\CMS\Response\JsonResponse(null, Text::_('COM_BOOKINGMANAGER_ERROR_NO_FILE_UPLOADED'), true);
             $app->close();
         }
 
@@ -254,7 +259,7 @@ class BookingmanagerController extends BaseController
             $data = ['filePath' => 'media/com_bookingmanager/attachments/' . $requestId . '/' . $filename];
             echo new \Joomla\CMS\Response\JsonResponse($data);
         } else {
-            echo new \Joomla\CMS\Response\JsonResponse(null, JText::_('COM_BOOKINGMANAGER_ERROR_FAILED_TO_MOVE_UPLOADED_FILE'), true);
+            echo new \Joomla\CMS\Response\JsonResponse(null, Text::_('COM_BOOKINGMANAGER_ERROR_FAILED_TO_MOVE_UPLOADED_FILE'), true);
         }
 
         $app->close();
@@ -263,7 +268,7 @@ class BookingmanagerController extends BaseController
     public function addClientMessage()
     {
         if (!Session::checkToken('post')) {
-            $this->setRedirect(Route::_('index.php?option=com_bookingmanager&view=communication', false), JText::_('JINVALID_TOKEN'), 'error');
+            $this->setRedirect(Route::_('index.php?option=com_bookingmanager&view=communication', false), Text::_('JINVALID_TOKEN'), 'error');
             return;
         }
 
@@ -276,7 +281,6 @@ class BookingmanagerController extends BaseController
         $model = $this->getModel('Communication', 'BookingmanagerModel');
         if ($model->saveClientMessage($requestId, $message, $attachments)) {
             if (!empty($message) || !empty($attachments)) {
-                JLoader::register('BookingmanagerHelper', JPATH_ADMINISTRATOR . '/components/com_bookingmanager/helpers/bookingmanager.php');
                 $notificationMessage = !empty($message) ? $message : 'A new file has been uploaded by the client.';
                 $attachmentData = [];
                 if (!empty($attachments)) {
@@ -416,8 +420,7 @@ class BookingmanagerController extends BaseController
                 throw new Exception('Coupon code and article ID are required.', 400);
             }
 
-            JLoader::register('ModBookingFormHelper', JPATH_SITE . '/modules/mod_bookingform/helper.php');
-            $pricingRules = ModBookingFormHelper::getPricingDataForArticle($articleId);
+            $pricingRules = BookingFormHelper::getPricingDataForArticle($articleId);
 
             if (!$pricingRules || !isset($pricingRules['coupon_codes'])) {
                 throw new Exception('No pricing rules found for this property.', 404);
@@ -469,8 +472,7 @@ class BookingmanagerController extends BaseController
             return false; // Not logged in
         }
 
-        JTable::addIncludePath(JPATH_ADMINISTRATOR . '/components/com_bookingmanager/tables');
-        $booking = JTable::getInstance('Bookingrequest', 'BookingmanagerTable');
+        $booking = Table::getInstance('Bookingrequest', 'RTHolidays\\Component\\BookingManager\\Administrator\\Table');
         if (!$booking->load($bookingId)) {
             return false; // Booking does not exist
         }
