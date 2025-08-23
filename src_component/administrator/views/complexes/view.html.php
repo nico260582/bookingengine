@@ -5,6 +5,7 @@ use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
 use Joomla\CMS\Toolbar\ToolbarHelper;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Helper\ContentHelper;
+use Joomla\CMS\HTML\Helpers\Sidebar;
 
 class BookingmanagerViewComplexes extends BaseHtmlView
 {
@@ -20,9 +21,8 @@ class BookingmanagerViewComplexes extends BaseHtmlView
         $this->state      = $this->get('State');
 
         // Load the sidebar
-        require_once JPATH_COMPONENT_ADMINISTRATOR . '/helpers/bookingmanager.php';
         BookingmanagerHelper::addSubmenu('complexes');
-        $this->sidebar = JHtmlSidebar::render();
+        $this->sidebar = Sidebar::render();
 
         $this->addToolbar();
 

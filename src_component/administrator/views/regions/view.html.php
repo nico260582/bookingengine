@@ -7,6 +7,7 @@ use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
 use Joomla\CMS\Toolbar\ToolbarHelper;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Helper\ContentHelper;
+use Joomla\CMS\HTML\Helpers\Sidebar;
 
 class RegionsView extends BaseHtmlView
 {
@@ -59,9 +60,8 @@ class RegionsView extends BaseHtmlView
         // Load the sidebar
         if (Factory::getUser()->authorise('core.manage', 'com_bookingmanager'))
         {
-            require_once JPATH_COMPONENT_ADMINISTRATOR . '/helpers/bookingmanager.php';
             \BookingmanagerHelper::addSubmenu('regions');
-            $this->sidebar = \JHtmlSidebar::render();
+            $this->sidebar = Sidebar::render();
         }
 
         $this->addToolbar();
