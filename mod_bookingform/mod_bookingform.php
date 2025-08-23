@@ -5,13 +5,14 @@ use Joomla\CMS\Uri\Uri;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Log\Log;
+use RTHolidays\Module\BookingForm\Site\Helper\BookingFormHelper;
+use RTHolidays\Component\BookingManager\Administrator\Helper\BookingmanagerHelper as AdminBookingmanagerHelper;
+
 
 defined('_JEXEC') or die;
 
-require_once __DIR__ . '/helper.php';
-
 $app = Factory::getApplication();
-$doc = Factory::getDocument();
+$doc = $app->getDocument();
 
 $articleId = $app->input->getCmd('view') === 'article' ? $app->input->getInt('id') : 0;
 $view = $app->input->getCmd('view');
@@ -42,7 +43,7 @@ if ($articleId && $view === 'article') {
     
     if ($article && $article->catid > 0) {
         $articleTitle = $article->title;
-        $pricingRules = ModBookingFormHelper::getPricingDataForArticle($articleId);
+        $pricingRules = BookingFormHelper::getPricingDataForArticle($articleId);
 
         $propQuery = $db->getQuery(true)
             ->select('max_guests')
@@ -56,9 +57,8 @@ if ($articleId && $view === 'article') {
 if ($pricingRules) {
     if (ComponentHelper::isEnabled('com_bookingmanager'))
     {
-        JLoader::register('BookingmanagerHelper', JPATH_ADMINISTRATOR . '/components/com_bookingmanager/helpers/bookingmanager.php');
-        if (class_exists('BookingmanagerHelper')) {
-            $countries = BookingmanagerHelper::getCountries();
+        if (class_exists(AdminBookingmanagerHelper::class)) {
+            $countries = AdminBookingmanagerHelper::getCountries();
         }
     }
 

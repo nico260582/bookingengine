@@ -1,7 +1,13 @@
 <?php
 defined('_JEXEC') or die;
+
 use Joomla\CMS\Factory;
-class com_bookingmanagerInstallerScript
+use Joomla\CMS\Installer\InstallerScript;
+use Joomla\CMS\Application\Application;
+use Joomla\CMS\Language\Text;
+use \Exception;
+
+class Com_bookingmanagerInstallerScript extends InstallerScript
 {
     private function columnExists($tableName, $columnName)
     {
@@ -84,13 +90,13 @@ class com_bookingmanagerInstallerScript
         if (!$this->columnExists('#__bookingmanager_rates', 'override_admin_commission')) {
             $db->setQuery("ALTER TABLE `#__bookingmanager_rates` ADD COLUMN `override_admin_commission` TINYINT(1) NOT NULL DEFAULT 0");
             $db->execute();
-            JFactory::getApplication()->enqueueMessage('Table #__bookingmanager_rates updated with override_admin_commission column.', 'message');
+            $parent->getParent()->get('app')->enqueueMessage('Table #__bookingmanager_rates updated with override_admin_commission column.', 'message');
         }
 
         if (!$this->columnExists('#__bookingmanager_rates', 'admin_commission')) {
             $db->setQuery("ALTER TABLE `#__bookingmanager_rates` ADD COLUMN `admin_commission` DECIMAL(5,2) DEFAULT NULL");
             $db->execute();
-            JFactory::getApplication()->enqueueMessage('Table #__bookingmanager_rates updated with admin_commission column.', 'message');
+            $parent->getParent()->get('app')->enqueueMessage('Table #__bookingmanager_rates updated with admin_commission column.', 'message');
         }
 
         // Make base_rate nullable
@@ -103,20 +109,20 @@ class com_bookingmanagerInstallerScript
         if (!$this->columnExists('#__booking_requests', 'user_id')) {
             $db->setQuery("ALTER TABLE `#__booking_requests` ADD COLUMN `user_id` INT(11) NULL DEFAULT NULL, ADD INDEX `idx_user_id` (`user_id`)");
             $db->execute();
-            JFactory::getApplication()->enqueueMessage('Table #__booking_requests updated with user_id column.', 'message');
+            $parent->getParent()->get('app')->enqueueMessage('Table #__booking_requests updated with user_id column.', 'message');
         }
 
         // Add client statistics columns to booking_requests table
         if (!$this->columnExists('#__booking_requests', 'client_ip_address')) {
             $db->setQuery("ALTER TABLE `#__booking_requests` ADD COLUMN `client_ip_address` VARCHAR(45) NULL DEFAULT NULL");
             $db->execute();
-            JFactory::getApplication()->enqueueMessage('Table #__booking_requests updated with client_ip_address column.', 'message');
+            $parent->getParent()->get('app')->enqueueMessage('Table #__booking_requests updated with client_ip_address column.', 'message');
         }
 
         if (!$this->columnExists('#__booking_requests', 'client_user_agent')) {
             $db->setQuery("ALTER TABLE `#__booking_requests` ADD COLUMN `client_user_agent` TEXT NULL DEFAULT NULL");
             $db->execute();
-            JFactory::getApplication()->enqueueMessage('Table #__booking_requests updated with client_user_agent column.', 'message');
+            $parent->getParent()->get('app')->enqueueMessage('Table #__booking_requests updated with client_user_agent column.', 'message');
         }
         
         $this->addSampleData($db);
