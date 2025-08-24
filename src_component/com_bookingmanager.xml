@@ -9,12 +9,12 @@
     <authorUrl>https://www.book-holidays-mauritius.com</authorUrl>
     <version>5.0.0</version>
     <description>A component to manage booking requests and suppliers for Joomla 5.</description>
-    <scriptfile>administrator/script.php</scriptfile>
+    <scriptfile>admin/script.php</scriptfile>
 
     <namespace>RTHolidays\Component\BookingManager</namespace>
 
     <schemas>
-        <schemapath type="mysql">administrator/sql/updates/mysql</schemapath>
+        <schemapath type="mysql">admin/sql/updates/mysql</schemapath>
     </schemas>
 
     <files folder="site">
@@ -37,7 +37,7 @@
             <menu view="templates" link="option=com_bookingmanager&amp;view=templates" img="class:fa-envelope">Email Templates</menu>
             <menu view="diagnostic" link="option=com_bookingmanager&amp;view=diagnostic" img="class:fa-cogs">Diagnostic</menu>
         </submenu>
-        <files folder="administrator">
+        <files folder="admin">
             <filename>access.xml</filename>
             <filename>bookingmanager.php</filename>
             <filename>config.xml</filename>
