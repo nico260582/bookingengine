@@ -18,6 +18,9 @@
     </schemas>
 
     <files folder="site">
+        <filename>bookingmanager.php</filename>
+        <filename>controller.php</filename>
+        <filename>index.html</filename>
         <folder>src</folder>
         <folder>language</folder>
     </files>
@@ -36,11 +39,16 @@
         </submenu>
         <files folder="administrator">
             <filename>access.xml</filename>
+            <filename>bookingmanager.php</filename>
             <filename>config.xml</filename>
-            <folder>src</folder>
-            <folder>sql</folder>
+            <filename>controller.php</filename>
+            <filename>index.html</filename>
+            <filename>script.php</filename>
+            <folder>assets</folder>
             <folder>language</folder>
             <folder>layouts</folder>
+            <folder>sql</folder>
+            <folder>src</folder>
         </files>
     </administration>
 </extension>
