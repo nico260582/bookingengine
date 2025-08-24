@@ -13,6 +13,10 @@
 
     <namespace>RTHolidays\Component\BookingManager</namespace>
 
+    <schemas>
+        <schemapath type="mysql">administrator/sql/updates/mysql</schemapath>
+    </schemas>
+
     <files folder="site">
         <folder>src</folder>
         <folder>language</folder>
