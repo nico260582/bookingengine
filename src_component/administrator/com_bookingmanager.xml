@@ -7,7 +7,7 @@
     <license>GNU General Public License version 2 or later; see LICENSE.txt</license>
     <authorEmail>contact@rt-holidays.com</authorEmail>
     <authorUrl>https://www.book-holidays-mauritius.com</authorUrl>
-    <version>1.9.0</version>
+    <version>1.11.0</version>
     <description>A component to manage booking requests and suppliers.</description>
     <scriptfile>script.php</scriptfile>
     
@@ -25,6 +25,10 @@
 
     <administration>
         <menu link="option=com_bookingmanager">Booking Manager</menu>
+        <submenu>
+            <menu link="option=com_bookingmanager&amp;view=mainregions">Main Regions</menu>
+            <menu link="option=com_bookingmanager&amp;view=subregions">Sub Regions</menu>
+        </submenu>
         <files folder="administrator">
             <filename>access.xml</filename>
             <filename>bookingmanager.php</filename>

@@ -7,9 +7,10 @@ use Joomla\CMS\Uri\Uri;
 
 require_once __DIR__ . '/helper.php';
 
-$regions = ModPropertysearchHelper::getRegions();
+$mainRegions = ModPropertysearchHelper::getMainRegions();
 
 $doc = Factory::getDocument();
+$doc->addScript(Uri::base() . 'modules/mod_propertysearch/media/js/property-search.js');
 $doc->addScript('https://cdn.jsdelivr.net/npm/litepicker/dist/litepicker.js');
 $doc->addStyleSheet('https://cdn.jsdelivr.net/npm/litepicker/dist/css/litepicker.css');
 
