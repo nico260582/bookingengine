@@ -26,11 +26,26 @@
             step="1"
         />
         <field
-            name="region"
-            type="text"
-            label="COM_BOOKINGMANAGER_PROPERTY_REGION_LABEL"
-            description="COM_BOOKINGMANAGER_PROPERTY_REGION_DESC"
-        />
+            name="main_region_id"
+            type="sql"
+            query="SELECT id AS value, name FROM #__bookingmanager_main_regions WHERE published = 1 ORDER BY name"
+            key_field="value"
+            value_field="name"
+            label="COM_BOOKINGMANAGER_PROPERTY_MAIN_REGION_LABEL"
+            description="COM_BOOKINGMANAGER_PROPERTY_MAIN_REGION_DESC"
+            required="true"
+        >
+            <option value="">COM_BOOKINGMANAGER_SELECT_MAIN_REGION</option>
+        </field>
+        <field
+            name="sub_region_id"
+            type="list"
+            label="COM_BOOKINGMANAGER_PROPERTY_SUB_REGION_LABEL"
+            description="COM_BOOKINGMANAGER_PROPERTY_SUB_REGION_DESC"
+            required="true"
+        >
+            <option value="">COM_BOOKINGMANAGER_SELECT_SUB_REGION</option>
+        </field>
         <field
             name="allow_extra_mattress"
             type="radio"

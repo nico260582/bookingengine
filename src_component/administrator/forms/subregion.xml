@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<form>
+    <fieldset name="details">
+        <field
+            name="id"
+            type="hidden"
+        />
+        <field
+            name="name"
+            type="text"
+            label="COM_BOOKINGMANAGER_SUB_REGION_NAME_LABEL"
+            description="COM_BOOKINGMANAGER_SUB_REGION_NAME_DESC"
+            required="true"
+        />
+        <field
+            name="main_region_id"
+            type="sql"
+            query="SELECT id AS value, name AS name FROM #__bookingmanager_main_regions WHERE published = 1 ORDER BY name"
+            key_field="value"
+            value_field="name"
+            label="COM_BOOKINGMANAGER_SUB_REGION_MAIN_REGION_LABEL"
+            description="COM_BOOKINGMANAGER_SUB_REGION_MAIN_REGION_DESC"
+            required="true"
+            header="Select a Main Region"
+        />
+        <field
+            name="published"
+            type="radio"
+            label="JPUBLISHED"
+            description="COM_BOOKINGMANAGER_SUB_REGION_PUBLISHED_DESC"
+            class="btn-group btn-group-yesno"
+            default="1"
+        >
+            <option value="1">JYES</option>
+            <option value="0">JNO</option>
+        </field>
+    </fieldset>
+</form>

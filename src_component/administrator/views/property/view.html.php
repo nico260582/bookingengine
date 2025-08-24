@@ -23,6 +23,10 @@ class BookingmanagerViewProperty extends BaseHtmlView
 
         $this->addToolbar();
 
+        // Load the custom javascript
+        $wa = $this->document->getWebAssetManager();
+        $wa->useScript('com_bookingmanager.property-edit');
+
         parent::display($tpl);
     }
 
