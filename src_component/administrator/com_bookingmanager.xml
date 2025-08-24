@@ -23,6 +23,10 @@
         <language tag="en-GB">en-GB/en-GB.com_bookingmanager.ini</language>
     </languages>
 
+    <media destination="com_bookingmanager" folder="media">
+        <folder>js</folder>
+    </media>
+
     <administration>
         <menu link="option=com_bookingmanager">Booking Manager</menu>
         <submenu>

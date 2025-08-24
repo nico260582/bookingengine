@@ -8,7 +8,7 @@
     {
       "name": "com_bookingmanager.property-edit",
       "type": "script",
-      "uri": "com_bookingmanager/administrator/assets/js/property-edit.js",
+      "uri": "com_bookingmanager/js/property-edit.js",
       "dependencies": [
         "core"
       ],
