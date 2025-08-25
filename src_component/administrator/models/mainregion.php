@@ -9,6 +9,11 @@ use Joomla\Utilities\ArrayHelper;
 
 class BookingmanagerModelMainregion extends AdminModel
 {
+    public function getTable($type = 'Mainregion', $prefix = 'BookingmanagerTable', $config = array())
+    {
+        return Table::getInstance($type, $prefix, $config);
+    }
+
     public function getForm($data = array(), $loadData = true)
     {
         $form = $this->loadForm(
