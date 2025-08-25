@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <extension type="component" version="3.1" method="upgrade">
     <name>com_bookingmanager</name>
     <author>RT-Holidays</author>
@@ -21,6 +20,10 @@
         <folder>controllers</folder>
     </files>
 
+    <media destination="com_bookingmanager" folder="media">
+        <folder>js</folder>
+    </media>
+
     <languages folder="site/language">
         <language tag="en-GB">en-GB/en-GB.com_bookingmanager.ini</language>
     </languages>
@@ -30,6 +33,8 @@
         <submenu>
             <menu view="bookingrequests" link="option=com_bookingmanager&amp;view=bookingrequests" img="class:icon-calendar">Booking Requests</menu>
             <menu view="properties" link="option=com_bookingmanager&amp;view=properties" img="class:icon-home">Properties</menu>
+            <menu view="mainregions" link="option=com_bookingmanager&amp;view=mainregions" img="class:icon-map-marker">Main Regions</menu>
+            <menu view="subregions" link="option=com_bookingmanager&amp;view=subregions" img="class:icon-map-marker">Sub Regions</menu>
             <menu view="complexes" link="option=com_bookingmanager&amp;view=complexes" img="class:icon-folder-open">Complexes</menu>
             <menu view="suppliers" link="option=com_bookingmanager&amp;view=suppliers" img="class:icon-user">Suppliers</menu>
             <menu view="propertyrates" link="option=com_bookingmanager&amp;view=propertyrates" img="class:icon-tags">Property Rates</menu>
@@ -48,9 +53,12 @@
             <filename>controllers/complexes.php</filename>
             <filename>controllers/diagnostic.php</filename>
             <filename>controllers/index.html</filename>
+            <filename>controllers/mainregion.php</filename>
+            <filename>controllers/mainregions.php</filename>
             <filename>controllers/properties.php</filename>
             <filename>controllers/property.php</filename>
             <filename>controllers/propertyrates.php</filename>
+            <filename>controllers/subregion.php</filename>
             <filename>controllers/supplier.php</filename>
             <filename>controllers/suppliers.php</filename>
             <filename>controllers/template.php</filename>

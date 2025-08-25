@@ -3,16 +3,10 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\MVC\Controller\AdminController;
 use Joomla\CMS\Factory;
-use Joomla\CMS\Response\JsonResponse;
 use Joomla\CMS\Language\Text;
 
 class BookingmanagerControllerSubregions extends AdminController
 {
-    public function getModel($name = 'Subregion', $prefix = 'BookingmanagerModel', $config = array('ignore_request' => true))
-    {
-        return parent::getModel($name, $prefix, $config);
-    }
-
     public function getSubRegions()
     {
         $app = Factory::getApplication();
