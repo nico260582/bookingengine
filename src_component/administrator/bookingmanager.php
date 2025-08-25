@@ -13,7 +13,6 @@ if (!Factory::getUser()->authorise('core.manage', 'com_bookingmanager'))
 
 // Register the helper
 JLoader::register('BookingmanagerHelper', __DIR__ . '/helpers/bookingmanager.php');
-\Joomla\CMS\Table\Table::addIncludePath(__DIR__ . '/tables');
 
 // Load component CSS
 $doc = Factory::getDocument();

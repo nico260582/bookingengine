@@ -7,9 +7,9 @@ use Joomla\CMS\Factory;
 
 class BookingmanagerViewProperty extends BaseHtmlView
 {
-    protected $form;
-    protected $item;
-    protected $sidebar;
+    public $form;
+    public $item;
+    public $sidebar;
 
     public function display($tpl = null)
     {
