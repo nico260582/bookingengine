@@ -8,7 +8,7 @@ use Joomla\CMS\Language\Text;
 
 class BookingmanagerControllerSubregions extends AdminController
 {
-    public function getModel($name = 'Subregion', $prefix = 'BookingmanagerModel', $config = array('ignore_request' => true))
+    public function getModel($name = 'Subregions', $prefix = 'BookingmanagerModel', $config = array('ignore_request' => true))
     {
         return parent::getModel($name, $prefix, $config);
     }
