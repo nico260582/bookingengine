@@ -8,15 +8,23 @@ use Joomla\CMS\Factory;
 
 class BookingmanagerViewMainregions extends BaseHtmlView
 {
-    protected $items;
-    protected $pagination;
-    protected $state;
+    public $items;
+    public $pagination;
+    public $state;
+    public $filterForm;
+    public $sidebar;
 
     public function display($tpl = null)
     {
         $this->items      = $this->get('Items');
         $this->pagination = $this->get('Pagination');
         $this->state      = $this->get('State');
+        $this->filterForm = $this->get('FilterForm');
+
+        // Load the sidebar
+        require_once JPATH_COMPONENT_ADMINISTRATOR . '/helpers/bookingmanager.php';
+        BookingmanagerHelper::addSubmenu('mainregions');
+        $this->sidebar = JHtmlSidebar::render();
 
         $this->addToolbar();
 
