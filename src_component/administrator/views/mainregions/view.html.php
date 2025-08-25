@@ -6,7 +6,7 @@ use Joomla\CMS\Toolbar\ToolbarHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Factory;
 
-class BookingmanagerViewMainregions extends BaseHtmlView
+class bookingmanagerViewmainregions extends BaseHtmlView
 {
     protected $items;
     protected $pagination;
