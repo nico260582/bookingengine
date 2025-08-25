@@ -9,11 +9,11 @@ use Joomla\CMS\Helper\ContentHelper;
 
 class BookingmanagerViewMainregions extends BaseHtmlView
 {
-    protected $items;
-    protected $pagination;
-    protected $state;
-    protected $filterForm;
-    protected $sidebar;
+    public $items;
+    public $pagination;
+    public $state;
+    public $filterForm;
+    public $sidebar;
 
     public function display($tpl = null)
     {
