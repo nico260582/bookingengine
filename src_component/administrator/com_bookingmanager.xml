@@ -7,7 +7,7 @@
     <license>GNU General Public License version 2 or later; see LICENSE.txt</license>
     <authorEmail>contact@rt-holidays.com</authorEmail>
     <authorUrl>https://www.book-holidays-mauritius.com</authorUrl>
-    <version>1.11.1</version>
+    <version>1.11.2</version>
     <description>A component to manage booking requests and suppliers.</description>
     <scriptfile>script.php</scriptfile>
     
@@ -38,6 +38,7 @@
             <filename>bookingmanager.php</filename>
             <filename>com_bookingmanager.xml</filename>
             <filename>config.xml</filename>
+            <filename>joomla.asset.json</filename>
             <filename>controller.php</filename>
             <filename>index.html</filename>
             <filename>script.php</filename>
