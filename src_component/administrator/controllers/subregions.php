@@ -19,8 +19,8 @@ class BookingmanagerControllerSubregions extends AdminController
         $mainRegionId = $app->input->getInt('main_region_id', 0);
 
         if (!$mainRegionId) {
-            // Use echo for a consistent JSON structure on error
-            echo new JsonResponse(['success' => false, 'message' => Text::_('COM_BOOKINGMANAGER_ERROR_NO_MAIN_REGION_ID')]);
+            $app->setHeader('Content-Type', 'application/json');
+            echo json_encode(['success' => false, 'message' => Text::_('COM_BOOKINGMANAGER_ERROR_NO_MAIN_REGION_ID')]);
             $app->close();
         }
 
@@ -36,10 +36,11 @@ class BookingmanagerControllerSubregions extends AdminController
 
         try {
             $subRegions = $db->loadObjectList();
-            // Wrap the response in the structure the JS expects
-            echo new JsonResponse(['success' => true, 'data' => $subRegions]);
+            $app->setHeader('Content-Type', 'application/json');
+            echo json_encode(['success' => true, 'data' => $subRegions]);
         } catch (\Exception $e) {
-            echo new JsonResponse(['success' => false, 'message' => $e->getMessage()]);
+            $app->setHeader('Content-Type', 'application/json');
+            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
         }
         $app->close();
     }
