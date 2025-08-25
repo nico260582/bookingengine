@@ -7,7 +7,7 @@
     <license>GNU General Public License version 2 or later; see LICENSE.txt</license>
     <authorEmail>contact@rt-holidays.com</authorEmail>
     <authorUrl>https://www.book-holidays-mauritius.com</authorUrl>
-    <version>1.12.0</version>
+    <version>1.12.1</version>
     <description>A component to manage booking requests and suppliers.</description>
     <scriptfile>script.php</scriptfile>
     
@@ -49,6 +49,7 @@
             <folder>language</folder>
             <folder>layouts</folder>
             <folder>models</folder>
+            <folder>models/forms</folder>
             <folder>sql</folder>
             <folder>tables</folder>
             <folder>views</folder>

@@ -16,7 +16,6 @@ $listDirn      = $this->escape($this->state->get('list.direction'));
         <?php echo $this->sidebar; ?>
     </div>
     <div id="j-main-container" class="span10">
-        <?php echo LayoutHelper::render('joomla.searchtools.default', array('view' => $this)); ?>
         <table class="table table-striped table-hover">
             <thead>
                 <tr>
