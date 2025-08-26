@@ -45,16 +45,17 @@
                 return $data;
             }
 
-    // Get property details like max_guests
-    $query->clear()
-        ->select('p.max_guests')
-        ->from($db->quoteName('#__bookingmanager_properties', 'p'))
-        ->where('p.article_id = ' . (int) $propertyId);
-    $propertyDetails = $db->setQuery($query)->loadObject();
-    $data->max_guests = $propertyDetails ? $propertyDetails->max_guests : 2; // Default to 2 if not found
+            // Get property details like max_guests and base_guest_number
+            $propertyDetailsQuery = $db->getQuery(true)
+                ->select('p.max_guests, p.base_guest_number')
+                ->from($db->quoteName('#__bookingmanager_properties', 'p'))
+                ->where('p.article_id = ' . (int) $propertyId);
+            $propertyDetails = $db->setQuery($propertyDetailsQuery)->loadObject();
+            $data->max_guests = $propertyDetails ? $propertyDetails->max_guests : 2;
+            $data->base_guest_number = $propertyDetails ? $propertyDetails->base_guest_number : null;
 
-    $rules = json_decode($supplierInfo->rules);
-    $data->pricing_model = $rules->pricing_model ?? 'SupplementPerGuest'; // Default to supplement
+            $rules = json_decode($supplierInfo->rules);
+            $data->pricing_model = $rules->pricing_model ?? 'SupplementPerGuest';
 
             // Get supplier markets
             $query->clear()
@@ -84,13 +85,12 @@
 
             // Get all saved rates for this property
             $query->clear()
-                ->select('season_name, rates, active_markets, base_guest_number')
+                ->select('season_name, rates, active_markets')
                 ->from($db->quoteName('#__bookingmanager_rates'))
                 ->where('property_id = ' . (int) $propertyId);
             $ratesList = $db->setQuery($query)->loadObjectList('season_name');
 
             $data->active_markets = [];
-            $data->base_guest_number = null;
             foreach ($ratesList as $seasonName => $rate) {
                 if (!empty($rate->rates)) {
                     $ratesList[$seasonName]->rates = json_decode($rate->rates, true);
@@ -100,10 +100,6 @@
                 // Load active markets from the first available season
                 if (empty($data->active_markets) && !empty($rate->active_markets)) {
                     $data->active_markets = json_decode($rate->active_markets, true);
-                }
-                // Load base_guest_number, it should be the same for all seasons
-                if ($data->base_guest_number === null && !empty($rate->base_guest_number)) {
-                    $data->base_guest_number = (int)$rate->base_guest_number;
                 }
             }
             $data->rates = $ratesList;
@@ -126,6 +122,20 @@
 
             $db = $this->getDbo();
             $query = $db->getQuery(true);
+
+            // If base_guest_number is submitted from the rates page, update the master record in the properties table.
+            if ($baseGuestNumber !== null) {
+                $query->clear()
+                    ->update($db->quoteName('#__bookingmanager_properties'))
+                    ->set($db->quoteName('base_guest_number') . ' = ' . $baseGuestNumber)
+                    ->where($db->quoteName('article_id') . ' = ' . $propertyId);
+                try {
+                    $db->setQuery($query)->execute();
+                } catch (\Exception $e) {
+                    $this->setError('Could not update base guest number: ' . $e->getMessage());
+                    return false; // Fail fast if this update fails
+                }
+            }
 
             foreach ($ratesData as $seasonName => $submittedSeasonRates) {
 
@@ -180,34 +190,22 @@
                 try {
                     if ($exists) {
                         // Build UPDATE query
-                        $updateQuery = $db->getQuery(true)
+                        $query->clear()
                             ->update($db->quoteName('#__bookingmanager_rates'))
                             ->set($db->quoteName('rates') . ' = ' . $db->quote($ratesJson))
-                            ->set($db->quoteName('active_markets') . ' = ' . $db->quote($activeMarketsJson));
-
-                        if ($baseGuestNumber !== null) {
-                            $updateQuery->set($db->quoteName('base_guest_number') . ' = ' . $baseGuestNumber);
-                        }
-
-                        $updateQuery->where($db->quoteName('property_id') . ' = ' . $propertyId)
+                            ->set($db->quoteName('active_markets') . ' = ' . $db->quote($activeMarketsJson))
+                            ->where($db->quoteName('property_id') . ' = ' . $propertyId)
                             ->where($db->quoteName('season_name') . ' = ' . $db->quote($seasonName));
-                        $db->setQuery($updateQuery)->execute();
                     } else {
                         // Build INSERT query
                         $columns = ['property_id', 'season_name', 'rates', 'active_markets'];
                         $values = [$propertyId, $db->quote($seasonName), $db->quote($ratesJson), $db->quote($activeMarketsJson)];
-
-                        if ($baseGuestNumber !== null) {
-                            $columns[] = 'base_guest_number';
-                            $values[] = $baseGuestNumber;
-                        }
-
                         $query->clear()
                             ->insert($db->quoteName('#__bookingmanager_rates'))
-                            ->columns($db->quoteName($columns))
+                            ->columns($columns)
                             ->values(implode(',', $values));
-                        $db->setQuery($query)->execute();
                     }
+                    $db->setQuery($query)->execute();
                 } catch (\Exception $e) {
                     $this->setError($e->getMessage());
                     return false;

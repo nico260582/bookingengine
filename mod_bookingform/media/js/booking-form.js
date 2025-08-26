@@ -439,7 +439,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     seasonSupplementCost += (extraChildren * (rules.child_supplement || 0)) * nightsInSeason;
                 }
             } else if (rules.pricing_model === 'CustomCapacity' && currentSeason) {
-                const baseGuests = rules.base_guest_number || 2;
+                const baseGuests = rules.base_guest_number || 2; // Fallback to 2 if not set
                 const totalPayingGuests = adults + teens.length + children.length;
                 const extraGuests = Math.max(0, totalPayingGuests - baseGuests);
                 if (extraGuests > 0) {

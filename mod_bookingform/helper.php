@@ -21,13 +21,14 @@ class ModBookingFormHelper
 
         // Fetch property details including number_of_units and allow_extra_mattress
         $propertyQuery = $db->getQuery(true)
-            ->select('p.number_of_units, p.allow_extra_mattress, p.max_guests')
+            ->select('p.number_of_units, p.allow_extra_mattress, p.max_guests, p.base_guest_number')
             ->from($db->quoteName('#__bookingmanager_properties', 'p'))
             ->where('p.article_id = ' . (int) $articleId);
         $propertyDetails = $db->setQuery($propertyQuery)->loadObject();
         $numberOfUnits = $propertyDetails ? $propertyDetails->number_of_units : 1;
         $allowExtraMattress = $propertyDetails ? (int)$propertyDetails->allow_extra_mattress : 0;
         $maxGuests = $propertyDetails ? (int)$propertyDetails->max_guests : 1;
+        $baseGuestNumber = $propertyDetails ? (int)$propertyDetails->base_guest_number : null;
 
 
         $query->select('s.rules, s.out_of_season_surcharge, s.global_discount, s.show_global_discount_notification')
@@ -73,14 +74,13 @@ class ModBookingFormHelper
 
         // Get all saved rates for this property
         $query->clear()
-            ->select('season_name, rates, active_markets, base_guest_number')
+            ->select('season_name, rates, active_markets')
             ->from($db->quoteName('#__bookingmanager_rates'))
             ->where('property_id = ' . (int) $articleId);
         $ratesList = $db->setQuery($query)->loadObjectList('season_name');
 
         $ratesBySeason = [];
         $activeMarkets = [];
-        $baseGuestNumber = null;
         foreach ($ratesList as $seasonName => $rateInfo) {
             $decodedRates = !empty($rateInfo->rates) ? json_decode($rateInfo->rates, true) : [];
             if (!is_array($decodedRates)) $decodedRates = [];
@@ -98,11 +98,6 @@ class ModBookingFormHelper
                 $activeMarkets = json_decode($rateInfo->active_markets, true);
                 if (!is_array($activeMarkets)) $activeMarkets = [];
             }
-
-            // Load base_guest_number, it should be the same for all seasons
-            if ($baseGuestNumber === null && !empty($rateInfo->base_guest_number)) {
-                $baseGuestNumber = (int)$rateInfo->base_guest_number;
-            }
         }
 
 
@@ -110,11 +105,11 @@ class ModBookingFormHelper
             'number_of_units' => $numberOfUnits,
             'allow_extra_mattress' => $allowExtraMattress,
             'max_guests' => $maxGuests,
+            'base_guest_number' => $baseGuestNumber,
             'pricing_model' => $rules['pricing_model'] ?? 'FlatUnitRate',
             'adult_supplement' => (float)($rules['adult_supplement'] ?? 0),
             'child_supplement' => (float)($rules['child_supplement'] ?? 0),
             'extra_mattress_fee' => (float)($rules['extra_mattress_fee'] ?? 0),
-            'base_guest_number' => $baseGuestNumber,
             'infant_max_age' => (int)($rules['infant_max_age'] ?? 5),
             'child_max_age' => (int)($rules['child_max_age'] ?? 12),
             'teen_max_age' => (int)($rules['teen_max_age'] ?? 17),
