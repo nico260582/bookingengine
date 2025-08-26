@@ -340,7 +340,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (requiredUnits > availableUnits) {
                 unitCountMessage = `This property has a limit of ${availableUnits} unit(s), but your group requires ${requiredUnits}. Please consider an alternative property above.`;
-                suggestionMessage = `This property has a limit of ${availableUnits} unit(s), but your group requires ${requiredUnits}. Please consider an alternative property below.`;
+                suggestionMessage = `This property has a limit of ${availableUnits} unit(s), but your group requires ${requiredUnits}. Please consider an alternative property.`;
                 elements.unitCountDisplay.textContent = unitCountMessage;
                 isBookingPossible = false;
                 showSuggestion = true;
