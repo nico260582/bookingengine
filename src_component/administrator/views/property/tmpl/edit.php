@@ -41,6 +41,7 @@
         <legend>Property Details</legend>
         <?php echo $this->form->renderField('article_id'); ?>
         <?php echo $this->form->renderField('max_guests'); ?>
+        <?php echo $this->form->renderField('base_guest_number'); ?>
         <?php echo $this->form->renderField('main_region_id'); ?>
         <?php echo $this->form->renderField('sub_region_id'); ?>
         <?php echo $this->form->renderField('allow_extra_mattress'); ?>
