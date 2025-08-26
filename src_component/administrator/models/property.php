@@ -249,25 +249,37 @@ class BookingmanagerModelProperty extends AdminModel
         // ** END OF THE FIX **
 
         // After saving the property, update the rates table with the base guest number
-        if (isset($data['base_guest_number']) && !empty($data['base_guest_number']))
+        if (isset($data['base_guest_number']))
         {
-            $baseGuestNumber = (int) $data['base_guest_number'];
-            $articleId       = (int) $table->article_id;
+            if (!empty($data['base_guest_number'])) {
+                $baseGuestNumber = (int) $data['base_guest_number'];
+                $articleId       = (int) $table->article_id;
+                Factory::getApplication()->enqueueMessage('DEBUG: Attempting to save base_guest_number. Value from form: ' . $baseGuestNumber . ' for article ID: ' . $articleId, 'message');
 
-            if ($articleId > 0)
-            {
-                try {
-                    $db    = Factory::getDbo();
-                    $query = $db->getQuery(true)
-                        ->update($db->quoteName('#__bookingmanager_rates'))
-                        ->set($db->quoteName('base_guest_number') . ' = ' . $db->quote($baseGuestNumber))
-                        ->where($db->quoteName('property_id') . ' = ' . $articleId);
-                    $db->setQuery($query)->execute();
-                } catch (\Exception $e) {
-                    // Log the error but don't block the whole save process
-                    Factory::getApplication()->enqueueMessage('Could not synchronize Base Guest Number to rates table: ' . $e->getMessage(), 'warning');
+                if ($articleId > 0)
+                {
+                    try {
+                        $db    = Factory::getDbo();
+                        $query = $db->getQuery(true)
+                            ->update($db->quoteName('#__bookingmanager_rates'))
+                            ->set($db->quoteName('base_guest_number') . ' = ' . $db->quote($baseGuestNumber))
+                            ->where($db->quoteName('property_id') . ' = ' . $articleId);
+
+                        Factory::getApplication()->enqueueMessage('DEBUG: SQL Query: ' . $query->dump(), 'message');
+                        $db->setQuery($query)->execute();
+                        Factory::getApplication()->enqueueMessage('DEBUG: SQL Query executed successfully.', 'message');
+
+                    } catch (\Exception $e) {
+                        Factory::getApplication()->enqueueMessage('DEBUG ERROR: Could not synchronize Base Guest Number to rates table: ' . $e->getMessage(), 'error');
+                    }
+                } else {
+                    Factory::getApplication()->enqueueMessage('DEBUG: Save failed because article ID was not greater than 0.', 'warning');
                 }
+            } else {
+                 Factory::getApplication()->enqueueMessage('DEBUG: Save skipped because base_guest_number was empty in the form data.', 'message');
             }
+        } else {
+            Factory::getApplication()->enqueueMessage('DEBUG: Save skipped because base_guest_number was not present in the form data.', 'message');
         }
 
         // Get the ID and article ID of the newly saved property.
