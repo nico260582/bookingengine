@@ -160,12 +160,13 @@ class BookingmanagerModelProperty extends AdminModel
 
                         // Get all saved rates for this property
                         $query->clear()
-                            ->select('season_name, rates, active_markets')
+                            ->select('season_name, rates, active_markets, base_guest_number')
                             ->from($db->quoteName('#__bookingmanager_rates'))
                             ->where('property_id = ' . (int) $propertyId);
                         $ratesList = $db->setQuery($query)->loadObjectList('season_name');
 
                         $ratesData->active_markets = [];
+                        $item->base_guest_number = null; // Initialize
                         foreach ($ratesList as $seasonName => $rate) {
                             if (!empty($rate->rates)) {
                                 $ratesList[$seasonName]->rates = json_decode($rate->rates, true);
@@ -175,6 +176,10 @@ class BookingmanagerModelProperty extends AdminModel
                             // Load active markets from the first available season
                             if (empty($ratesData->active_markets) && !empty($rate->active_markets)) {
                                 $ratesData->active_markets = json_decode($rate->active_markets, true);
+                            }
+                            // Load base_guest_number, it should be the same for all seasons
+                            if ($item->base_guest_number === null && !empty($rate->base_guest_number)) {
+                                $item->base_guest_number = (int)$rate->base_guest_number;
                             }
                         }
                         $ratesData->rates = $ratesList;
