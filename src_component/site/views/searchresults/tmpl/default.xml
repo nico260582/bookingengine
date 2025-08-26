@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<metadata>
+    <layout title="COM_BOOKINGMANAGER_SEARCHRESULTS_VIEW_DEFAULT_TITLE" option="COM_BOOKINGMANAGER_SEARCHRESULTS_VIEW_DEFAULT_OPTION">
+        <message>
+            <![CDATA[COM_BOOKINGMANAGER_SEARCHRESULTS_VIEW_DEFAULT_DESC]]>
+        </message>
+    </layout>
+    <fields name="request">
+        <fieldset name="request">
+            <field
+                name="main_region_id"
+                type="text"
+                label="COM_BOOKINGMANAGER_FIELD_MAIN_REGION_ID_LABEL"
+                description="COM_BOOKINGMANAGER_FIELD_MAIN_REGION_ID_DESC"
+            />
+             <field
+                name="sub_region_ids"
+                type="text"
+                label="COM_BOOKINGMANAGER_FIELD_SUB_REGION_IDS_LABEL"
+                description="COM_BOOKINGMANAGER_FIELD_SUB_REGION_IDS_DESC"
+            />
+            <field
+                name="dates"
+                type="text"
+                label="COM_BOOKINGMANAGER_FIELD_DATES_LABEL"
+                description="COM_BOOKINGMANAGER_FIELD_DATES_DESC"
+            />
+            <field
+                name="adults"
+                type="text"
+                label="COM_BOOKINGMANAGER_FIELD_ADULTS_LABEL"
+                description="COM_BOOKINGMANAGER_FIELD_ADULTS_DESC"
+            />
+            <field
+                name="children"
+                type="text"
+                label="COM_BOOKINGMANAGER_FIELD_CHILDREN_LABEL"
+                description="COM_BOOKINGMANAGER_FIELD_CHILDREN_DESC"
+            />
+        </fieldset>
+    </fields>
+</metadata>
