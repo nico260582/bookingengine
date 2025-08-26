@@ -204,23 +204,74 @@ class BookingmanagerModelProperty extends AdminModel
         return $data;
     }
 
+    /**
+     * This is the new, robust save method that fixes the saving issue.
+     */
     public function save($data)
     {
-        if (!empty($data['id'])) {
-            $table = $this->getTable();
-            $table->load($data['id']);
-            $data['article_id'] = $table->article_id;
+        $table = $this->getTable();
+        $pkName = $table->getKeyName();
+        $pk = $data[$pkName] ?? 0;
+
+        // Load the record if it's an existing property to preserve its article_id
+        if ($pk > 0) {
+            $table->load($pk);
+        }
+        if (!empty($table->article_id)) {
+             $data['article_id'] = $table->article_id;
         }
 
-        if (!parent::save($data)) {
+        // ** START OF THE FIX **
+        // 1. Bind ALL form data (including main_region_id and sub_region_id) to the table object.
+        if (!$table->bind($data)) {
+            $this->setError($table->getError());
             return false;
         }
 
-        $propertyId = (int)$this->getState($this->getName() . '.id');
+        // 2. Perform validation using the rules in your tables/property.php file.
+        if (!$table->check()) {
+            $this->setError($table->getError());
+            return false;
+        }
+
+        // 3. Store the main property data to the database. This is where it saves.
+        if (!$table->store()) {
+            $this->setError($table->getError());
+            return false;
+        }
+        // ** END OF THE FIX **
+
+        // Get the ID and article ID of the newly saved property.
+        $propertyId = (int) $table->id;
+        $this->setState($this->getName() . '.id', $propertyId);
+
+        // Now, run your existing custom logic for complexes and rates.
+        $this->updateComplexes($propertyId, $data['complexes'] ?? []);
+
+        if (isset($data['rates'])) {
+            $ratesModel = self::getInstance('Propertyrates', 'BookingmanagerModel');
+            if ($ratesModel) {
+                $ratesData = [
+                    'property_id' => (int) $table->article_id,
+                    'rates' => $data['rates'],
+                    'active_markets' => $data['active_markets'] ?? []
+                ];
+                if (!$ratesModel->save($ratesData)) {
+                    $this->setError($ratesModel->getError());
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    private function updateComplexes($propertyId, $complexes)
+    {
         $db = Factory::getDbo();
 
         // Handle complex assignments with priority re-ordering
-        $complexes = $data['complexes'] ?? [];
+        $complexes = $complexes ?? [];
 
         // 1. Filter for assigned complexes and store their user-defined priorities
         $assignedComplexes = [];
@@ -264,30 +315,6 @@ class BookingmanagerModelProperty extends AdminModel
             $map->priority = $newPriority++;
             $db->insertObject('#__bookingmanager_complex_property_map', $map);
         }
-
-        if (isset($data['rates'])) {
-            AdminModel::addIncludePath(JPATH_COMPONENT_ADMINISTRATOR . '/models');
-            $ratesModel = AdminModel::getInstance('Propertyrates', 'BookingmanagerModel');
-
-            if ($ratesModel) {
-                $table = $this->getTable();
-                $table->load($propertyId);
-                $articleId = $table->article_id;
-
-                $ratesData = [
-                    'property_id' => $articleId,
-                    'rates' => $data['rates'],
-                    'active_markets' => $data['active_markets'] ?? []
-                ];
-
-                if (!$ratesModel->save($ratesData)) {
-                    $this->setError($ratesModel->getError());
-                    return false;
-                }
-            }
-        }
-
-        return true;
     }
 
     public function delete(&$pks)
