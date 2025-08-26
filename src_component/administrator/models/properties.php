@@ -88,25 +88,16 @@ class BookingmanagerModelProperties extends ListModel
         }
 
         $processedItems = [];
-        $complexNamesByProperty = [];
-
         foreach ($items as $item) {
-            if (!isset($complexNamesByProperty[$item->id])) {
-                $complexNamesByProperty[$item->id] = [];
-            }
-            if (!empty($item->complex_name)) {
-                if (!in_array($item->complex_name, $complexNamesByProperty[$item->id])) {
-                    $complexNamesByProperty[$item->id][] = $item->complex_name;
-                }
-            }
-        }
-
-        foreach ($items as $item) {
+            // If we haven't seen this property ID yet, add it to our list.
             if (!isset($processedItems[$item->id])) {
-                if (isset($complexNamesByProperty[$item->id])) {
-                    $item->complex_name = implode(', ', $complexNamesByProperty[$item->id]);
-                }
                 $processedItems[$item->id] = $item;
+            } else {
+                // If we have seen this ID, it's a duplicate because of a complex join.
+                // Let's append the complex name to the existing entry.
+                if (!empty($item->complex_name) && strpos($processedItems[$item->id]->complex_name, $item->complex_name) === false) {
+                    $processedItems[$item->id]->complex_name .= ', ' . $item->complex_name;
+                }
             }
         }
 
