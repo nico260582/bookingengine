@@ -41,7 +41,24 @@
         <legend>Property Details</legend>
         <?php echo $this->form->renderField('article_id'); ?>
         <?php echo $this->form->renderField('max_guests'); ?>
-        <?php echo $this->form->renderField('base_guest_number'); ?>
+        <div class="control-group">
+            <div class="control-label">
+                <label for="jform_base_guest_number">Base Guest Number</label>
+            </div>
+            <div class="controls">
+                <select name="jform[base_guest_number]" id="jform_base_guest_number" class="chzn-select" style="width: 100px;">
+                    <option value="">Select...</option>
+                    <?php
+                    $currentValue = $this->item->base_guest_number ?? null;
+                    for ($i = 1; $i <= 20; $i++) {
+                        $selected = ($currentValue == $i) ? ' selected="selected"' : '';
+                        echo '<option value="' . $i . '"' . $selected . '>' . $i . '</option>';
+                    }
+                    ?>
+                </select>
+                <p class="help-block">The number of guests included in the base rate for the 'Custom Capacity' pricing model.</p>
+            </div>
+        </div>
         <?php echo $this->form->renderField('main_region_id'); ?>
         <?php echo $this->form->renderField('sub_region_id'); ?>
         <?php echo $this->form->renderField('allow_extra_mattress'); ?>
