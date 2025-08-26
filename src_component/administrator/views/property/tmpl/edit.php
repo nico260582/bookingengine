@@ -4,6 +4,33 @@
     use Joomla\CMS\Layout\LayoutHelper;
     use Joomla\CMS\HTML\HTMLHelper;
     use Joomla\CMS\Factory;
+    use Joomla\CMS\Response\JsonResponse;
+
+    // --- START: Internal AJAX Handler for Sub-Regions ---
+    $app = Factory::getApplication();
+    if ($app->input->get('fetch_subregions') === '1') {
+        ob_end_clean();
+        $mainRegionId = $app->input->getInt('main_region_id', 0);
+        $data = [];
+        if ($mainRegionId > 0 && Factory::getUser()->authorise('core.manage', 'com_bookingmanager')) {
+            try {
+                $db = Factory::getDbo();
+                $query = $db->getQuery(true)
+                    ->select($db->quoteName(['id', 'name']))
+                    ->from($db->quoteName('#__bookingmanager_sub_regions'))
+                    ->where($db->quoteName('main_region_id') . ' = ' . (int) $mainRegionId)
+                    ->where($db->quoteName('published') . ' = 1')
+                    ->order($db->quoteName('name'));
+                $data = $db->setQuery($query)->loadObjectList() ?: [];
+            } catch (\Exception $e) {
+                echo new JsonResponse(null, $e->getMessage(), true);
+                $app->close();
+            }
+        }
+        echo new JsonResponse($data);
+        $app->close();
+    }
+    // --- END: Internal AJAX Handler ---
 
     HTMLHelper::_('behavior.formvalidator');
 ?>
@@ -14,6 +41,8 @@
         <legend>Property Details</legend>
         <?php echo $this->form->renderField('article_id'); ?>
         <?php echo $this->form->renderField('max_guests'); ?>
+        <?php echo $this->form->renderField('main_region_id'); ?>
+        <?php echo $this->form->renderField('sub_region_id'); ?>
         <?php echo $this->form->renderField('allow_extra_mattress'); ?>
         <?php echo $this->form->renderField('number_of_units'); ?>
         <?php echo $this->form->renderField('complexes'); ?>
@@ -105,6 +134,76 @@
     <?php echo HTMLHelper::_('form.token'); ?>
 </form>
 <script>
+// Self-contained logic for Sub-Region Loading
+jQuery(document).ready(function($) {
+    'use strict';
+
+    const mainRegionField = $('#jform_main_region_id');
+    const subRegionField = $('#jform_sub_region_id');
+
+    if (mainRegionField.length === 0) return;
+
+    const savedSubRegionValue = "<?php echo $this->item->sub_region_id ?? ''; ?>";
+
+    function updateSubRegions(isInitialLoad, callback) {
+        const mainRegionId = mainRegionField.val();
+        subRegionField.find('option:gt(0)').remove();
+
+        if (mainRegionId && mainRegionId !== '') {
+            const url = `index.php?option=com_bookingmanager&view=property&layout=edit&id=<?php echo (int)($this->item->id ?? 0); ?>&fetch_subregions=1&main_region_id=${mainRegionId}`;
+            fetch(url)
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success && Array.isArray(result.data)) {
+                        $.each(result.data, function(key, value) {
+                            subRegionField.append($('<option>', { value: value.id, text: value.name }));
+                        });
+                    }
+                })
+                .finally(() => {
+                    if (isInitialLoad && savedSubRegionValue) {
+                        subRegionField.val(savedSubRegionValue);
+                    }
+                    if (typeof callback === 'function') callback();
+                });
+        } else {
+            if (typeof callback === 'function') callback();
+        }
+    }
+
+    mainRegionField.on('change', function() {
+        updateSubRegions(false, function() {
+            subRegionField.trigger("chosen:updated");
+        });
+    });
+
+    if (mainRegionField.val()) {
+        updateSubRegions(true, function() {
+            subRegionField.trigger("chosen:updated");
+        });
+    }
+
+    // Fix for Chosen validation highlighting
+    if (document.formvalidator) {
+        document.formvalidator.setHandler('required', function (field) {
+            let isValid = false;
+            if (field.tagName.toLowerCase() === 'select' && $(field).data('chosen')) {
+                const chosenId = '#' + field.id + '_chosen';
+                const chosenElement = $(chosenId);
+                isValid = (field.value !== '');
+                if (isValid) {
+                    chosenElement.removeClass('invalid');
+                } else {
+                    chosenElement.addClass('invalid');
+                }
+            } else {
+                 isValid = (field.value.trim() !== '');
+            }
+            return isValid;
+        });
+    }
+});
+
 document.addEventListener('DOMContentLoaded', function() {
     const container = document.getElementById('item-form');
 

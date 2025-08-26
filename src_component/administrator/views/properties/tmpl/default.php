@@ -31,6 +31,12 @@ require_once JPATH_ADMINISTRATOR . '/components/com_bookingmanager/helpers/booki
                     <th width="15%">
                         <?php echo JHtml::_('grid.sort', 'Supplier', 'supplier.name', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
                     </th>
+                    <th width="10%">
+                        <?php echo JHtml::_('grid.sort', 'Main Region', 'main_region.name', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
+                    </th>
+                    <th width="10%">
+                        <?php echo JHtml::_('grid.sort', 'Sub Region', 'sub_region.name', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
+                    </th>
                     <th width="5%" class="nowrap center">
                         Rate Status
                     </th>
@@ -67,6 +73,12 @@ require_once JPATH_ADMINISTRATOR . '/components/com_bookingmanager/helpers/booki
                             </td>
                             <td>
                                 <?php echo $this->escape($item->supplier_name) ?: 'N/A'; ?>
+                            </td>
+                            <td>
+                                <?php echo $this->escape($item->main_region_name) ?: 'N/A'; ?>
+                            </td>
+                            <td>
+                                <?php echo $this->escape($item->sub_region_name) ?: 'N/A'; ?>
                             </td>
                             <td class="center">
                                 <?php
@@ -118,7 +130,7 @@ require_once JPATH_ADMINISTRATOR . '/components/com_bookingmanager/helpers/booki
                     <?php endforeach; ?>
                 <?php else : ?>
                     <tr>
-                        <td colspan="8" class="text-center">
+                        <td colspan="10" class="text-center">
                             No properties found.
                         </td>
                     </tr>
@@ -126,7 +138,7 @@ require_once JPATH_ADMINISTRATOR . '/components/com_bookingmanager/helpers/booki
             </tbody>
             <tfoot>
                 <tr>
-                    <td colspan="8">
+                    <td colspan="10">
                         <?php echo $this->pagination->getListFooter(); ?>
                     </td>
                 </tr>

@@ -16,7 +16,9 @@ class BookingmanagerModelProperties extends ListModel
                 'number_of_units', 'a.number_of_units',
                 'complex_name', 'complex.name',
                 'supplier_name', 'supplier.name',
-                'published', 'a.published'
+                'published', 'a.published',
+                'main_region_name', 'main_region.name',
+                'sub_region_name', 'sub_region.name'
             );
         }
 
@@ -50,7 +52,7 @@ class BookingmanagerModelProperties extends ListModel
         $query->select(
             $this->getState(
                 'list.select',
-                'a.*, article.title AS article_title, complex.name AS complex_name, supplier.name AS supplier_name, supplier.rules'
+                'a.*, article.title AS article_title, complex.name AS complex_name, supplier.name AS supplier_name, supplier.rules, main_region.name AS main_region_name, sub_region.name AS sub_region_name'
             )
         )
             ->from($db->quoteName('#__bookingmanager_properties', 'a'))
@@ -58,7 +60,9 @@ class BookingmanagerModelProperties extends ListModel
             ->join('LEFT', $db->quoteName('#__bookingmanager_complex_property_map', 'map') . ' ON a.id = map.property_id')
             ->join('LEFT', $db->quoteName('#__bookingmanager_complexes', 'complex') . ' ON map.complex_id = complex.id')
             ->join('LEFT', $db->quoteName('#__bookingmanager_property_map', 'supplier_map') . ' ON a.article_id = supplier_map.property_id')
-            ->join('LEFT', $db->quoteName('#__bookingmanager_suppliers', 'supplier') . ' ON supplier_map.supplier_id = supplier.id');
+            ->join('LEFT', $db->quoteName('#__bookingmanager_suppliers', 'supplier') . ' ON supplier_map.supplier_id = supplier.id')
+            ->join('LEFT', $db->quoteName('#__bookingmanager_main_regions', 'main_region') . ' ON a.main_region_id = main_region.id')
+            ->join('LEFT', $db->quoteName('#__bookingmanager_sub_regions', 'sub_region') . ' ON a.sub_region_id = sub_region.id');
 
         // Filter by search in title or supplier name
         $search = $this->getState('filter.search');
