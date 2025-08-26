@@ -41,25 +41,27 @@
         <legend>Property Details</legend>
         <?php echo $this->form->renderField('article_id'); ?>
         <?php echo $this->form->renderField('max_guests'); ?>
-        <div class="control-group">
-            <div class="control-label">
-                <label for="jform_base_guest_number">Base Guest Number</label>
+        <?php if (isset($this->item->pricing_model) && $this->item->pricing_model === 'CustomCapacity') : ?>
+            <div class="control-group">
+                <div class="control-label">
+                    <label for="jform_base_guest_number">Base Guest Number</label>
+                </div>
+                <div class="controls">
+                    <select name="jform[base_guest_number]" id="jform_base_guest_number" class="chzn-select" style="width: 100px;">
+                        <option value="">Select...</option>
+                        <?php
+                        $currentValue = $this->item->base_guest_number ?? null;
+                        $maxGuests = $this->item->max_guests ?? 20;
+                        for ($i = 1; $i <= $maxGuests; $i++) {
+                            $selected = ($currentValue == $i) ? ' selected="selected"' : '';
+                            echo '<option value="' . $i . '"' . $selected . '>' . $i . '</option>';
+                        }
+                        ?>
+                    </select>
+                    <p class="help-block">The number of guests included in the base rate for the 'Custom Capacity' pricing model.</p>
+                </div>
             </div>
-            <div class="controls">
-                <select name="jform[base_guest_number]" id="jform_base_guest_number" class="chzn-select" style="width: 100px;">
-                    <option value="">Select...</option>
-                    <?php
-                    $currentValue = $this->item->base_guest_number ?? null;
-                    $maxGuests = $this->item->max_guests ?? 20;
-                    for ($i = 1; $i <= $maxGuests; $i++) {
-                        $selected = ($currentValue == $i) ? ' selected="selected"' : '';
-                        echo '<option value="' . $i . '"' . $selected . '>' . $i . '</option>';
-                    }
-                    ?>
-                </select>
-                <p class="help-block">The number of guests included in the base rate for the 'Custom Capacity' pricing model.</p>
-            </div>
-        </div>
+        <?php endif; ?>
         <?php echo $this->form->renderField('main_region_id'); ?>
         <?php echo $this->form->renderField('sub_region_id'); ?>
         <?php echo $this->form->renderField('allow_extra_mattress'); ?>
