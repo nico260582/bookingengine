@@ -130,16 +130,20 @@
 
             // If base_guest_number is submitted from the rates page, update the master record in the properties table.
             if ($baseGuestNumber !== null) {
-                $query->clear()
-                    ->update($db->quoteName('#__bookingmanager_properties'))
-                    ->set($db->quoteName('base_guest_number') . ' = ' . $baseGuestNumber)
-                    ->where($db->quoteName('article_id') . ' = ' . $propertyId);
-                try {
-                    $db->setQuery($query)->execute();
-                } catch (\Exception $e) {
-                    $this->setError('Could not update base guest number: ' . $e->getMessage());
-                    return false; // Fail fast if this update fails
+                $columns = $db->getTableColumns('#__bookingmanager_properties');
+                if (isset($columns['base_guest_number'])) {
+                    $query->clear()
+                        ->update($db->quoteName('#__bookingmanager_properties'))
+                        ->set($db->quoteName('base_guest_number') . ' = ' . $baseGuestNumber)
+                        ->where($db->quoteName('article_id') . ' = ' . $propertyId);
+                    try {
+                        $db->setQuery($query)->execute();
+                    } catch (\Exception $e) {
+                        $this->setError('Could not update base guest number: ' . $e->getMessage());
+                        return false; // Fail fast if this update fails
+                    }
                 }
+                // If column does not exist, do nothing and allow rate saving to continue.
             }
 
             foreach ($ratesData as $seasonName => $submittedSeasonRates) {
