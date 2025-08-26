@@ -20,20 +20,14 @@ class ModBookingFormHelper
         $query = $db->getQuery(true);
 
         // Fetch property details including number_of_units and allow_extra_mattress
-        $columns = $db->getTableColumns('#__bookingmanager_properties');
-        $selectFields = ['p.number_of_units', 'p.allow_extra_mattress', 'p.max_guests'];
-        if (isset($columns['base_guest_number'])) {
-            $selectFields[] = 'p.base_guest_number';
-        }
         $propertyQuery = $db->getQuery(true)
-            ->select($selectFields)
+            ->select('p.number_of_units, p.allow_extra_mattress, p.max_guests')
             ->from($db->quoteName('#__bookingmanager_properties', 'p'))
             ->where('p.article_id = ' . (int) $articleId);
         $propertyDetails = $db->setQuery($propertyQuery)->loadObject();
         $numberOfUnits = $propertyDetails ? $propertyDetails->number_of_units : 1;
         $allowExtraMattress = $propertyDetails ? (int)$propertyDetails->allow_extra_mattress : 0;
         $maxGuests = $propertyDetails ? (int)$propertyDetails->max_guests : 1;
-        $baseGuestNumber = ($propertyDetails && isset($propertyDetails->base_guest_number)) ? (int)$propertyDetails->base_guest_number : null;
 
 
         $query->select('s.rules, s.out_of_season_surcharge, s.global_discount, s.show_global_discount_notification')
@@ -79,14 +73,18 @@ class ModBookingFormHelper
 
         // Get all saved rates for this property
         $query->clear()
-            ->select('season_name, rates, active_markets')
+            ->select('season_name, rates, active_markets, base_guest_number')
             ->from($db->quoteName('#__bookingmanager_rates'))
             ->where('property_id = ' . (int) $articleId);
         $ratesList = $db->setQuery($query)->loadObjectList('season_name');
 
         $ratesBySeason = [];
         $activeMarkets = [];
+        $baseGuestNumber = null;
         foreach ($ratesList as $seasonName => $rateInfo) {
+            if ($baseGuestNumber === null && !empty($rateInfo->base_guest_number)) {
+                $baseGuestNumber = (int)$rateInfo->base_guest_number;
+            }
             $decodedRates = !empty($rateInfo->rates) ? json_decode($rateInfo->rates, true) : [];
             if (!is_array($decodedRates)) $decodedRates = [];
 
