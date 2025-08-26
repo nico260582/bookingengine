@@ -20,15 +20,20 @@ class ModBookingFormHelper
         $query = $db->getQuery(true);
 
         // Fetch property details including number_of_units and allow_extra_mattress
+        $columns = $db->getTableColumns('#__bookingmanager_properties');
+        $selectFields = ['p.number_of_units', 'p.allow_extra_mattress', 'p.max_guests'];
+        if (isset($columns['base_guest_number'])) {
+            $selectFields[] = 'p.base_guest_number';
+        }
         $propertyQuery = $db->getQuery(true)
-            ->select('p.number_of_units, p.allow_extra_mattress, p.max_guests, p.base_guest_number')
+            ->select($selectFields)
             ->from($db->quoteName('#__bookingmanager_properties', 'p'))
             ->where('p.article_id = ' . (int) $articleId);
         $propertyDetails = $db->setQuery($propertyQuery)->loadObject();
         $numberOfUnits = $propertyDetails ? $propertyDetails->number_of_units : 1;
         $allowExtraMattress = $propertyDetails ? (int)$propertyDetails->allow_extra_mattress : 0;
         $maxGuests = $propertyDetails ? (int)$propertyDetails->max_guests : 1;
-        $baseGuestNumber = $propertyDetails ? (int)$propertyDetails->base_guest_number : null;
+        $baseGuestNumber = ($propertyDetails && isset($propertyDetails->base_guest_number)) ? (int)$propertyDetails->base_guest_number : null;
 
 
         $query->select('s.rules, s.out_of_season_surcharge, s.global_discount, s.show_global_discount_notification')

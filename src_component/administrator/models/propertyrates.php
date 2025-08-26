@@ -46,13 +46,18 @@
             }
 
             // Get property details like max_guests and base_guest_number
+            $columns = $db->getTableColumns('#__bookingmanager_properties');
+            $selectFields = ['p.max_guests'];
+            if (isset($columns['base_guest_number'])) {
+                $selectFields[] = 'p.base_guest_number';
+            }
             $propertyDetailsQuery = $db->getQuery(true)
-                ->select('p.max_guests, p.base_guest_number')
+                ->select($selectFields)
                 ->from($db->quoteName('#__bookingmanager_properties', 'p'))
                 ->where('p.article_id = ' . (int) $propertyId);
             $propertyDetails = $db->setQuery($propertyDetailsQuery)->loadObject();
             $data->max_guests = $propertyDetails ? $propertyDetails->max_guests : 2;
-            $data->base_guest_number = $propertyDetails ? $propertyDetails->base_guest_number : null;
+            $data->base_guest_number = ($propertyDetails && isset($propertyDetails->base_guest_number)) ? $propertyDetails->base_guest_number : null;
 
             $rules = json_decode($supplierInfo->rules);
             $data->pricing_model = $rules->pricing_model ?? 'SupplementPerGuest';
