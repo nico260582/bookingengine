@@ -73,13 +73,14 @@ class ModBookingFormHelper
 
         // Get all saved rates for this property
         $query->clear()
-            ->select('season_name, rates, active_markets')
+            ->select('season_name, rates, active_markets, base_guest_number')
             ->from($db->quoteName('#__bookingmanager_rates'))
             ->where('property_id = ' . (int) $articleId);
         $ratesList = $db->setQuery($query)->loadObjectList('season_name');
 
         $ratesBySeason = [];
         $activeMarkets = [];
+        $baseGuestNumber = null;
         foreach ($ratesList as $seasonName => $rateInfo) {
             $decodedRates = !empty($rateInfo->rates) ? json_decode($rateInfo->rates, true) : [];
             if (!is_array($decodedRates)) $decodedRates = [];
@@ -97,6 +98,11 @@ class ModBookingFormHelper
                 $activeMarkets = json_decode($rateInfo->active_markets, true);
                 if (!is_array($activeMarkets)) $activeMarkets = [];
             }
+
+            // Load base_guest_number, it should be the same for all seasons
+            if ($baseGuestNumber === null && !empty($rateInfo->base_guest_number)) {
+                $baseGuestNumber = (int)$rateInfo->base_guest_number;
+            }
         }
 
 
@@ -108,6 +114,7 @@ class ModBookingFormHelper
             'adult_supplement' => (float)($rules['adult_supplement'] ?? 0),
             'child_supplement' => (float)($rules['child_supplement'] ?? 0),
             'extra_mattress_fee' => (float)($rules['extra_mattress_fee'] ?? 0),
+            'base_guest_number' => $baseGuestNumber,
             'infant_max_age' => (int)($rules['infant_max_age'] ?? 5),
             'child_max_age' => (int)($rules['child_max_age'] ?? 12),
             'teen_max_age' => (int)($rules['teen_max_age'] ?? 17),

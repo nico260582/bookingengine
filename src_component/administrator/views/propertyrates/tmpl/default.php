@@ -32,6 +32,32 @@
                     if (!is_array($activeMarkets)) $activeMarkets = [];
                 }
                 ?>
+                <?php if (isset($this->rateData->pricing_model) && $this->rateData->pricing_model === 'CustomCapacity') : ?>
+                    <div class="form-horizontal">
+                        <div class="control-group">
+                            <div class="control-label">
+                                <label for="base_guest_number">Base Guest Number</label>
+                            </div>
+                            <div class="controls">
+                                <select name="jform[base_guest_number]" id="base_guest_number" class="chzn-select" style="width: 100px;">
+                                    <?php
+                                    $options = [];
+                                    // Use max_guests from rateData, defaulting to a reasonable number if not set
+                                    $maxGuests = $this->rateData->max_guests ?? 10;
+                                    for ($i = 1; $i <= $maxGuests; $i++) {
+                                        $options[] = HTMLHelper::_('select.option', $i, $i);
+                                    }
+                                    // Use base_guest_number from rateData, defaulting if not set
+                                    $selectedBaseGuests = $this->rateData->base_guest_number ?? 2;
+                                    echo HTMLHelper::_('select.options', $options, 'value', 'text', $selectedBaseGuests);
+                                    ?>
+                                </select>
+                                <p class="help-block">The number of guests included in the base rate. Additional guests will be charged the adult supplement.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <hr/>
+                <?php endif; ?>
                 <table class="table table-striped table-bordered">
                     <thead>
                         <tr>
