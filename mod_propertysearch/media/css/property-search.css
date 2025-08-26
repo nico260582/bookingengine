@@ -1,0 +1,84 @@
+/* Main wrapper for the search module */
+.mod-propertysearch-wrapper {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    width: 100%;
+}
+
+/* Flex container for the form */
+#mod-propertysearch-form {
+    display: flex;
+    flex-wrap: wrap; /* Allows items to wrap to the next line on smaller screens */
+    gap: 15px; /* Space between form groups */
+    align-items: flex-end; /* Align items to the bottom */
+}
+
+/* Individual group for each form element (label + input) */
+.search-field-group {
+    flex: 1 1 auto; /* Allows fields to grow and shrink */
+    display: flex;
+    flex-direction: column;
+}
+
+/* Specific width for the button group */
+#search-button-group {
+    flex-grow: 0;
+}
+
+.form-label {
+    margin-bottom: 5px;
+    font-weight: bold;
+    font-size: 0.9rem;
+    color: #333;
+}
+
+/* Style for the occupancy inputs to be side-by-side */
+.occupancy-inputs {
+    display: flex;
+    gap: 5px;
+}
+
+.occupancy-inputs input {
+    width: 60px; /* Small width for guest numbers */
+}
+
+/* Container for dynamically loaded sub-regions */
+#sub-regions-container {
+    padding-top: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.sub-region-item {
+    display: flex;
+    align-items: center;
+    background: #fff;
+    border: 1px solid #ddd;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+}
+
+.sub-region-item input[type="checkbox"] {
+    margin-right: 8px;
+}
+
+/* Responsive styles */
+@media (max-width: 992px) {
+    #mod-propertysearch-form {
+        flex-direction: column;
+        align-items: stretch; /* Stretch items to fill width */
+    }
+
+    .search-field-group {
+        width: 100%;
+    }
+
+    #search-button-group button {
+        width: 100%;
+        padding: 12px;
+    }
+}

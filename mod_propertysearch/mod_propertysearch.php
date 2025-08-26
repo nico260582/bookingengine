@@ -13,6 +13,7 @@ $doc = Factory::getDocument();
 $doc->addScript(Uri::base() . 'modules/mod_propertysearch/media/js/property-search.js');
 $doc->addScript('https://cdn.jsdelivr.net/npm/litepicker/dist/litepicker.js');
 $doc->addStyleSheet('https://cdn.jsdelivr.net/npm/litepicker/dist/css/litepicker.css');
+$doc->addStyleSheet(Uri::base() . 'modules/mod_propertysearch/media/css/property-search.css');
 
 $js = <<<JS
 document.addEventListener('DOMContentLoaded', function() {
