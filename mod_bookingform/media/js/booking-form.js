@@ -668,4 +668,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    // Initial call to display the starting price on page load
+    displayStartingPrice();
 });
