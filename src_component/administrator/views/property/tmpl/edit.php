@@ -33,6 +33,12 @@
     // --- END: Internal AJAX Handler ---
 
     HTMLHelper::_('behavior.formvalidator');
+
+    //============ JULES DEBUG START ============
+    $jules_debug_pricing_model = $this->item->pricing_model ?? 'NOT SET';
+    $jules_debug_base_guest = $this->item->base_guest_number ?? 'NOT SET';
+    Factory::getApplication()->enqueueMessage('PAGE LOAD DEBUG: Pricing Model is [ ' . $jules_debug_pricing_model . ' ]. Base Guest Number is [ ' . $jules_debug_base_guest . ' ].', 'message');
+    //============ JULES DEBUG END ============
 ?>
 
 <form action="<?php echo Route::_('index.php?option=com_bookingmanager&layout=edit&id=' . (int) $this->item->id); ?>" method="post" name="adminForm" id="item-form" class="form-validate">
