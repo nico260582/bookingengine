@@ -4,7 +4,7 @@ use Joomla\CMS\HTML\HTMLHelper;
 
 ?>
 <div id="mod-propertysearch-wrapper" class="mod-propertysearch-wrapper">
-    <form id="mod-propertysearch-form" action="index.php?option=com_bookingmanager&view=searchresults" method="get" class="form-inline">
+    <form id="mod-propertysearch-form" action="<?php echo JRoute::_('index.php?option=com_bookingmanager&view=searchresults'); ?>" method="get" class="form-inline">
 
         <div class="search-field-group" id="search-destination-group">
             <label for="main_region_id" class="form-label">Destination</label>
