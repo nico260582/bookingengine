@@ -50,7 +50,8 @@
                     <option value="">Select...</option>
                     <?php
                     $currentValue = $this->item->base_guest_number ?? null;
-                    for ($i = 1; $i <= 20; $i++) {
+                    $maxGuests = $this->item->max_guests ?? 20;
+                    for ($i = 1; $i <= $maxGuests; $i++) {
                         $selected = ($currentValue == $i) ? ' selected="selected"' : '';
                         echo '<option value="' . $i . '"' . $selected . '>' . $i . '</option>';
                     }

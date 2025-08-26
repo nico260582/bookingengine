@@ -246,28 +246,6 @@ class BookingmanagerModelProperty extends AdminModel
         }
         // ** END OF THE FIX **
 
-        // After saving the property, update the rates table with the base guest number
-        if (isset($data['base_guest_number']))
-        {
-            $baseGuestNumber = (int) $data['base_guest_number'];
-            $articleId       = (int) $table->article_id;
-
-            if ($articleId > 0)
-            {
-                try {
-                    $db    = Factory::getDbo();
-                    $query = $db->getQuery(true)
-                        ->update($db->quoteName('#__bookingmanager_rates'))
-                        ->set($db->quoteName('base_guest_number') . ' = ' . $db->quote($baseGuestNumber))
-                        ->where($db->quoteName('property_id') . ' = ' . $articleId);
-                    $db->setQuery($query)->execute();
-                } catch (\Exception $e) {
-                    // Log the error but don't block the whole save process
-                    Factory::getApplication()->enqueueMessage('Could not synchronize Base Guest Number to rates table: ' . $e->getMessage(), 'warning');
-                }
-            }
-        }
-
         // Get the ID and article ID of the newly saved property.
         $propertyId = (int) $table->id;
         $this->setState($this->getName() . '.id', $propertyId);
@@ -283,6 +261,10 @@ class BookingmanagerModelProperty extends AdminModel
                     'rates' => $data['rates'],
                     'active_markets' => $data['active_markets'] ?? []
                 ];
+                // Add the base_guest_number to the data array to be saved by the rates model
+                if (isset($data['base_guest_number'])) {
+                    $ratesData['base_guest_number'] = $data['base_guest_number'];
+                }
                 if (!$ratesModel->save($ratesData)) {
                     $this->setError($ratesModel->getError());
                     return false;
