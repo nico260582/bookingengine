@@ -16,6 +16,7 @@
             <option value="SupplementPerGuest">Supplement per Guest</option>
             <option value="FlatUnitRate">Flat Unit Rate</option>
             <option value="CapacityBased">Capacity Based (Mattress-for-One)</option>
+            <option value="CustomCapacity">Custom Capacity Pricing</option>
         </field>
         <field name="adult_supplement" type="number" label="Default Adult Supplement" step="0.01" class="bm-showon-supplement" size="10"/>
         <field name="child_supplement" type="number" label="Default Child Supplement" step="0.01" class="bm-showon-supplement" size="10"/>

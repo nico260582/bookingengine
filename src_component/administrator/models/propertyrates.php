@@ -45,6 +45,17 @@
                 return $data;
             }
 
+            // Get property details like max_guests
+            $propertyDetailsQuery = $db->getQuery(true)
+                ->select('p.max_guests')
+                ->from($db->quoteName('#__bookingmanager_properties', 'p'))
+                ->where('p.article_id = ' . (int) $propertyId);
+            $propertyDetails = $db->setQuery($propertyDetailsQuery)->loadObject();
+            $data->max_guests = $propertyDetails ? $propertyDetails->max_guests : 2;
+
+            $rules = json_decode($supplierInfo->rules);
+            $data->pricing_model = $rules->pricing_model ?? 'SupplementPerGuest';
+
             // Get supplier markets
             $query->clear()
                 ->select('market_name, currency')
@@ -59,7 +70,6 @@
             array_unshift($markets, $defaultMarket);
             $data->markets = $markets;
 
-            $rules = json_decode($supplierInfo->rules);
             $seasons = [];
             if (isset($rules->seasons)) {
                 $seasons = array_values((array) $rules->seasons);
@@ -73,12 +83,13 @@
 
             // Get all saved rates for this property
             $query->clear()
-                ->select('season_name, rates, active_markets')
+                ->select('season_name, rates, active_markets, base_guest_number')
                 ->from($db->quoteName('#__bookingmanager_rates'))
                 ->where('property_id = ' . (int) $propertyId);
             $ratesList = $db->setQuery($query)->loadObjectList('season_name');
 
             $data->active_markets = [];
+            $data->base_guest_number = null;
             foreach ($ratesList as $seasonName => $rate) {
                 if (!empty($rate->rates)) {
                     $ratesList[$seasonName]->rates = json_decode($rate->rates, true);
@@ -88,6 +99,10 @@
                 // Load active markets from the first available season
                 if (empty($data->active_markets) && !empty($rate->active_markets)) {
                     $data->active_markets = json_decode($rate->active_markets, true);
+                }
+                // Load base_guest_number, it should be the same for all seasons
+                if ($data->base_guest_number === null && !empty($rate->base_guest_number)) {
+                    $data->base_guest_number = (int)$rate->base_guest_number;
                 }
             }
             $data->rates = $ratesList;
@@ -101,6 +116,7 @@
             $ratesData = $data['rates'] ?? [];
             $activeMarkets = $data['active_markets'] ?? [];
             $activeMarketsJson = json_encode(array_keys($activeMarkets));
+            $baseGuestNumber = isset($data['base_guest_number']) ? (int)$data['base_guest_number'] : null;
 
             if (!$propertyId) {
                 $this->setError('No property selected.');
@@ -127,12 +143,14 @@
                 // For any market that was submitted, we should reset its 'override_commission'
                 // in the existing data before merging. This ensures that if the checkbox was
                 // unchecked (and thus not in the submission), the old value is cleared.
-                foreach (array_keys($submittedSeasonRates) as $marketName) {
-                    if (isset($existingRates[$marketName]['override_commission'])) {
-                        unset($existingRates[$marketName]['override_commission']);
-                    }
-                    if (isset($existingRates[$marketName]['commission'])) {
-                        unset($existingRates[$marketName]['commission']);
+                if (is_array($submittedSeasonRates)) {
+                    foreach (array_keys($submittedSeasonRates) as $marketName) {
+                        if (isset($existingRates[$marketName]['override_commission'])) {
+                            unset($existingRates[$marketName]['override_commission']);
+                        }
+                        if (isset($existingRates[$marketName]['commission'])) {
+                            unset($existingRates[$marketName]['commission']);
+                        }
                     }
                 }
 
@@ -164,16 +182,27 @@
                         $query->clear()
                             ->update($db->quoteName('#__bookingmanager_rates'))
                             ->set($db->quoteName('rates') . ' = ' . $db->quote($ratesJson))
-                            ->set($db->quoteName('active_markets') . ' = ' . $db->quote($activeMarketsJson))
-                            ->where($db->quoteName('property_id') . ' = ' . $propertyId)
+                            ->set($db->quoteName('active_markets') . ' = ' . $db->quote($activeMarketsJson));
+
+                        if ($baseGuestNumber !== null) {
+                            $query->set($db->quoteName('base_guest_number') . ' = ' . $baseGuestNumber);
+                        }
+
+                        $query->where($db->quoteName('property_id') . ' = ' . $propertyId)
                             ->where($db->quoteName('season_name') . ' = ' . $db->quote($seasonName));
                     } else {
                         // Build INSERT query
                         $columns = ['property_id', 'season_name', 'rates', 'active_markets'];
                         $values = [$propertyId, $db->quote($seasonName), $db->quote($ratesJson), $db->quote($activeMarketsJson)];
+
+                        if ($baseGuestNumber !== null) {
+                            $columns[] = 'base_guest_number';
+                            $values[] = $baseGuestNumber;
+                        }
+
                         $query->clear()
                             ->insert($db->quoteName('#__bookingmanager_rates'))
-                            ->columns($columns)
+                            ->columns($db->quoteName($columns))
                             ->values(implode(',', $values));
                     }
                     $db->setQuery($query)->execute();

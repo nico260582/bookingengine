@@ -126,8 +126,10 @@ class BookingmanagerModelProperty extends AdminModel
 
                 if (empty($rulesJson)) {
                     $ratesData->error = 'This property is not assigned to a supplier.';
+                    $item->pricing_model = null;
                 } else {
                     $rules = json_decode($rulesJson);
+                    $item->pricing_model = $rules->pricing_model ?? null;
                     $seasons = [];
                     if (isset($rules->seasons)) {
                         $seasons = array_values((array) $rules->seasons);
@@ -160,12 +162,13 @@ class BookingmanagerModelProperty extends AdminModel
 
                         // Get all saved rates for this property
                         $query->clear()
-                            ->select('season_name, rates, active_markets')
+                            ->select('season_name, rates, active_markets, base_guest_number')
                             ->from($db->quoteName('#__bookingmanager_rates'))
                             ->where('property_id = ' . (int) $propertyId);
                         $ratesList = $db->setQuery($query)->loadObjectList('season_name');
 
                         $ratesData->active_markets = [];
+                        $item->base_guest_number = null; // Initialize
                         foreach ($ratesList as $seasonName => $rate) {
                             if (!empty($rate->rates)) {
                                 $ratesList[$seasonName]->rates = json_decode($rate->rates, true);
@@ -175,6 +178,10 @@ class BookingmanagerModelProperty extends AdminModel
                             // Load active markets from the first available season
                             if (empty($ratesData->active_markets) && !empty($rate->active_markets)) {
                                 $ratesData->active_markets = json_decode($rate->active_markets, true);
+                            }
+                            // Load base_guest_number, it should be the same for all seasons
+                            if ($item->base_guest_number === null && !empty($rate->base_guest_number)) {
+                                $item->base_guest_number = (int)$rate->base_guest_number;
                             }
                         }
                         $ratesData->rates = $ratesList;
@@ -240,6 +247,28 @@ class BookingmanagerModelProperty extends AdminModel
             return false;
         }
         // ** END OF THE FIX **
+
+        // After saving the property, update the rates table with the base guest number
+        if (isset($data['base_guest_number']) && !empty($data['base_guest_number']))
+        {
+            $baseGuestNumber = (int) $data['base_guest_number'];
+            $articleId       = (int) $table->article_id;
+
+            if ($articleId > 0)
+            {
+                try {
+                    $db    = Factory::getDbo();
+                    $query = $db->getQuery(true)
+                        ->update($db->quoteName('#__bookingmanager_rates'))
+                        ->set($db->quoteName('base_guest_number') . ' = ' . $db->quote($baseGuestNumber))
+                        ->where($db->quoteName('property_id') . ' = ' . $articleId);
+                    $db->setQuery($query)->execute();
+                } catch (\Exception $e) {
+                    // Log the error but don't block the whole save process
+                    Factory::getApplication()->enqueueMessage('Could not synchronize Base Guest Number to rates table: ' . $e->getMessage(), 'warning');
+                }
+            }
+        }
 
         // Get the ID and article ID of the newly saved property.
         $propertyId = (int) $table->id;

@@ -340,7 +340,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (requiredUnits > availableUnits) {
                 unitCountMessage = `This property has a limit of ${availableUnits} unit(s), but your group requires ${requiredUnits}. Please consider an alternative property above.`;
-                suggestionMessage = `This property has a limit of ${availableUnits} unit(s), but your group requires ${requiredUnits}. Please consider an alternative property below.`;
+                suggestionMessage = `This property has a limit of ${availableUnits} unit(s), but your group requires ${requiredUnits}. Please consider an alternative property.`;
                 elements.unitCountDisplay.textContent = unitCountMessage;
                 isBookingPossible = false;
                 showSuggestion = true;
@@ -437,6 +437,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 seasonSupplementCost = (extraAdults * (rules.adult_supplement || 0)) * nightsInSeason;
                 if (currentSeason.apply_child_supplement == 1) {
                     seasonSupplementCost += (extraChildren * (rules.child_supplement || 0)) * nightsInSeason;
+                }
+            } else if (rules.pricing_model === 'CustomCapacity' && currentSeason) {
+                const baseGuests = rules.base_guest_number || 2; // Fallback to 2 if not set
+                const totalPayingGuests = adults + teens.length + children.length;
+                const extraGuests = Math.max(0, totalPayingGuests - baseGuests);
+                if (extraGuests > 0) {
+                    seasonSupplementCost = extraGuests * (rules.adult_supplement || 0) * nightsInSeason;
                 }
             } else if (rules.pricing_model === 'CapacityBased' && rules.allow_extra_mattress && rules.extra_mattress_fee > 0) {
                 if (mattressesNeeded > 0) {
@@ -661,4 +668,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    // Initial call to display the starting price on page load
+    displayStartingPrice();
 });

@@ -33,6 +33,7 @@
     // --- END: Internal AJAX Handler ---
 
     HTMLHelper::_('behavior.formvalidator');
+
 ?>
 
 <form action="<?php echo Route::_('index.php?option=com_bookingmanager&layout=edit&id=' . (int) $this->item->id); ?>" method="post" name="adminForm" id="item-form" class="form-validate">
@@ -41,6 +42,7 @@
         <legend>Property Details</legend>
         <?php echo $this->form->renderField('article_id'); ?>
         <?php echo $this->form->renderField('max_guests'); ?>
+        <?php if (isset($this->item->pricing_model) && $this->item->pricing_model === 'CustomCapacity') { echo $this->form->renderField('base_guest_number'); } ?>
         <?php echo $this->form->renderField('main_region_id'); ?>
         <?php echo $this->form->renderField('sub_region_id'); ?>
         <?php echo $this->form->renderField('allow_extra_mattress'); ?>

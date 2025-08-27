@@ -73,14 +73,18 @@ class ModBookingFormHelper
 
         // Get all saved rates for this property
         $query->clear()
-            ->select('season_name, rates, active_markets')
+            ->select('season_name, rates, active_markets, base_guest_number')
             ->from($db->quoteName('#__bookingmanager_rates'))
             ->where('property_id = ' . (int) $articleId);
         $ratesList = $db->setQuery($query)->loadObjectList('season_name');
 
         $ratesBySeason = [];
         $activeMarkets = [];
+        $baseGuestNumber = null;
         foreach ($ratesList as $seasonName => $rateInfo) {
+            if ($baseGuestNumber === null && !empty($rateInfo->base_guest_number)) {
+                $baseGuestNumber = (int)$rateInfo->base_guest_number;
+            }
             $decodedRates = !empty($rateInfo->rates) ? json_decode($rateInfo->rates, true) : [];
             if (!is_array($decodedRates)) $decodedRates = [];
 
@@ -104,6 +108,7 @@ class ModBookingFormHelper
             'number_of_units' => $numberOfUnits,
             'allow_extra_mattress' => $allowExtraMattress,
             'max_guests' => $maxGuests,
+            'base_guest_number' => $baseGuestNumber,
             'pricing_model' => $rules['pricing_model'] ?? 'FlatUnitRate',
             'adult_supplement' => (float)($rules['adult_supplement'] ?? 0),
             'child_supplement' => (float)($rules['child_supplement'] ?? 0),

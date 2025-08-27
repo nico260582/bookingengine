@@ -32,6 +32,30 @@
                     if (!is_array($activeMarkets)) $activeMarkets = [];
                 }
                 ?>
+                <?php if (isset($this->rateData->pricing_model) && $this->rateData->pricing_model === 'CustomCapacity') : ?>
+                    <div class="form-horizontal">
+                        <div class="control-group">
+                            <div class="control-label">
+                                <label for="jform_base_guest_number">Base Guest Number</label>
+                            </div>
+                            <div class="controls">
+                                <select name="jform[base_guest_number]" id="jform_base_guest_number" class="chzn-select" style="width: 100px;">
+                                    <?php
+                                    $options = [];
+                                    $maxGuests = $this->rateData->max_guests ?? 10;
+                                    for ($i = 1; $i <= $maxGuests; $i++) {
+                                        $options[] = HTMLHelper::_('select.option', $i, $i);
+                                    }
+                                    $selectedBaseGuests = $this->rateData->base_guest_number ?? 2;
+                                    echo HTMLHelper::_('select.options', $options, 'value', 'text', $selectedBaseGuests);
+                                    ?>
+                                </select>
+                                <p class="help-block">The number of guests included in the base rate. This is synchronized with the setting on the main Property Edit page.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <hr/>
+                <?php endif; ?>
                 <table class="table table-striped table-bordered">
                     <thead>
                         <tr>

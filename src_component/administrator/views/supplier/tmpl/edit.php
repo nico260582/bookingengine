@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!pricingModelSelect.length) return;
         function toggleFields() {
             var selectedModel = pricingModelSelect.val();
-            $('.bm-showon-supplement').closest('.control-group').toggle(selectedModel === 'SupplementPerGuest');
+            $('.bm-showon-supplement').closest('.control-group').toggle(selectedModel === 'SupplementPerGuest' || selectedModel === 'CustomCapacity');
             $('.bm-showon-capacity').closest('.control-group').toggle(selectedModel === 'CapacityBased');
         }
         pricingModelSelect.on('change', toggleFields).trigger('change');
