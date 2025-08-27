@@ -62,8 +62,9 @@ class BookingmanagerViewCommunication extends BaseHtmlView
             $options = [
                 'booking_id'    => $this->request->id,
                 'token'         => Session::getFormToken(),
-                'start_date'    => $this->request->start_date,
-                'end_date'      => $this->request->end_date,
+                'start_date'    => (new Date($this->request->start_date))->format('Y-m-d'),
+                'end_date'      => (new Date($this->request->end_date))->format('Y-m-d'),
+                'child_ages'    => $this->request->child_ages,
                 'currencySymbol' => '€', // This should probably be a global setting
                 'totalAccommodationGuests' => $params->get('total_accommodation_guests', 2),
                 'urls' => [
