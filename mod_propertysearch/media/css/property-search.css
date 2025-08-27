@@ -1,0 +1,105 @@
+/* Trivago Style Search Module */
+.trivago-search-wrapper {
+    background: #fff;
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+    font-family: sans-serif;
+}
+
+.trivago-search-form .trivago-form-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.trivago-form-group {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 150px; /* Minimum width for fields */
+}
+
+.trivago-form-group.destination-group {
+    flex-grow: 2; /* Destination field takes more space */
+}
+
+.trivago-form-group.button-group {
+    flex-grow: 0;
+    justify-content: flex-end; /* Align button to the bottom */
+}
+
+.trivago-label {
+    font-size: 14px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.trivago-input, .trivago-search-button {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 16px;
+}
+
+.trivago-input:focus {
+    outline: none;
+    border-color: #007fad;
+    box-shadow: 0 0 0 2px rgba(0,127,173,0.2);
+}
+
+.trivago-occupancy-inputs {
+    display: flex;
+    gap: 8px;
+}
+
+.trivago-search-button {
+    background-color: #007fad;
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    height: 100%; /* Make button same height as inputs */
+}
+
+.trivago-search-button:hover {
+    background-color: #005a7a;
+}
+
+/* Sub-regions container */
+#sub-regions-container {
+    padding: 16px 0 8px 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.sub-region-item {
+    display: flex;
+    align-items: center;
+    background: #f0f8ff;
+    border: 1px solid #cce4f7;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.sub-region-item input[type="checkbox"] {
+    margin-right: 8px;
+}
+
+/* Responsive styles */
+@media (max-width: 992px) {
+    .trivago-search-form .trivago-form-row {
+        flex-direction: column;
+    }
+    .trivago-form-group {
+        min-width: 100%;
+    }
+}
