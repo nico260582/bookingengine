@@ -40,4 +40,38 @@ class BookingmanagerControllerDiagnostic extends JControllerLegacy
         }
         $this->setRedirect('index.php?option=com_bookingmanager&view=diagnostic');
     }
+
+    public function installSampleData()
+    {
+        JSession::checkToken('get') or jexit(JText::_('JINVALID_TOKEN'));
+
+        $app = Factory::getApplication();
+        $db = Factory::getDbo();
+
+        $path = JPATH_ADMINISTRATOR . '/components/com_bookingmanager/sql/install.sample.sql';
+
+        if (!file_exists($path)) {
+            $app->enqueueMessage('Sample data file not found.', 'error');
+            $this->setRedirect('index.php?option=com_bookingmanager&view=diagnostic');
+            return;
+        }
+
+        try {
+            $sql = file_get_contents($path);
+            $queries = \Joomla\CMS\Installer\Installer::splitSql($sql);
+
+            foreach ($queries as $query) {
+                $query = trim($query);
+                    if ($query != '' && $query[0] != '#') {
+                    $db->setQuery($query);
+                    $db->execute();
+                }
+            }
+            $app->enqueueMessage('Sample data installed successfully.', 'message');
+        } catch (\Exception $e) {
+            $app->enqueueMessage('An error occurred during sample data installation: ' . $e->getMessage(), 'error');
+        }
+
+        $this->setRedirect('index.php?option=com_bookingmanager&view=diagnostic');
+    }
 }
