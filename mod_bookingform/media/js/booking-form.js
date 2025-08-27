@@ -516,6 +516,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     elements.bookingForm.addEventListener('submit', function (event) {
         event.preventDefault();
+        if (iti) {
+            elements.telephoneInput.value = iti.getNumber();
+        }
         const formData = new FormData(elements.bookingForm);
         const spinner = elements.submitButton.querySelector('.spinner-border');
         const buttonText = elements.submitButton.querySelector('.button-text');
