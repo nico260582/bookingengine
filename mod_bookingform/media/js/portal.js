@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let originalChildren = 0;
     let originalStartDate = '';
     let originalEndDate = '';
+    let originalChildAges = [];
 
     // Current booking state for calculation
     let currentAdults = 0;
@@ -39,9 +40,10 @@ document.addEventListener('DOMContentLoaded', function() {
             originalChildren = currentChildren = parseInt(elements.childrenInput.value, 10);
             originalStartDate = currentStartDate = options.start_date;
             originalEndDate = currentEndDate = options.end_date;
+            originalChildAges = options.child_ages ? options.child_ages.split(',').map(s => s.trim()) : [];
 
             elements.adultsInput.addEventListener('input', handleModification);
-            elements.childrenInput.addEventListener('input', updateChildAgeInputs);
+            elements.childrenInput.addEventListener('input', () => updateChildAgeInputs());
             elements.saveButton.addEventListener('click', saveChanges);
         }
     }
@@ -54,7 +56,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     pricingRules = data.pricingRules;
                     initializeDatePicker();
                     calculateNightsAndSeasons();
-                    updateChildAgeInputs();
+                    updateChildAgeInputs(options.child_ages ? options.child_ages.split(',') : []);
                 } else {
                     console.error('Failed to fetch pricing rules:', data.message);
                 }
@@ -110,17 +112,15 @@ document.addEventListener('DOMContentLoaded', function() {
         numberOfNights = Object.values(seasonRateCounts).reduce((a, b) => a + b, 0);
     }
 
-    function updateChildAgeInputs() {
+    function updateChildAgeInputs(ages = []) {
         const childrenCount = parseInt(elements.childrenInput.value, 10);
         elements.childAgesContainer.innerHTML = ''; // Clear previous inputs
 
         if (childrenCount > 0) {
-            // Create a row to hold the inputs for better layout
             const row = document.createElement('div');
             row.className = 'row';
 
             for (let i = 1; i <= childrenCount; i++) {
-                // Create a column for each input
                 const col = document.createElement('div');
                 col.className = 'col-md-4 col-sm-6 mb-2';
 
@@ -132,6 +132,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 input.className = 'form-control child-age-input';
                 input.placeholder = `Child ${i} Age`;
                 input.required = true;
+                if (ages[i - 1]) {
+                    input.value = ages[i - 1].trim();
+                }
                 input.addEventListener('input', handleModification);
 
                 col.appendChild(input);
@@ -139,7 +142,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             elements.childAgesContainer.appendChild(row);
         }
-        // Always call handleModification to update price even if children are set to 0
         handleModification();
     }
 
@@ -214,7 +216,10 @@ document.addEventListener('DOMContentLoaded', function() {
             elements.priceDisplay.textContent = '';
         }
 
-        const hasChanged = (currentAdults !== originalAdults || currentChildren !== originalChildren || currentStartDate !== originalStartDate || currentEndDate !== originalEndDate);
+        const currentChildAges = Array.from(document.querySelectorAll('.child-age-input')).map(input => input.value);
+        const agesChanged = JSON.stringify(originalChildAges) !== JSON.stringify(currentChildAges);
+
+        const hasChanged = (currentAdults !== originalAdults || currentChildren !== originalChildren || currentStartDate !== originalStartDate || currentEndDate !== originalEndDate || agesChanged);
         if (hasChanged) {
             elements.summaryDisplay.innerHTML = `You are requesting changes to your booking. The new estimated price is shown above. Please review and click "Save Changes" to confirm.`;
             elements.summaryDisplay.style.display = 'block';

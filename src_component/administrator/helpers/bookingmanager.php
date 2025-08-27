@@ -338,7 +338,14 @@ abstract class BookingmanagerHelper
             '[unit_count]'           => (string) ($request->unit_count ?? ''),
             '[client_portal_link]'   => $portalLink,
             '[attachments_list]'     => $attachmentListHtml,
-            '[changes_table]'        => $changesTableHtml
+            '[changes_table]'        => $changesTableHtml,
+            '[booking_details_html]' => "<ul>" .
+                                        "<li><strong>Dates:</strong> " . $startDate->format('jS F Y') . " to " . $endDate->format('jS F Y') . " (" . $nights . " nights)</li>" .
+                                        "<li><strong>Guests:</strong> " . $guestDetails . "</li>" .
+                                        "<li><strong>Estimated Price:</strong> " . htmlspecialchars((string) ($request->price_estimate ?? '')) . "</li>" .
+                                        "<li><strong>Client Name:</strong> " . htmlspecialchars((string) ($request->client_name ?? '')) . "</li>" .
+                                        "<li><strong>Client Email:</strong> " . htmlspecialchars((string) ($request->client_email ?? '')) . "</li>" .
+                                      "</ul>"
         ];
         
         $waClientTpl = isset($templates['whatsapp_client_reply']) ? ($templates['whatsapp_client_reply']->body ?? '') : '';
