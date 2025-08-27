@@ -23,12 +23,159 @@ class com_bookingmanagerInstallerScript
     public function uninstall($parent) { $this->runUninstallQueries($parent); return true; }
     public function update($parent) { $this->runInstallQueries($parent); return true; }
 
-    private function runInstallQueries($parent){
+    private function runInstallQueries($parent)
+    {
         $db = Factory::getDbo();
         
         $queries = array();
+
+        $queries[] = "CREATE TABLE IF NOT EXISTS `#__bookingmanager_complexes` (
+          `id` int NOT NULL AUTO_INCREMENT,
+          `name` varchar(255) NOT NULL,
+          `alias` varchar(255) NOT NULL,
+          `published` tinyint(1) NOT NULL DEFAULT '1',
+          PRIMARY KEY (`id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;";
+
+        $queries[] = "CREATE TABLE IF NOT EXISTS `#__bookingmanager_complex_property_map` (
+          `property_id` int NOT NULL,
+          `complex_id` int NOT NULL,
+          `priority` int NOT NULL DEFAULT '0',
+          PRIMARY KEY (`property_id`,`complex_id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;";
+
+        $queries[] = "CREATE TABLE IF NOT EXISTS `#__bookingmanager_main_regions` (
+          `id` int NOT NULL AUTO_INCREMENT,
+          `name` varchar(255) NOT NULL,
+          `published` tinyint(1) NOT NULL DEFAULT '1',
+          PRIMARY KEY (`id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;";
+
+        $queries[] = "CREATE TABLE IF NOT EXISTS `#__bookingmanager_properties` (
+          `id` int NOT NULL AUTO_INCREMENT,
+          `article_id` int NOT NULL,
+          `max_guests` int NOT NULL DEFAULT '2',
+          `number_of_units` int NOT NULL DEFAULT '1',
+          `allow_extra_mattress` tinyint(1) NOT NULL DEFAULT '0',
+          `main_region_id` int NOT NULL DEFAULT '0',
+          `sub_region_id` int NOT NULL DEFAULT '0',
+          `published` tinyint(1) NOT NULL DEFAULT '0',
+          PRIMARY KEY (`id`),
+          KEY `idx_article_id` (`article_id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;";
+
+        $queries[] = "CREATE TABLE IF NOT EXISTS `#__bookingmanager_property_map` (
+          `property_id` int NOT NULL,
+          `supplier_id` int NOT NULL,
+          PRIMARY KEY (`property_id`),
+          KEY `idx_supplier_id` (`supplier_id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;";
+
+        $queries[] = "CREATE TABLE IF NOT EXISTS `#__bookingmanager_rates` (
+          `property_id` int NOT NULL,
+          `season_name` varchar(255) NOT NULL,
+          `rates` text,
+          `active_markets` text,
+          `base_guest_number` int DEFAULT NULL,
+          `override_admin_commission` tinyint(1) NOT NULL DEFAULT '0',
+          `admin_commission` decimal(5,2) DEFAULT NULL,
+          PRIMARY KEY (`property_id`,`season_name`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;";
+
+        $queries[] = "CREATE TABLE IF NOT EXISTS `#__bookingmanager_sub_regions` (
+          `id` int NOT NULL AUTO_INCREMENT,
+          `main_region_id` int NOT NULL,
+          `name` varchar(255) NOT NULL,
+          `published` tinyint(1) NOT NULL DEFAULT '1',
+          PRIMARY KEY (`id`),
+          KEY `idx_main_region_id` (`main_region_id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;";
+
+        $queries[] = "CREATE TABLE IF NOT EXISTS `#__bookingmanager_suppliers` (
+          `id` int NOT NULL AUTO_INCREMENT,
+          `name` varchar(255) NOT NULL,
+          `alias` varchar(255) NOT NULL,
+          `abbreviation` varchar(10) NOT NULL,
+          `published` tinyint(1) NOT NULL DEFAULT '1',
+          `rules` text,
+          `contact_email` varchar(255) DEFAULT NULL,
+          `out_of_season_surcharge` decimal(5,2) NOT NULL DEFAULT '10.00',
+          `global_discount` decimal(5,2) NOT NULL DEFAULT '0.00',
+          `show_discount_notification` tinyint(1) NOT NULL DEFAULT '1',
+          `show_global_discount_notification` tinyint(1) NOT NULL DEFAULT '1',
+          PRIMARY KEY (`id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;";
+
+        $queries[] = "CREATE TABLE IF NOT EXISTS `#__bookingmanager_clients` (
+          `id` int NOT NULL AUTO_INCREMENT,
+          `name` varchar(255) NOT NULL,
+          `email` varchar(255) NOT NULL,
+          `pin` varchar(255) NOT NULL,
+          `created_at` datetime NOT NULL,
+          PRIMARY KEY (`id`),
+          UNIQUE KEY `idx_email` (`email`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;";
+
+        $queries[] = "CREATE TABLE IF NOT EXISTS `#__bookingmanager_supplier_markets` (
+          `id` int NOT NULL AUTO_INCREMENT,
+          `supplier_id` int NOT NULL,
+          `market_name` varchar(100) NOT NULL,
+          `currency` varchar(10) NOT NULL DEFAULT 'EUR',
+          `currency_symbol` varchar(5) DEFAULT NULL,
+          `state` tinyint(1) NOT NULL DEFAULT '1',
+          PRIMARY KEY (`id`),
+          KEY `idx_supplier_id` (`supplier_id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;";
+
+        $queries[] = "CREATE TABLE IF NOT EXISTS `#__bookingmanager_templates` (
+          `id` int NOT NULL AUTO_INCREMENT,
+          `title` varchar(255) NOT NULL,
+          `type` varchar(50) NOT NULL,
+          `subject` varchar(255) DEFAULT NULL,
+          `body` text,
+          PRIMARY KEY (`id`),
+          UNIQUE KEY `idx_type` (`type`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;";
+
+        $queries[] = "CREATE TABLE IF NOT EXISTS `#__booking_attachments` (
+          `id` int NOT NULL AUTO_INCREMENT,
+          `request_id` int NOT NULL,
+          `message_id` int DEFAULT NULL,
+          `file_name` varchar(255) NOT NULL,
+          `file_path` varchar(2048) NOT NULL,
+          `uploaded_by` varchar(255) NOT NULL,
+          `created_at` datetime NOT NULL,
+          PRIMARY KEY (`id`),
+          KEY `idx_request_id` (`request_id`),
+          KEY `idx_message_id` (`message_id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;";
+
+        $queries[] = "CREATE TABLE IF NOT EXISTS `#__booking_client_activity_logs` (
+          `id` int NOT NULL AUTO_INCREMENT,
+          `booking_request_id` int NOT NULL,
+          `created_at` datetime NOT NULL,
+          `user_id` int DEFAULT NULL,
+          `ip_address` varchar(45) DEFAULT NULL,
+          `user_agent` text,
+          `screen_size` varchar(20) DEFAULT NULL,
+          `action_type` varchar(50) NOT NULL,
+          `action_details` varchar(255) DEFAULT NULL,
+          PRIMARY KEY (`id`),
+          KEY `idx_booking_request_id` (`booking_request_id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;";
+
+        $queries[] = "CREATE TABLE IF NOT EXISTS `#__booking_communication` (
+          `id` int NOT NULL AUTO_INCREMENT,
+          `request_id` int NOT NULL,
+          `created_at` datetime DEFAULT NULL,
+          `author` varchar(255) DEFAULT NULL,
+          `message` text,
+          PRIMARY KEY (`id`),
+          KEY `idx_request_id` (`request_id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;";
+
         $queries[] = "CREATE TABLE IF NOT EXISTS `#__booking_requests` (
-          `id` int(11) NOT NULL AUTO_INCREMENT,
+          `id` int NOT NULL AUTO_INCREMENT,
           `booking_ref` varchar(255) DEFAULT NULL,
           `status` varchar(50) DEFAULT 'New',
           `created_at` datetime DEFAULT NULL,
@@ -38,11 +185,11 @@ class com_bookingmanagerInstallerScript
           `client_email` varchar(255) DEFAULT NULL,
           `start_date` date DEFAULT NULL,
           `end_date` date DEFAULT NULL,
-          `adults` int(11) DEFAULT NULL,
-          `children` int(11) DEFAULT NULL,
+          `adults` int DEFAULT NULL,
+          `children` int DEFAULT NULL,
           `child_ages` varchar(255) DEFAULT NULL,
           `price_estimate` varchar(100) DEFAULT NULL,
-          `unit_count` int(11) DEFAULT 1,
+          `unit_count` int DEFAULT '1',
           `discount_note` varchar(255) DEFAULT NULL,
           `client_phone` varchar(50) DEFAULT NULL,
           `client_country` varchar(255) DEFAULT NULL,
@@ -51,75 +198,47 @@ class com_bookingmanagerInstallerScript
           `payment_link` varchar(2048) DEFAULT NULL,
           `admin_notes` text,
           `pin` varchar(10) DEFAULT NULL,
+          `user_id` int DEFAULT NULL,
+          `client_ip_address` varchar(45) DEFAULT NULL,
+          `client_user_agent` text,
           PRIMARY KEY (`id`)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
-        $queries[] = "CREATE TABLE IF NOT EXISTS `#__booking_communication` ( `id` int(11) NOT NULL AUTO_INCREMENT, `request_id` int(11) NOT NULL, `created_at` datetime DEFAULT NULL, `author` varchar(255) DEFAULT NULL, `message` text, PRIMARY KEY (`id`), KEY `idx_request_id` (`request_id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
-        $queries[] = "CREATE TABLE IF NOT EXISTS `#__booking_attachments` (
-          `id` int(11) NOT NULL AUTO_INCREMENT,
-          `request_id` int(11) NOT NULL,
-          `file_name` varchar(255) NOT NULL,
-          `file_path` varchar(2048) NOT NULL,
-          `uploaded_by` varchar(255) NOT NULL,
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;";
+
+        $queries[] = "CREATE TABLE IF NOT EXISTS `#__booking_request_logs` (
+          `id` int NOT NULL AUTO_INCREMENT,
+          `request_id` int NOT NULL,
           `created_at` datetime NOT NULL,
+          `user_id` int NOT NULL,
+          `user_name` varchar(255) NOT NULL,
+          `field_name` varchar(255) NOT NULL,
+          `old_value` text,
+          `new_value` text,
           PRIMARY KEY (`id`),
           KEY `idx_request_id` (`request_id`)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
-        $queries[] = "CREATE TABLE IF NOT EXISTS `#__booking_request_logs` ( `id` int(11) NOT NULL AUTO_INCREMENT, `request_id` int(11) NOT NULL, `created_at` datetime NOT NULL, `user_id` int(11) NOT NULL, `user_name` varchar(255) NOT NULL, `field_name` varchar(255) NOT NULL, `old_value` text, `new_value` text, PRIMARY KEY (`id`), KEY `idx_request_id` (`request_id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
-        $queries[] = "CREATE TABLE IF NOT EXISTS `#__booking_supplier_logs` ( `id` int(11) NOT NULL AUTO_INCREMENT, `supplier_id` int(11) NOT NULL, `created_at` datetime NOT NULL, `user_id` int(11) NOT NULL,
-        `user_name` varchar(255) NOT NULL, `field_name` varchar(255) NOT NULL, `old_value` text, `new_value` text, PRIMARY KEY (`id`), KEY `idx_supplier_id` (`supplier_id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
-        $queries[] = "CREATE TABLE IF NOT EXISTS `#__bookingmanager_suppliers` ( `id` int(11) NOT NULL AUTO_INCREMENT, `name` varchar(255) NOT NULL, `alias` varchar(255) NOT NULL, `abbreviation` varchar(10) NOT NULL, `published` tinyint(1) NOT NULL DEFAULT '1', `rules` text, `contact_email` varchar(255) DEFAULT NULL, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
-        $queries[] = "CREATE TABLE IF NOT EXISTS `#__bookingmanager_property_map` ( `property_id` int(11) NOT NULL, `supplier_id` int(11) NOT NULL, PRIMARY KEY (`property_id`), KEY `idx_supplier_id` (`supplier_id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
-        $queries[] = "CREATE TABLE IF NOT EXISTS `#__bookingmanager_rates` ( `property_id` int(11) NOT NULL, `season_name` varchar(255) NOT NULL, `base_rate` decimal(10,2) NOT NULL, PRIMARY KEY (`property_id`, `season_name`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
-        $queries[] = "CREATE TABLE IF NOT EXISTS `#__bookingmanager_templates` (`id` int(11) NOT NULL AUTO_INCREMENT, `title` varchar(255) NOT NULL, `type` varchar(50) NOT NULL, `subject` varchar(255) DEFAULT NULL, `body` text, PRIMARY KEY (`id`), UNIQUE KEY `idx_type` (`type`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
-        $queries[] = "CREATE TABLE IF NOT EXISTS `#__bookingmanager_complexes` ( `id` int(11) NOT NULL AUTO_INCREMENT, `name` varchar(255) NOT NULL, `alias` varchar(255) NOT NULL, `published` tinyint(1) NOT NULL DEFAULT '1', PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
-        $queries[] = "CREATE TABLE IF NOT EXISTS `#__bookingmanager_properties` ( `id` int(11) NOT NULL AUTO_INCREMENT, `article_id` int(11) NOT NULL, `published` tinyint(1) NOT NULL DEFAULT 0, `max_guests` int(11) NOT NULL DEFAULT 2, `main_region_id` int(11) NOT NULL DEFAULT 0, `sub_region_id` int(11) NOT NULL DEFAULT 0, `allow_extra_mattress` tinyint(1) NOT NULL DEFAULT 0, `number_of_units` int(11) NOT NULL DEFAULT 1, PRIMARY KEY (`id`), KEY `idx_article_id` (`article_id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;";
-        $queries[] = "CREATE TABLE IF NOT EXISTS `#__bookingmanager_complex_property_map` ( `complex_id` int(11) NOT NULL, `property_id` int(11) NOT NULL, PRIMARY KEY (`complex_id`,`property_id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
-        
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;";
+
+        $queries[] = "CREATE TABLE IF NOT EXISTS `#__booking_supplier_logs` (
+          `id` int NOT NULL AUTO_INCREMENT,
+          `supplier_id` int NOT NULL,
+          `created_at` datetime NOT NULL,
+          `user_id` int NOT NULL,
+          `user_name` varchar(255) NOT NULL,
+          `field_name` varchar(255) NOT NULL,
+          `old_value` text,
+          `new_value` text,
+          PRIMARY KEY (`id`),
+          KEY `idx_supplier_id` (`supplier_id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;";
+
         foreach ($queries as $query) {
             $db->setQuery($query);
-            try { $db->execute(); } catch (Exception $e) {}
-        }
-
-        // Add columns for commission override if they don't exist
-        if (!$this->columnExists('#__bookingmanager_rates', 'override_admin_commission')) {
-            $db->setQuery("ALTER TABLE `#__bookingmanager_rates` ADD COLUMN `override_admin_commission` TINYINT(1) NOT NULL DEFAULT 0");
-            $db->execute();
-            JFactory::getApplication()->enqueueMessage('Table #__bookingmanager_rates updated with override_admin_commission column.', 'message');
-        }
-
-        if (!$this->columnExists('#__bookingmanager_rates', 'admin_commission')) {
-            $db->setQuery("ALTER TABLE `#__bookingmanager_rates` ADD COLUMN `admin_commission` DECIMAL(5,2) DEFAULT NULL");
-            $db->execute();
-            JFactory::getApplication()->enqueueMessage('Table #__bookingmanager_rates updated with admin_commission column.', 'message');
-        }
-
-        // Make base_rate nullable
-        // Note: We don't check if this is already nullable, as MODIFY COLUMN is idempotent for this purpose.
-        // A more complex check would be needed to inspect the column's properties if we wanted to avoid running this every time.
-        $db->setQuery("ALTER TABLE `#__bookingmanager_rates` MODIFY COLUMN `base_rate` DECIMAL(10,2) NULL");
-        try { $db->execute(); } catch (Exception $e) {}
-
-        // Add user_id to booking_requests table
-        if (!$this->columnExists('#__booking_requests', 'user_id')) {
-            $db->setQuery("ALTER TABLE `#__booking_requests` ADD COLUMN `user_id` INT(11) NULL DEFAULT NULL, ADD INDEX `idx_user_id` (`user_id`)");
-            $db->execute();
-            JFactory::getApplication()->enqueueMessage('Table #__booking_requests updated with user_id column.', 'message');
-        }
-
-        // Add client statistics columns to booking_requests table
-        if (!$this->columnExists('#__booking_requests', 'client_ip_address')) {
-            $db->setQuery("ALTER TABLE `#__booking_requests` ADD COLUMN `client_ip_address` VARCHAR(45) NULL DEFAULT NULL");
-            $db->execute();
-            JFactory::getApplication()->enqueueMessage('Table #__booking_requests updated with client_ip_address column.', 'message');
-        }
-
-        if (!$this->columnExists('#__booking_requests', 'client_user_agent')) {
-            $db->setQuery("ALTER TABLE `#__booking_requests` ADD COLUMN `client_user_agent` TEXT NULL DEFAULT NULL");
-            $db->execute();
-            JFactory::getApplication()->enqueueMessage('Table #__booking_requests updated with client_user_agent column.', 'message');
+            try {
+                $db->execute();
+            } catch (Exception $e) {
+                // Log or handle error if necessary
+            }
         }
         
-        $this->addSampleData($db);
         $this->addDefaultTemplates($db);
     }
 
@@ -209,7 +328,25 @@ class com_bookingmanagerInstallerScript
 
     private function runUninstallQueries($parent) {
         $db = Factory::getDbo();
-        $queries = array("DROP TABLE IF EXISTS `#__booking_communication`;", "DROP TABLE IF EXISTS `#__booking_requests`;", "DROP TABLE IF EXISTS `#__booking_request_logs`;", "DROP TABLE IF EXISTS `#__booking_supplier_logs`;", "DROP TABLE IF EXISTS `#__bookingmanager_suppliers`;", "DROP TABLE IF EXISTS `#__bookingmanager_property_map`;", "DROP TABLE IF EXISTS `#__bookingmanager_rates`;", "DROP TABLE IF EXISTS `#__bookingmanager_templates`;", "DROP TABLE IF EXISTS `#__booking_attachments`;");
+        $queries = array(
+            "DROP TABLE IF EXISTS `#__booking_communication`;",
+            "DROP TABLE IF EXISTS `#__booking_requests`;",
+            "DROP TABLE IF EXISTS `#__booking_request_logs`;",
+            "DROP TABLE IF EXISTS `#__booking_supplier_logs`;",
+            "DROP TABLE IF EXISTS `#__bookingmanager_suppliers`;",
+            "DROP TABLE IF EXISTS `#__bookingmanager_property_map`;",
+            "DROP TABLE IF EXISTS `#__bookingmanager_rates`;",
+            "DROP TABLE IF EXISTS `#__bookingmanager_templates`;",
+            "DROP TABLE IF EXISTS `#__booking_attachments`;",
+            "DROP TABLE IF EXISTS `#__bookingmanager_complexes`;",
+            "DROP TABLE IF EXISTS `#__bookingmanager_complex_property_map`;",
+            "DROP TABLE IF EXISTS `#__bookingmanager_main_regions`;",
+            "DROP TABLE IF EXISTS `#__bookingmanager_properties`;",
+            "DROP TABLE IF EXISTS `#__bookingmanager_sub_regions`;",
+            "DROP TABLE IF EXISTS `#__bookingmanager_supplier_markets`;",
+            "DROP TABLE IF EXISTS `#__booking_client_activity_logs`;",
+            "DROP TABLE IF EXISTS `#__bookingmanager_clients`;"
+        );
         foreach ($queries as $query) { $db->setQuery($query); try { $db->execute(); } catch (Exception $e) {} }
     }
 }

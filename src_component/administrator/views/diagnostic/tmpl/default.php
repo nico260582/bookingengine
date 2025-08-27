@@ -32,8 +32,15 @@ defined('_JEXEC') or die;
         </table>
     </fieldset>
 
+    <fieldset class="well">
+        <legend>Sample Data Management</legend>
+        <p>Install the sample data to get a feel for how the component works. This will populate the component with sample properties, suppliers, rates, etc.</p>
+        <p><strong>Warning:</strong> This will add data to your database. It is recommended to only do this on a fresh installation or a test site.</p>
+        <a href="<?php echo JRoute::_('index.php?option=com_bookingmanager&task=diagnostic.installSampleData&' . JSession::getFormToken() . '=1'); ?>" class="btn btn-primary" onclick="return confirm('Are you sure you want to install the sample data? This action cannot be undone.');">Install Sample Data</a>
+    </fieldset>
+
     <form action="<?php echo JRoute::_('index.php?option=com_bookingmanager&task=diagnostic.sendTestEmail'); ?>" method="post" name="adminForm" id="adminForm" class="form-validate">
-        <fieldset>
+        <fieldset class="well">
             <legend>Email Test</legend>
             <p>This tool will test your Joomla website's core email sending functionality. It uses the settings from your Global Configuration.</p>
             <dl>
