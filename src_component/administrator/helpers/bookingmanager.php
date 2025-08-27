@@ -227,12 +227,13 @@ abstract class BookingmanagerHelper
         ];
     }
 
-    public static function sendNotificationEmails($requestId, $type = 'all', $messageContent = '', $newUserPassword = '', $attachments = [])
+    public static function sendNotificationEmails($requestId, $type = 'all', $messageContent = '', $newUserPassword = '', $attachments = [], $changes = [])
     {
         Log::add('--- New Email Notification ---', Log::INFO, 'com_bookingmanager');
         Log::add('Request ID: ' . $requestId . ' | Type: ' . $type, Log::INFO, 'com_bookingmanager');
         Log::add('Message Content: ' . $messageContent, Log::INFO, 'com_bookingmanager');
         Log::add('Attachments Data: ' . print_r($attachments, true), Log::INFO, 'com_bookingmanager');
+        Log::add('Changes Data: ' . print_r($changes, true), Log::INFO, 'com_bookingmanager');
 
         $db     = Factory::getDbo();
         $config = ComponentHelper::getParams('com_bookingmanager');
@@ -303,6 +304,17 @@ abstract class BookingmanagerHelper
             $attachmentListHtml .= '</ul>';
         }
 
+        $changesTableHtml = '';
+        if (!empty($changes)) {
+            foreach ($changes as $field => $value) {
+                $changesTableHtml .= '<tr>';
+                $changesTableHtml .= '<td>' . htmlspecialchars($field) . '</td>';
+                $changesTableHtml .= '<td>' . htmlspecialchars($value['old']) . '</td>';
+                $changesTableHtml .= '<td>' . htmlspecialchars($value['new']) . '</td>';
+                $changesTableHtml .= '</tr>';
+            }
+        }
+
         $placeholders = [
             '[client_name]'          => (string) ($request->client_name ?? ''),
             '[booking_ref]'          => (string) ($request->booking_ref ?? ''),
@@ -325,7 +337,8 @@ abstract class BookingmanagerHelper
             '[discount_note]'        => !empty($request->discount_note) ? '🇲🇺 ' . htmlspecialchars((string) $request->discount_note) : '',
             '[unit_count]'           => (string) ($request->unit_count ?? ''),
             '[client_portal_link]'   => $portalLink,
-            '[attachments_list]'     => $attachmentListHtml
+            '[attachments_list]'     => $attachmentListHtml,
+            '[changes_table]'        => $changesTableHtml
         ];
         
         $waClientTpl = isset($templates['whatsapp_client_reply']) ? ($templates['whatsapp_client_reply']->body ?? '') : '';

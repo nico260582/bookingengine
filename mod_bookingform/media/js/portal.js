@@ -112,13 +112,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function updateChildAgeInputs() {
         const childrenCount = parseInt(elements.childrenInput.value, 10);
-        elements.childAgesContainer.innerHTML = '';
+        elements.childAgesContainer.innerHTML = ''; // Clear previous inputs
+
         if (childrenCount > 0) {
-            let label = document.createElement('label');
-            label.className = 'form-label';
-            label.textContent = 'Age of Children';
-            elements.childAgesContainer.appendChild(label);
+            // Create a row to hold the inputs for better layout
+            const row = document.createElement('div');
+            row.className = 'row';
+
             for (let i = 1; i <= childrenCount; i++) {
+                // Create a column for each input
+                const col = document.createElement('div');
+                col.className = 'col-md-4 col-sm-6 mb-2';
+
                 const input = document.createElement('input');
                 input.type = 'number';
                 input.min = '0';
@@ -128,9 +133,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 input.placeholder = `Child ${i} Age`;
                 input.required = true;
                 input.addEventListener('input', handleModification);
-                elements.childAgesContainer.appendChild(input);
+
+                col.appendChild(input);
+                row.appendChild(col);
             }
+            elements.childAgesContainer.appendChild(row);
         }
+        // Always call handleModification to update price even if children are set to 0
         handleModification();
     }
 
@@ -142,29 +151,72 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function updateCalculations() {
+        if (!pricingRules) return;
+
         const childAges = Array.from(document.querySelectorAll('.child-age-input')).map(input => parseInt(input.value, 10)).filter(age => !isNaN(age));
-        let totalGuestsForCapacity = currentAdults;
-        let requiredUnits = 1;
-        const baseCapacity = options.totalAccommodationGuests || 2;
-        let infantsNotCounting = childAges.filter(age => age <= (pricingRules.infant_max_age || 5)).length;
-        totalGuestsForCapacity += (childAges.length - infantsNotCounting);
-        if (baseCapacity > 0) {
-            requiredUnits = Math.max(1, Math.ceil(totalGuestsForCapacity / baseCapacity));
-        }
+        const infants = childAges.filter(age => age <= pricingRules.infant_max_age);
+        const teens = childAges.filter(age => age > pricingRules.child_max_age && age <= pricingRules.teen_max_age);
+        const children = childAges.filter(age => age > pricingRules.infant_max_age && age <= pricingRules.child_max_age);
 
-        let roomCost = 0;
+        const totalAdultsAndTeens = currentAdults + teens.length;
+        const totalGuestsForCapacity = totalAdultsAndTeens + children.length;
+
+        const baseCapacity = pricingRules.max_guests || 1;
+        const requiredUnits = Math.max(1, Math.ceil(totalGuestsForCapacity / baseCapacity));
+
+        let totalCost = 0;
+        let currencySymbol = options.currencySymbol || '€';
+
         for (const [seasonName, nightsInSeason] of Object.entries(seasonRateCounts)) {
-            roomCost += (pricingRules.rates[seasonName] || 0) * nightsInSeason;
-        }
-        let totalCost = roomCost * requiredUnits;
+            const seasonRates = pricingRules.rates[seasonName];
+            if (!seasonRates) continue;
 
-        const formattedPrice = totalCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            const marketRateData = seasonRates['Global Rate']; // In portal, we only use Global Rate for simplicity
+            if (!marketRateData || !marketRateData.rate) continue;
+
+            let nightlyRate = parseFloat(marketRateData.rate);
+            currencySymbol = marketRateData.currency_symbol || currencySymbol;
+            const seasonBaseCost = nightlyRate * nightsInSeason * requiredUnits;
+
+            const currentSeason = pricingRules.seasons.find(s => s.name === seasonName);
+            let seasonSupplementCost = 0;
+            if (pricingRules.pricing_model === 'SupplementPerGuest' && currentSeason) {
+                const guestsCoveredByBaseRate = 2 * requiredUnits;
+                const extraAdults = Math.max(0, totalAdultsAndTeens - guestsCoveredByBaseRate);
+                const extraChildren = Math.max(0, (totalAdultsAndTeens + children.length) - guestsCoveredByBaseRate - extraAdults);
+                seasonSupplementCost = (extraAdults * (pricingRules.adult_supplement || 0)) * nightsInSeason;
+                if (currentSeason.apply_child_supplement == 1) {
+                    seasonSupplementCost += (extraChildren * (pricingRules.child_supplement || 0)) * nightsInSeason;
+                }
+            } else if (pricingRules.pricing_model === 'CustomCapacity' && currentSeason) {
+                const baseGuests = pricingRules.base_guest_number || 2;
+                const totalPayingGuests = currentAdults + teens.length + children.length;
+                const extraGuests = Math.max(0, totalPayingGuests - baseGuests);
+                if (extraGuests > 0) {
+                    seasonSupplementCost = extraGuests * (pricingRules.adult_supplement || 0) * nightsInSeason;
+                }
+            } else if (pricingRules.pricing_model === 'CapacityBased' && pricingRules.allow_extra_mattress && pricingRules.extra_mattress_fee > 0) {
+                const mattressesNeeded = Math.max(0, totalGuestsForCapacity - (requiredUnits * baseCapacity));
+                if (mattressesNeeded > 0) {
+                    const mattressesUsed = Math.min(requiredUnits, mattressesNeeded);
+                    seasonSupplementCost = mattressesUsed * pricingRules.extra_mattress_fee * nightsInSeason;
+                }
+            }
+
+            totalCost += seasonBaseCost + seasonSupplementCost;
+        }
+
         elements.unitDisplay.textContent = `${requiredUnits} Unit${requiredUnits > 1 ? 's' : ''}`;
-        elements.priceDisplay.textContent = `New Est. Price: ${options.currencySymbol}${formattedPrice}`;
+        if (numberOfNights > 0) {
+            const formattedPrice = totalCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            elements.priceDisplay.textContent = `New Est. Price: ${currencySymbol}${formattedPrice}`;
+        } else {
+            elements.priceDisplay.textContent = '';
+        }
 
         const hasChanged = (currentAdults !== originalAdults || currentChildren !== originalChildren || currentStartDate !== originalStartDate || currentEndDate !== originalEndDate);
         if (hasChanged) {
-            elements.summaryDisplay.innerHTML = `You are requesting changes to your booking. Please review and confirm.`;
+            elements.summaryDisplay.innerHTML = `You are requesting changes to your booking. The new estimated price is shown above. Please review and click "Save Changes" to confirm.`;
             elements.summaryDisplay.style.display = 'block';
             elements.saveButton.style.display = 'inline-block';
         } else {

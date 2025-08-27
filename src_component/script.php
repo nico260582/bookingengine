@@ -314,6 +314,12 @@ class com_bookingmanagerInstallerScript
                 'type'    => 'email_client_new_user',
                 'subject' => 'Your New Account on Book Holidays Mauritius',
                 'body'    => "<p>Hello [client_name],</p>\n                            <p>An account has been created for you on Book Holidays Mauritius. You can use these details to log in and manage your bookings.</p>\n                            <hr>\n                            <p><strong>Username:</strong> [username]<br>\n                               <strong>Password:</strong> [password]<br>\n                            </p>\n                            <p>We strongly recommend that you change your password after logging in for the first time.</p>\n                            <p><a href=\"[login_link]\">Click here to log in</a></p>\n                            <hr>\n                            <p>Warm regards,<br>The Book Holidays Mauritius Team</p>"
+            ],
+            [
+                'title'   => 'Admin - Booking Modification',
+                'type'    => 'email_admin_booking_modified',
+                'subject' => 'Booking [booking_ref] has been modified by the client',
+                'body'    => "<h3>Booking Request [booking_ref] has been modified by the client.</h3>\n                            <p>Property: [property_name]</p>\n                            <h4>Changes:</h4>\n                            <table border=\"1\" cellpadding=\"5\" cellspacing=\"0\">\n                                <thead>\n                                    <tr>\n                                        <th>Field</th>\n                                        <th>Old Value</th>\n                                        <th>New Value</th>\n                                    </tr>\n                                </thead>\n                                <tbody>\n                                    [changes_table]\n                                </tbody>\n                            </table>\n                            <p>You can view the booking by visiting the administrator area.</p>"
             ]
         ];
 
