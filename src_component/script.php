@@ -26,7 +26,7 @@ class com_bookingmanagerInstallerScript
     private function runInstallQueries($parent)
     {
         $db = Factory::getDbo();
-        
+
         $queries = array();
 
         $queries[] = "CREATE TABLE IF NOT EXISTS `#__bookingmanager_complexes` (
@@ -238,7 +238,7 @@ class com_bookingmanagerInstallerScript
                 // Log or handle error if necessary
             }
         }
-        
+
         $this->addDefaultTemplates($db);
     }
 
@@ -316,7 +316,7 @@ class com_bookingmanagerInstallerScript
                 'body'    => "<p>Hello [client_name],</p>\n                            <p>An account has been created for you on Book Holidays Mauritius. You can use these details to log in and manage your bookings.</p>\n                            <hr>\n                            <p><strong>Username:</strong> [username]<br>\n                               <strong>Password:</strong> [password]<br>\n                            </p>\n                            <p>We strongly recommend that you change your password after logging in for the first time.</p>\n                            <p><a href=\"[login_link]\">Click here to log in</a></p>\n                            <hr>\n                            <p>Warm regards,<br>The Book Holidays Mauritius Team</p>"
             ]
         ];
-    
+
         foreach ($templates as $template) {
             $db->setQuery("SELECT id FROM `#__bookingmanager_templates` WHERE `type` = " . $db->quote($template['type']));
             if (!$db->loadResult()) {
