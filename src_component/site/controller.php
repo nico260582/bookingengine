@@ -144,6 +144,8 @@ class BookingmanagerController extends BaseController
             $newAdults = $input->post->getInt('adults', $table->adults);
             $oldChildren = $table->children;
             $newChildren = $input->post->getInt('children', $table->children);
+            $oldChildAges = $table->child_ages;
+            $newChildAges = $input->post->getString('child_ages', '');
 
             $oldStartDate = $table->start_date;
             $newStartDate = $input->post->getString('start_date', $table->start_date);
@@ -152,6 +154,7 @@ class BookingmanagerController extends BaseController
 
             $table->adults = $newAdults;
             $table->children = $newChildren;
+            $table->child_ages = $newChildAges;
             $table->start_date = $newStartDate;
             $table->end_date = $newEndDate;
             $table->price_estimate = $input->post->getString('price_estimate', $table->price_estimate);
@@ -164,6 +167,7 @@ class BookingmanagerController extends BaseController
             $changes = [];
             if ($oldAdults != $newAdults) { $changes['Adults'] = ['old' => $oldAdults, 'new' => $newAdults]; }
             if ($oldChildren != $newChildren) { $changes['Children'] = ['old' => $oldChildren, 'new' => $newChildren]; }
+            if ($oldChildAges != $newChildAges) { $changes['Child Ages'] = ['old' => $oldChildAges, 'new' => $newChildAges]; }
             if ($oldStartDate != $newStartDate) { $changes['Start Date'] = ['old' => $oldStartDate, 'new' => $newStartDate]; }
             if ($oldEndDate != $newEndDate) { $changes['End Date'] = ['old' => $oldEndDate, 'new' => $newEndDate]; }
 
