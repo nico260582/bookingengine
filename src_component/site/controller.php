@@ -144,6 +144,8 @@ class BookingmanagerController extends BaseController
             $newAdults = $input->post->getInt('adults', $table->adults);
             $oldChildren = $table->children;
             $newChildren = $input->post->getInt('children', $table->children);
+            $oldChildAges = $table->child_ages;
+            $newChildAges = $input->post->getString('child_ages', '');
 
             $oldStartDate = $table->start_date;
             $newStartDate = $input->post->getString('start_date', $table->start_date);
@@ -152,6 +154,7 @@ class BookingmanagerController extends BaseController
 
             $table->adults = $newAdults;
             $table->children = $newChildren;
+            $table->child_ages = $newChildAges;
             $table->start_date = $newStartDate;
             $table->end_date = $newEndDate;
             $table->price_estimate = $input->post->getString('price_estimate', $table->price_estimate);
@@ -161,20 +164,25 @@ class BookingmanagerController extends BaseController
                 throw new Exception('Failed to save booking changes: ' . $table->getError());
             }
 
-            $details = [];
-            if ($oldAdults != $newAdults) { $details[] = "Adults: {$oldAdults} -> {$newAdults}"; }
-            if ($oldChildren != $newChildren) { $details[] = "Children: {$oldChildren} -> {$newChildren}"; }
-            if ($oldStartDate != $newStartDate) { $details[] = "Start Date: {$oldStartDate} -> {$newStartDate}"; }
-            if ($oldEndDate != $newEndDate) { $details[] = "End Date: {$oldEndDate} -> {$newEndDate}"; }
+            $changes = [];
+            if ($oldAdults != $newAdults) { $changes['Adults'] = ['old' => $oldAdults, 'new' => $newAdults]; }
+            if ($oldChildren != $newChildren) { $changes['Children'] = ['old' => $oldChildren, 'new' => $newChildren]; }
+            if ($oldChildAges != $newChildAges) { $changes['Child Ages'] = ['old' => $oldChildAges, 'new' => $newChildAges]; }
+            if ($oldStartDate != $newStartDate) { $changes['Start Date'] = ['old' => $oldStartDate, 'new' => $newStartDate]; }
+            if ($oldEndDate != $newEndDate) { $changes['End Date'] = ['old' => $oldEndDate, 'new' => $newEndDate]; }
 
-            if (!empty($details)) {
-                $this->logClientActivity($bookingId, $userId, 'Booking Modified', implode(', ', $details));
+            if (!empty($changes)) {
+                $logDetails = [];
+                foreach ($changes as $field => $value) {
+                    $logDetails[] = "{$field}: {$value['old']} -> {$value['new']}";
+                }
+                $this->logClientActivity($bookingId, $userId, 'Booking Modified', implode(', ', $logDetails));
+
+                JLoader::register('BookingmanagerHelper', JPATH_ADMINISTRATOR . '/components/com_bookingmanager/helpers/bookingmanager.php');
+                BookingmanagerHelper::sendNotificationEmails($bookingId, 'email_admin_booking_modified', '', '', [], $changes);
             }
 
-            JLoader::register('BookingmanagerHelper', JPATH_ADMINISTRATOR . '/components/com_bookingmanager/helpers/bookingmanager.php');
-            BookingmanagerHelper::sendNotificationEmails($bookingId, 'admin_client_update');
-
-            echo json_encode(['success' => true, 'message' => 'Your request has been updated.']);
+            echo json_encode(['success' => true, 'message' => 'Your request has been updated and the administrator has been notified.']);
 
         } catch (Exception $e) {
             Log::add('updateBookingFromPortal failed: ' . $e->getMessage(), Log::ERROR, 'com_bookingmanager');
