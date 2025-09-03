@@ -16,14 +16,8 @@ class BookingmanagerController extends BaseController
     {
         $app   = Factory::getApplication();
         $input = $app->input;
-        $view  = $input->getCmd('view', 'communication');
-
-        // Allow direct access to the terms view, otherwise default to communication view
-        if ($view === 'terms') {
-            $input->set('view', 'terms');
-        } else {
-            $input->set('view', 'communication');
-        }
+        $view  = $input->getCmd('view', 'communication'); // Default to communication view
+        $input->set('view', 'communication');
 
         parent::display($cachable, $urlparams);
         return $this;
@@ -102,25 +96,6 @@ class BookingmanagerController extends BaseController
             $data['pin'] = substr(str_shuffle("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"), 0, 6);
             $table = JTable::getInstance('Bookingrequest', 'BookingmanagerTable');
             if (!$table->save($data)) { throw new Exception('Database save error: ' . $table->getError()); }
-
-            // Log the terms and conditions
-            if ($articleId) {
-                $db = Factory::getDbo();
-                $query = $db->getQuery(true)
-                    ->select('s.terms_and_conditions')
-                    ->from($db->quoteName('#__bookingmanager_suppliers', 's'))
-                    ->join('INNER', $db->quoteName('#__bookingmanager_property_map', 'm') . ' ON s.id = m.supplier_id')
-                    ->where('m.property_id = ' . (int)$articleId);
-                $termsContent = $db->setQuery($query)->loadResult();
-
-                if (!empty($termsContent)) {
-                    $termsLog = new stdClass();
-                    $termsLog->booking_request_id = $table->id;
-                    $termsLog->terms_content = $termsContent;
-                    $termsLog->created_at = (new Date('now'))->toSql();
-                    $db->insertObject('#__bookingmanager_terms_log', $termsLog);
-                }
-            }
             
             if (!empty($data['client_message'])) {
                 $commTable = JTable::getInstance('Communication', 'BookingmanagerTable');

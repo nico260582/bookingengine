@@ -21,17 +21,7 @@ class com_bookingmanagerInstallerScript
 
     public function install($parent) { $this->runInstallQueries($parent); return true; }
     public function uninstall($parent) { $this->runUninstallQueries($parent); return true; }
-    public function update($parent) { $this->runInstallQueries($parent); $this->runSchemaUpdates($parent); return true; }
-
-    private function runSchemaUpdates($parent)
-    {
-        if (!$this->columnExists('#__bookingmanager_suppliers', 'terms_and_conditions')) {
-            $db = Factory::getDbo();
-            $query = 'ALTER TABLE `#__bookingmanager_suppliers` ADD COLUMN `terms_and_conditions` TEXT;';
-            $db->setQuery($query);
-            try { $db->execute(); } catch (Exception $e) {}
-        }
-    }
+    public function update($parent) { $this->runInstallQueries($parent); return true; }
 
     private function runInstallQueries($parent)
     {
@@ -240,15 +230,6 @@ class com_bookingmanagerInstallerScript
           KEY `idx_supplier_id` (`supplier_id`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;";
 
-        $queries[] = "CREATE TABLE IF NOT EXISTS `#__bookingmanager_terms_log` (
-          `id` int NOT NULL AUTO_INCREMENT,
-          `booking_request_id` int NOT NULL,
-          `terms_content` text,
-          `created_at` datetime NOT NULL,
-          PRIMARY KEY (`id`),
-          KEY `idx_booking_request_id` (`booking_request_id`)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;";
-
         foreach ($queries as $query) {
             $db->setQuery($query);
             try {
@@ -296,7 +277,7 @@ class com_bookingmanagerInstallerScript
                 'title'   => 'Client - Booking Confirmation',
                 'type'    => 'email_client_confirm',
                 'subject' => 'Thank you for your booking request (Ref: [booking_ref])',
-                'body'    => "<p>Hello [client_name],</p>\n                            <p>Thank you for your booking request (Ref: <strong>[booking_ref]</strong>) via Book Holidays Mauritius, powered by RT Holidays Ltd.</p>\n                            <hr>\n                            <p>🛎️ <strong>Property:</strong> [property_name]<br>\n                               📅 <strong>Dates:</strong> [start_date_formatted] to [end_date_formatted] ([nights] nights)<br>\n                               👨‍👩‍👧 <strong>Guests:</strong> [guest_details]<br>\n                               💰 <strong>Est. Price:</strong> [price_estimate]<br>\n                               💬 <strong>Message received:</strong> [client_message]<br>\n                               [discount_note]\n                            </p>\n                            <p>You can view and manage your request by visiting our client portal. Please have your PIN ready.</p>\n                            <p><a href=\"[client_portal_link]\">Access Your Booking Request</a> (PIN: <strong>[pin]</strong>)</p>\n                            <p><em>View Property: <a href=\"[accommodation_url]\">[accommodation_url]</a></em></p>\n                            <hr>\n                            <p>Please note that this booking is subject to the supplier's terms and conditions, which are available at the following link:</p>\n                            <p>[terms_and_conditions_link]</p>\n                            <hr>\n                            <p>We are pleased to assist you here. If you have any questions, feel free to let us know!</p>\n                            <p>Warm regards,<br>The RT Holidays Team</p>\n                            <p>[whatsapp_link_client]</p>"
+                'body'    => "<p>Hello [client_name],</p>\n                            <p>Thank you for your booking request (Ref: <strong>[booking_ref]</strong>) via Book Holidays Mauritius, powered by RT Holidays Ltd.</p>\n                            <hr>\n                            <p>🛎️ <strong>Property:</strong> [property_name]<br>\n                               📅 <strong>Dates:</strong> [start_date_formatted] to [end_date_formatted] ([nights] nights)<br>\n                               👨‍👩‍👧 <strong>Guests:</strong> [guest_details]<br>\n                               💰 <strong>Est. Price:</strong> [price_estimate]<br>\n                               💬 <strong>Message received:</strong> [client_message]<br>\n                               [discount_note]\n                            </p>\n                            <p>You can view and manage your request by visiting our client portal. Please have your PIN ready.</p>\n                            <p><a href=\"[client_portal_link]\">Access Your Booking Request</a> (PIN: <strong>[pin]</strong>)</p>\n                            <p><em>View Property: <a href=\"[accommodation_url]\">[accommodation_url]</a></em></p>\n                            <hr>\n                            <p>We are pleased to assist you here. If you have any questions, feel free to let us know!</p>\n                            <p>Warm regards,<br>The RT Holidays Team</p>\n                            <p>[whatsapp_link_client]</p>"
             ],
             [
                 'title'   => 'Admin - Client Reply Notification',

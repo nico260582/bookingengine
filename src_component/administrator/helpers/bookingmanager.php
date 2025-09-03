@@ -105,7 +105,6 @@ abstract class BookingmanagerHelper
         return [
             'Booking Details' => ['[booking_ref]', '[property_name]', '[start_date_formatted]', '[end_date_formatted]', '[nights]', '[guest_details]', '[price_estimate]', '[unit_count]'],
             'Client Details' => ['[client_name]', '[client_email]', '[client_phone]', '[client_country]', '[client_message]'],
-            'Links' => ['[terms_and_conditions_link]'],
             'Advanced' => ['[pin]', '[accommodation_url]', '[discount_note]', '[client_portal_link]', '[whatsapp_link_client]', '[whatsapp_link_admin]', '[admin_message]']
         ];
     }
@@ -316,11 +315,7 @@ abstract class BookingmanagerHelper
             }
         }
 
-        $termsLink = Uri::root() . 'index.php?option=com_bookingmanager&view=terms&ref=' . $request->booking_ref;
-        $termsLinkHtml = '<a href="' . $termsLink . '">Click here to view the terms and conditions for your booking.</a>';
-
         $placeholders = [
-            '[terms_and_conditions_link]' => $termsLinkHtml,
             '[client_name]'          => (string) ($request->client_name ?? ''),
             '[booking_ref]'          => (string) ($request->booking_ref ?? ''),
             '[pin]'                  => (string) ($request->pin ?? ''),

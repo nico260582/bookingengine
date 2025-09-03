@@ -38,9 +38,6 @@ document.addEventListener('DOMContentLoaded', function() {
         <?php echo JHtml::_('bootstrap.addTab', 'myTab', 'markets', 'Market Pricing'); ?>
             <?php echo $this->form->renderFieldset('markets_rules'); ?>
         <?php echo JHtml::_('bootstrap.endTab'); ?>
-        <?php echo JHtml::_('bootstrap.addTab', 'myTab', 'terms', 'Terms & Conditions'); ?>
-            <?php echo $this->form->renderFieldset('terms_and_conditions'); ?>
-        <?php echo JHtml::_('bootstrap.endTab'); ?>
         <?php echo JHtml::_('bootstrap.addTab', 'myTab', 'assignments', 'Property Assignments'); ?>
             <style>
                 .property-assignment-container { display: flex; gap: 20px; }
