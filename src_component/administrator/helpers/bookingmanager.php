@@ -316,7 +316,7 @@ abstract class BookingmanagerHelper
             }
         }
 
-        $termsLink = Route::_('index.php?option=com_bookingmanager&view=terms&ref=' . $request->booking_ref, false, Route::ROUTER_MODE_ABSOLUTE);
+        $termsLink = Uri::root() . 'index.php?option=com_bookingmanager&view=terms&ref=' . $request->booking_ref;
         $termsLinkHtml = '<a href="' . $termsLink . '">Click here to view the terms and conditions for your booking.</a>';
 
         $placeholders = [
