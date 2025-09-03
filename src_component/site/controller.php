@@ -16,8 +16,12 @@ class BookingmanagerController extends BaseController
     {
         $app   = Factory::getApplication();
         $input = $app->input;
-        $view  = $input->getCmd('view', 'communication'); // Default to communication view
-        $input->set('view', 'communication');
+        $view  = $input->getCmd('view', 'communication');
+
+        // Allow 'terms' view to be displayed publicly
+        if ($view !== 'terms') {
+            $input->set('view', 'communication');
+        }
 
         parent::display($cachable, $urlparams);
         return $this;
@@ -79,23 +83,44 @@ class BookingmanagerController extends BaseController
 
             $articleId = $input->post->getInt('article_id', 0);
             $supplierAbbreviation = 'GEN'; // General fallback
+            $termsLogId = null;
+
             if ($articleId) {
                 $db = Factory::getDbo();
                 $query = $db->getQuery(true)
-                    ->select('s.abbreviation')
+                    ->select('s.id, s.abbreviation, s.terms_and_conditions')
                     ->from($db->quoteName('#__bookingmanager_suppliers', 's'))
                     ->join('INNER', $db->quoteName('#__bookingmanager_property_map', 'm') . ' ON s.id = m.supplier_id')
                     ->where('m.property_id = ' . (int)$articleId);
-                $abbreviation = $db->setQuery($query)->loadResult();
-                if ($abbreviation) {
-                    $supplierAbbreviation = $abbreviation;
+
+                $supplier = $db->setQuery($query)->loadObject();
+
+                if ($supplier) {
+                    $supplierAbbreviation = $supplier->abbreviation;
+                    if (!empty($supplier->terms_and_conditions)) {
+                        $termsLog = new \stdClass();
+                        $termsLog->booking_id = 0; // Will be updated after booking is created
+                        $termsLog->terms_content = $supplier->terms_and_conditions;
+                        $termsLog->created_at = (new Date('now'))->toSql();
+
+                        $db->insertObject('#__bookingmanager_terms_log', $termsLog, 'id');
+                        $termsLogId = $termsLog->id;
+                    }
                 }
             }
 
             $data['booking_ref'] = 'BHM-' . $supplierAbbreviation . '-' . date('dmy') . '-' . strtoupper(substr(md5(uniqid(rand(), true)), 0, 4));
+            $data['terms_log_id'] = $termsLogId;
             $data['pin'] = substr(str_shuffle("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"), 0, 6);
             $table = JTable::getInstance('Bookingrequest', 'BookingmanagerTable');
             if (!$table->save($data)) { throw new Exception('Database save error: ' . $table->getError()); }
+
+            if ($termsLogId) {
+                $db->setQuery(
+                    'UPDATE #__bookingmanager_terms_log SET booking_id = ' . (int)$table->id . ' WHERE id = ' . (int)$termsLogId
+                );
+                $db->execute();
+            }
             
             if (!empty($data['client_message'])) {
                 $commTable = JTable::getInstance('Communication', 'BookingmanagerTable');

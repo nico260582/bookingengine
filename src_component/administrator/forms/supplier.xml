@@ -11,6 +11,17 @@
             <option value="0">JUNPUBLISHED</option>
         </field>
     </fieldset>
+    <fieldset name="terms_and_conditions_fieldset" label="Terms and Conditions">
+        <field
+            name="terms_and_conditions"
+            type="editor"
+            label="Terms and Conditions"
+            description="The terms and conditions for this supplier."
+            filter="JComponentHelper::filterText"
+            buttons="true"
+            hide="false"
+        />
+    </fieldset>
     <fieldset name="pricing_model_rules" label="Pricing Model">
         <field name="pricing_model" type="list" label="Pricing Model" default="SupplementPerGuest">
             <option value="SupplementPerGuest">Supplement per Guest</option>
