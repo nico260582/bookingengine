@@ -21,7 +21,17 @@ class com_bookingmanagerInstallerScript
 
     public function install($parent) { $this->runInstallQueries($parent); return true; }
     public function uninstall($parent) { $this->runUninstallQueries($parent); return true; }
-    public function update($parent) { $this->runInstallQueries($parent); return true; }
+    public function update($parent) { $this->runInstallQueries($parent); $this->runSchemaUpdates($parent); return true; }
+
+    private function runSchemaUpdates($parent)
+    {
+        if (!$this->columnExists('#__bookingmanager_suppliers', 'terms_and_conditions')) {
+            $db = Factory::getDbo();
+            $query = 'ALTER TABLE `#__bookingmanager_suppliers` ADD COLUMN `terms_and_conditions` TEXT;';
+            $db->setQuery($query);
+            try { $db->execute(); } catch (Exception $e) {}
+        }
+    }
 
     private function runInstallQueries($parent)
     {
