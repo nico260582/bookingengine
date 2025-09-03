@@ -83,10 +83,10 @@ class BookingmanagerController extends BaseController
 
             $articleId = $input->post->getInt('article_id', 0);
             $supplierAbbreviation = 'GEN'; // General fallback
-            $termsLogId = null;
+            $supplierTermsContent = null;
+            $db = Factory::getDbo();
 
             if ($articleId) {
-                $db = Factory::getDbo();
                 $query = $db->getQuery(true)
                     ->select('s.id, s.abbreviation, s.terms_and_conditions')
                     ->from($db->quoteName('#__bookingmanager_suppliers', 's'))
@@ -98,28 +98,31 @@ class BookingmanagerController extends BaseController
                 if ($supplier) {
                     $supplierAbbreviation = $supplier->abbreviation;
                     if (!empty($supplier->terms_and_conditions)) {
-                        $termsLog = new \stdClass();
-                        $termsLog->booking_id = 0; // Will be updated after booking is created
-                        $termsLog->terms_content = $supplier->terms_and_conditions;
-                        $termsLog->created_at = (new Date('now'))->toSql();
-
-                        $db->insertObject('#__bookingmanager_terms_log', $termsLog, 'id');
-                        $termsLogId = $termsLog->id;
+                        $supplierTermsContent = $supplier->terms_and_conditions;
                     }
                 }
             }
 
             $data['booking_ref'] = 'BHM-' . $supplierAbbreviation . '-' . date('dmy') . '-' . strtoupper(substr(md5(uniqid(rand(), true)), 0, 4));
-            $data['terms_log_id'] = $termsLogId;
             $data['pin'] = substr(str_shuffle("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"), 0, 6);
+
             $table = JTable::getInstance('Bookingrequest', 'BookingmanagerTable');
             if (!$table->save($data)) { throw new Exception('Database save error: ' . $table->getError()); }
 
-            if ($termsLogId) {
-                $db->setQuery(
-                    'UPDATE #__bookingmanager_terms_log SET booking_id = ' . (int)$table->id . ' WHERE id = ' . (int)$termsLogId
-                );
-                $db->execute();
+            if ($supplierTermsContent) {
+                $termsLog = new \stdClass();
+                $termsLog->booking_id = $table->id;
+                $termsLog->terms_content = $supplierTermsContent;
+                $termsLog->created_at = (new Date('now'))->toSql();
+
+                $db->insertObject('#__bookingmanager_terms_log', $termsLog, 'id');
+                $termsLogId = $termsLog->id;
+
+                // Now update the booking request with the new terms log ID
+                $table->terms_log_id = $termsLogId;
+                if (!$table->store()) {
+                    throw new Exception('Failed to update booking with terms log ID.');
+                }
             }
             
             if (!empty($data['client_message'])) {
