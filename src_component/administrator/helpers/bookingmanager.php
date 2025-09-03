@@ -105,6 +105,7 @@ abstract class BookingmanagerHelper
         return [
             'Booking Details' => ['[booking_ref]', '[property_name]', '[start_date_formatted]', '[end_date_formatted]', '[nights]', '[guest_details]', '[price_estimate]', '[unit_count]'],
             'Client Details' => ['[client_name]', '[client_email]', '[client_phone]', '[client_country]', '[client_message]'],
+            'Supplier Details' => ['[supplier_terms_and_conditions]'],
             'Advanced' => ['[pin]', '[accommodation_url]', '[discount_note]', '[client_portal_link]', '[whatsapp_link_client]', '[whatsapp_link_admin]', '[admin_message]']
         ];
     }
@@ -245,6 +246,23 @@ abstract class BookingmanagerHelper
         $request = $db->setQuery($query)->loadObject();
 
         if (!$request) { return false; }
+
+        $query->clear()
+            ->select($db->quoteName('id'))
+            ->from($db->quoteName('#__content'))
+            ->where($db->quoteName('title') . ' = ' . $db->quote($request->property_name));
+        $propertyId = $db->setQuery($query)->loadResult();
+
+        $termsAndConditions = '';
+        if ($propertyId) {
+            $query->clear()
+                ->select('s.terms_and_conditions')
+                ->from($db->quoteName('#__bookingmanager_suppliers', 's'))
+                ->join('LEFT', $db->quoteName('#__bookingmanager_property_map', 'pm') . ' ON s.id = pm.supplier_id')
+                ->where('pm.property_id = ' . (int) $propertyId);
+            $supplier = $db->setQuery($query)->loadObject();
+            $termsAndConditions = $supplier ? $supplier->terms_and_conditions : '';
+        }
         
         $emailTypes = [];
         if ($type === 'all') {
@@ -316,6 +334,7 @@ abstract class BookingmanagerHelper
         }
 
         $placeholders = [
+            '[supplier_terms_and_conditions]' => $termsAndConditions,
             '[client_name]'          => (string) ($request->client_name ?? ''),
             '[booking_ref]'          => (string) ($request->booking_ref ?? ''),
             '[pin]'                  => (string) ($request->pin ?? ''),

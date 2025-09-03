@@ -15,6 +15,16 @@ class BookingmanagerTableSupplier extends Table
         parent::__construct('#__bookingmanager_suppliers', 'id', $db);
     }
 
+    public function bind($array, $ignore = '')
+    {
+        if (isset($array['terms_and_conditions']))
+        {
+            $array['terms_and_conditions'] = trim($array['terms_and_conditions']);
+        }
+
+        return parent::bind($array, $ignore);
+    }
+
     public function check()
     {
         if (trim($this->name) == '')

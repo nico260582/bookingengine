@@ -99,4 +99,13 @@
     <fieldset name="assignments" label="Property Assignments">
         <field name="properties" type="hidden" />
     </fieldset>
+    <fieldset name="terms_and_conditions" label="Terms and Conditions">
+        <field
+            name="terms_and_conditions"
+            type="editor"
+            label="Terms and Conditions"
+            description="The terms and conditions for this supplier."
+            filter="safehtml"
+        />
+    </fieldset>
 </form>
