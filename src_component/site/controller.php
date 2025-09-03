@@ -16,8 +16,14 @@ class BookingmanagerController extends BaseController
     {
         $app   = Factory::getApplication();
         $input = $app->input;
-        $view  = $input->getCmd('view', 'communication'); // Default to communication view
-        $input->set('view', 'communication');
+        $view  = $input->getCmd('view', 'communication');
+
+        // Allow direct access to the terms view, otherwise default to communication view
+        if ($view === 'terms') {
+            $input->set('view', 'terms');
+        } else {
+            $input->set('view', 'communication');
+        }
 
         parent::display($cachable, $urlparams);
         return $this;
