@@ -299,7 +299,7 @@ abstract class BookingmanagerHelper
         if (!empty($request->terms_log_id)) {
             // Note: SEF URLs might not work well in emails depending on the mail client.
             // Using the non-SEF URL is safer. The 'false' in Route signifies non-SEF.
-            $termsUrl = rtrim(Uri::root(), '/') . Route::_('index.php?option=com_bookingmanager&view=terms&id=' . $request->id, false);
+            $termsUrl = rtrim(Uri::root(), '/') . Route::_('index.php?option=com_bookingmanager&view=terms&id=' . $request->terms_log_id, false);
             $termsLink = '<p><a href="' . $termsUrl . '">View Supplier Terms and Conditions</a></p>';
         } else {
             $termsLink = '<p><em>The supplier for this property has not provided any specific terms and conditions.</em></p>';
