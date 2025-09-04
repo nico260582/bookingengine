@@ -73,7 +73,7 @@ class ModBookingFormHelper
 
         // Get all saved rates for this property
         $query->clear()
-            ->select('season_name, rates, active_markets, base_guest_number')
+            ->select('season_name, rates, active_markets, base_guest_number, override_admin_commission, admin_commission')
             ->from($db->quoteName('#__bookingmanager_rates'))
             ->where('property_id = ' . (int) $articleId);
         $ratesList = $db->setQuery($query)->loadObjectList('season_name');
@@ -100,6 +100,22 @@ class ModBookingFormHelper
             if (empty($activeMarkets) && !empty($rateInfo->active_markets)) {
                 $activeMarkets = json_decode($rateInfo->active_markets, true);
                 if (!is_array($activeMarkets)) $activeMarkets = [];
+            }
+        }
+
+        // Inject commission data into the seasons array
+        if (isset($rules['seasons']) && is_array($rules['seasons'])) {
+            foreach ($rules['seasons'] as $key => $season) {
+                $seasonName = $season['name'];
+                if (isset($ratesList[$seasonName])) {
+                    $rateInfo = $ratesList[$seasonName];
+                    // Use the property-level commission if override is checked, otherwise default to 0
+                    if (!empty($rateInfo->override_admin_commission)) {
+                        $rules['seasons'][$key]['admin_commission'] = $rateInfo->admin_commission ?? 0;
+                    } else {
+                        $rules['seasons'][$key]['admin_commission'] = 0;
+                    }
+                }
             }
         }
 
