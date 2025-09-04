@@ -105,7 +105,7 @@ abstract class BookingmanagerHelper
         return [
             'Booking Details' => ['[booking_ref]', '[property_name]', '[start_date_formatted]', '[end_date_formatted]', '[nights]', '[guest_details]', '[price_estimate]', '[unit_count]'],
             'Client Details' => ['[client_name]', '[client_email]', '[client_phone]', '[client_country]', '[client_message]'],
-            'Advanced' => ['[pin]', '[accommodation_url]', '[discount_note]', '[client_portal_link]', '[whatsapp_link_client]', '[whatsapp_link_admin]', '[admin_message]', '[supplier_terms_and_conditions_link]']
+            'Advanced' => ['[pin]', '[accommodation_url]', '[discount_note]', '[client_portal_link]', '[whatsapp_link_client]', '[whatsapp_link_admin]', '[admin_message]', '[terms_and_conditions_link]']
         ];
     }
 
@@ -301,6 +301,8 @@ abstract class BookingmanagerHelper
             // Using the non-SEF URL is safer. The 'false' in Route signifies non-SEF.
             $termsUrl = rtrim(Uri::root(), '/') . Route::_('index.php?option=com_bookingmanager&view=terms&id=' . $request->id, false);
             $termsLink = '<p><a href="' . $termsUrl . '">View Supplier Terms and Conditions</a></p>';
+        } else {
+            $termsLink = '<p><em>The supplier for this property has not provided any specific terms and conditions.</em></p>';
         }
 
         $attachmentListHtml = '';
@@ -345,7 +347,7 @@ abstract class BookingmanagerHelper
             '[discount_note]'        => !empty($request->discount_note) ? '🇲🇺 ' . htmlspecialchars((string) $request->discount_note) : '',
             '[unit_count]'           => (string) ($request->unit_count ?? ''),
             '[client_portal_link]'   => $portalLink,
-            '[supplier_terms_and_conditions_link]' => $termsLink,
+            '[terms_and_conditions_link]' => $termsLink,
             '[attachments_list]'     => $attachmentListHtml,
             '[changes_table]'        => $changesTableHtml,
             '[booking_details_html]' => "<ul>" .

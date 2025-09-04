@@ -82,25 +82,48 @@ class BookingmanagerController extends BaseController
             $data['user_id'] = $userId;
 
             $articleId = $input->post->getInt('article_id', 0);
-            $supplierAbbreviation = 'GEN'; // General fallback
+            $supplierAbbreviation = 'GEN';
+            $supplierTermsContent = null;
+            $db = Factory::getDbo();
+
             if ($articleId) {
-                $db = Factory::getDbo();
                 $query = $db->getQuery(true)
-                    ->select('s.abbreviation')
+                    ->select('s.abbreviation, s.terms_and_conditions')
                     ->from($db->quoteName('#__bookingmanager_suppliers', 's'))
                     ->join('INNER', $db->quoteName('#__bookingmanager_property_map', 'm') . ' ON s.id = m.supplier_id')
                     ->where('m.property_id = ' . (int)$articleId);
-                $abbreviation = $db->setQuery($query)->loadResult();
-                if ($abbreviation) {
-                    $supplierAbbreviation = $abbreviation;
+
+                $supplier = $db->setQuery($query)->loadObject();
+
+                if ($supplier) {
+                    $supplierAbbreviation = $supplier->abbreviation;
+                    if (!empty($supplier->terms_and_conditions)) {
+                        $supplierTermsContent = $supplier->terms_and_conditions;
+                    }
                 }
             }
 
             $data['booking_ref'] = 'BHM-' . $supplierAbbreviation . '-' . date('dmy') . '-' . strtoupper(substr(md5(uniqid(rand(), true)), 0, 4));
             $data['pin'] = substr(str_shuffle("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"), 0, 6);
+
             $table = JTable::getInstance('Bookingrequest', 'BookingmanagerTable');
             if (!$table->bind($data) || !$table->store()) {
-                 throw new Exception('Database save error: ' . $table->getError());
+                throw new Exception('Database save error: ' . $table->getError());
+            }
+
+            if ($supplierTermsContent) {
+                $termsLog = new \stdClass();
+                $termsLog->booking_id = $table->id;
+                $termsLog->terms_content = $supplierTermsContent;
+                $termsLog->created_at = (new Date('now'))->toSql();
+
+                $db->insertObject('#__bookingmanager_terms_log', $termsLog, 'id');
+                $termsLogId = $termsLog->id;
+
+                $table->terms_log_id = $termsLogId;
+                if (!$table->store()) {
+                    Log::add('Failed to update booking ' . $table->id . ' with terms_log_id ' . $termsLogId, Log::ERROR, 'com_bookingmanager');
+                }
             }
             
             if (!empty($data['client_message'])) {
@@ -117,63 +140,6 @@ class BookingmanagerController extends BaseController
             echo json_encode(['success' => true, 'bookingRef' => $data['booking_ref']]);
         } catch (\Throwable $t) {
             Log::add('Booking form submission failed: ' . $t->getMessage(), Log::ERROR, 'com_bookingmanager');
-            $code = ($t->getCode() >= 400 && $t->getCode() < 600) ? $t->getCode() : 500;
-            if (!headers_sent()) { http_response_code($code); }
-            echo json_encode(['success' => false, 'message' => 'Server Error: ' . $t->getMessage()]);
-        }
-        $app->close();
-    }
-
-    public function logTermsAndConditions()
-    {
-        header('Content-Type: application/json');
-        $app = Factory::getApplication();
-        try {
-            if (!Session::checkToken('post')) { throw new Exception('Invalid Token', 403); }
-            $input = $app->input;
-            $bookingRef = $input->getString('booking_ref', '');
-            if (empty($bookingRef)) {
-                throw new Exception('Booking reference is required.', 400);
-            }
-
-            $db = Factory::getDbo();
-            $query = $db->getQuery(true)
-                ->select('b.id, p.article_id')
-                ->from($db->quoteName('#__booking_requests', 'b'))
-                ->join('LEFT', $db->quoteName('#__content', 'p') . ' ON b.property_name = p.title')
-                ->where('b.booking_ref = ' . $db->quote($bookingRef));
-            $booking = $db->setQuery($query)->loadObject();
-
-            if (!$booking) {
-                throw new Exception('Booking not found.', 404);
-            }
-
-            $query->clear()
-                ->select('s.terms_and_conditions')
-                ->from($db->quoteName('#__bookingmanager_suppliers', 's'))
-                ->join('INNER', $db->quoteName('#__bookingmanager_property_map', 'm') . ' ON s.id = m.supplier_id')
-                ->where('m.property_id = ' . (int)$booking->article_id);
-            $terms = $db->setQuery($query)->loadResult();
-
-            if (!empty($terms)) {
-                $termsLog = new \stdClass();
-                $termsLog->booking_id = $booking->id;
-                $termsLog->terms_content = $terms;
-                $termsLog->created_at = (new Date('now'))->toSql();
-
-                $db->insertObject('#__bookingmanager_terms_log', $termsLog, 'id');
-                $termsLogId = $termsLog->id;
-
-                $bookingTable = JTable::getInstance('Bookingrequest', 'BookingmanagerTable');
-                $bookingTable->load($booking->id);
-                $bookingTable->terms_log_id = $termsLogId;
-                if (!$bookingTable->store()) {
-                    throw new Exception('Failed to update booking with terms log ID.');
-                }
-            }
-            echo json_encode(['success' => true]);
-        } catch (\Throwable $t) {
-            Log::add('T&C logging failed: ' . $t->getMessage(), Log::ERROR, 'com_bookingmanager');
             $code = ($t->getCode() >= 400 && $t->getCode() < 600) ? $t->getCode() : 500;
             if (!headers_sent()) { http_response_code($code); }
             echo json_encode(['success' => false, 'message' => 'Server Error: ' . $t->getMessage()]);
