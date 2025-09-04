@@ -29,6 +29,7 @@ class BookingmanagerController extends BaseController
 
     public function submitBooking()
     {
+        // Sanity check comment to verify file modification
         header('Content-Type: application/json');
         $app = Factory::getApplication();
         try {
