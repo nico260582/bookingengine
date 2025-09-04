@@ -88,6 +88,14 @@ class ModBookingFormHelper
             $decodedRates = !empty($rateInfo->rates) ? json_decode($rateInfo->rates, true) : [];
             if (!is_array($decodedRates)) $decodedRates = [];
 
+            // Inject property-level admin commission into each market rate if override is enabled
+            if (!empty($rateInfo->override_admin_commission) && !empty($rateInfo->admin_commission)) {
+                foreach ($decodedRates as $marketName => &$marketData) {
+                    $marketData['override_commission'] = 1;
+                    $marketData['commission'] = $rateInfo->admin_commission;
+                }
+            }
+
             // Inject currency and symbol into each market's rate data
             foreach ($decodedRates as $marketName => &$marketData) {
                 $marketData['currency'] = $allMarkets[$marketName]->currency ?? 'EUR';
@@ -103,21 +111,6 @@ class ModBookingFormHelper
             }
         }
 
-        // Inject commission data into the seasons array
-        if (isset($rules['seasons']) && is_array($rules['seasons'])) {
-            foreach ($rules['seasons'] as $key => $season) {
-                $seasonName = $season['name'];
-                if (isset($ratesList[$seasonName])) {
-                    $rateInfo = $ratesList[$seasonName];
-                    // Use the property-level commission if override is checked, otherwise default to 0
-                    if (!empty($rateInfo->override_admin_commission)) {
-                        $rules['seasons'][$key]['admin_commission'] = $rateInfo->admin_commission ?? 0;
-                    } else {
-                        $rules['seasons'][$key]['admin_commission'] = 0;
-                    }
-                }
-            }
-        }
 
 
         $cleanRules = [
