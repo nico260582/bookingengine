@@ -89,7 +89,7 @@ class ModBookingFormHelper
             if (!is_array($decodedRates)) $decodedRates = [];
 
             // Inject property-level admin commission into each market rate if override is enabled
-            if (!empty($rateInfo->override_admin_commission) && !empty($rateInfo->admin_commission)) {
+            if (!empty($rateInfo->override_admin_commission) && is_numeric($rateInfo->admin_commission) && $rateInfo->admin_commission > 0) {
                 foreach ($decodedRates as $marketName => &$marketData) {
                     $marketData['override_commission'] = 1;
                     $marketData['commission'] = $rateInfo->admin_commission;
@@ -110,7 +110,6 @@ class ModBookingFormHelper
                 if (!is_array($activeMarkets)) $activeMarkets = [];
             }
         }
-
 
 
         $cleanRules = [
