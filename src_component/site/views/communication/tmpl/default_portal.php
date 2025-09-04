@@ -75,6 +75,16 @@ use Joomla\CMS\Date\Date;
         </div>
     </div>
 
+    <div class="booking-terms-agreement">
+        <?php if (!empty($this->request->terms_log_id)) : ?>
+            <div class="form-group">
+                <input type="checkbox" id="terms_agreed" name="terms_agreed" value="1" <?php echo ($this->request->terms_agreed) ? 'checked disabled' : ''; ?>>
+                <label for="terms_agreed">
+                    I have read and agree to the <a href="<?php echo Route::_('index.php?option=com_bookingmanager&view=terms&id=' . $this->request->terms_log_id); ?>" target="_blank">Terms & Conditions</a>.
+                </label>
+            </div>
+        <?php endif; ?>
+    </div>
 
     <div class="conversation-history">
         <h4><?php echo Text::_('COM_BOOKINGMANAGER_CONVERSATION_HEADING'); ?></h4>

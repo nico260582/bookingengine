@@ -258,6 +258,15 @@ class com_bookingmanagerInstallerScript
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;");
         try { $db->execute(); } catch (Exception $e) {}
 
+        if (!$this->columnExists('#__booking_requests', 'terms_agreed')) {
+            $db->setQuery("ALTER TABLE `#__booking_requests` ADD `terms_agreed` TINYINT(1) NOT NULL DEFAULT 0;");
+            try { $db->execute(); } catch (Exception $e) {}
+        }
+        if (!$this->columnExists('#__booking_requests', 'terms_agreed_at')) {
+            $db->setQuery("ALTER TABLE `#__booking_requests` ADD `terms_agreed_at` DATETIME;");
+            try { $db->execute(); } catch (Exception $e) {}
+        }
+
 
         $this->addDefaultTemplates($db);
     }
