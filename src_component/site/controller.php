@@ -111,6 +111,14 @@ class BookingmanagerController extends BaseController
                 throw new Exception('Database save error: ' . $table->getError());
             }
 
+            // Manually ensure we have the booking ID, as it seems to fail intermittently.
+            if (empty($table->id)) {
+                $table->id = (int) $db->insertid();
+            }
+            if (empty($table->id)) {
+                throw new Exception('Critical error: Failed to retrieve booking ID after database insert.');
+            }
+
             if ($supplierTermsContent) {
                 $termsLog = new \stdClass();
                 $termsLog->booking_id = $table->id;
