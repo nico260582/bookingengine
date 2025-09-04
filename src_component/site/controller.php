@@ -122,7 +122,7 @@ class BookingmanagerController extends BaseController
 
             if ($supplierTermsContent) {
                 $termsLog = new \stdClass();
-                $termsLog->booking_id = $table->id;
+                $termsLog->booking_request_id = $table->id;
                 $termsLog->terms_content = $supplierTermsContent;
                 $termsLog->created_at = (new Date('now'))->toSql();
 
