@@ -122,7 +122,7 @@ class BookingmanagerController extends BaseController
 
             if ($supplierTermsContent) {
                 $termsLog = new \stdClass();
-                $termsLog->booking_id = $table->id;
+                $termsLog->booking_request_id = $table->id;
                 $termsLog->terms_content = $supplierTermsContent;
                 $termsLog->created_at = (new Date('now'))->toSql();
 
@@ -178,6 +178,14 @@ class BookingmanagerController extends BaseController
             }
 
             $userId = Factory::getUser()->id;
+
+            // Handle terms and conditions agreement
+            $termsAgreed = $input->post->getInt('terms_agreed', 0);
+            if ($termsAgreed && !$table->terms_agreed) {
+                $table->terms_agreed = 1;
+                $table->terms_agreed_at = (new Date('now'))->toSql();
+                $this->logClientActivity($bookingId, $userId, 'Terms Agreed', 'Client agreed to the terms and conditions.');
+            }
             $oldAdults = $table->adults;
             $newAdults = $input->post->getInt('adults', $table->adults);
             $oldChildren = $table->children;

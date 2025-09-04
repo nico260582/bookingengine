@@ -89,6 +89,25 @@ use Joomla\CMS\Uri\Uri;
             </div>
         <?php echo HTMLHelper::_('bootstrap.endTab'); ?>
 
+        <?php echo HTMLHelper::_('bootstrap.addTab', 'myTab', 'terms', Text::_('Terms & Conditions'), empty($this->item->terms_log_id)); ?>
+        <?php if (!empty($this->item->terms_log_id)) : ?>
+            <div class="row-fluid">
+                <div class="span12">
+                    <h4>Agreement Status</h4>
+                    <p>
+                        <?php if ($this->item->terms_agreed) : ?>
+                            <strong>Agreed on:</strong> <?php echo HTMLHelper::_('date', $this->item->terms_agreed_at, 'Y-m-d H:i:s'); ?>
+                        <?php else : ?>
+                            <strong>Not yet agreed.</strong>
+                        <?php endif; ?>
+                    </p>
+                    <hr>
+                    <h4>Terms Content</h4>
+                    <div><?php echo $this->item->terms_content; ?></div>
+                </div>
+            </div>
+        <?php endif; ?>
+        <?php echo HTMLHelper::_('bootstrap.endTab'); ?>
         
         <?php echo HTMLHelper::_('bootstrap.addTab', 'myTab', 'logs', Text::_('Change Log')); ?>
             <table class="table table-striped">

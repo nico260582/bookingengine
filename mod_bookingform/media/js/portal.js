@@ -26,7 +26,8 @@ document.addEventListener('DOMContentLoaded', function() {
         priceDisplay: document.getElementById('price-estimate-display-portal'),
         unitDisplay: document.getElementById('unit-count-display-portal'),
         summaryDisplay: document.getElementById('modification-summary'),
-        saveButton: document.getElementById('save-changes-btn')
+        saveButton: document.getElementById('save-changes-btn'),
+        termsCheckbox: document.getElementById('terms_agreed')
     };
 
     function init() {
@@ -45,6 +46,9 @@ document.addEventListener('DOMContentLoaded', function() {
             elements.adultsInput.addEventListener('input', handleModification);
             elements.childrenInput.addEventListener('input', () => updateChildAgeInputs());
             elements.saveButton.addEventListener('click', saveChanges);
+            if (elements.termsCheckbox) {
+                elements.termsCheckbox.addEventListener('change', handleModification);
+            }
         }
     }
 
@@ -243,7 +247,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const currentChildAges = Array.from(document.querySelectorAll('.child-age-input')).map(input => input.value);
         const agesChanged = JSON.stringify(originalChildAges) !== JSON.stringify(currentChildAges);
 
-        const hasChanged = (currentAdults !== originalAdults || currentChildren !== originalChildren || currentStartDate !== originalStartDate || currentEndDate !== originalEndDate || agesChanged);
+        const termsAgreedChanged = elements.termsCheckbox ? elements.termsCheckbox.checked && !elements.termsCheckbox.disabled : false;
+        const hasChanged = (currentAdults !== originalAdults || currentChildren !== originalChildren || currentStartDate !== originalStartDate || currentEndDate !== originalEndDate || agesChanged || termsAgreedChanged);
+
         if (hasChanged) {
             elements.summaryDisplay.innerHTML = `You are requesting changes to your booking. The new estimated price is shown above. Please review and click "Save Changes" to confirm.`;
             elements.summaryDisplay.style.display = 'block';
@@ -265,6 +271,9 @@ document.addEventListener('DOMContentLoaded', function() {
         formData.append('end_date', currentEndDate);
         formData.append('price_estimate', elements.priceDisplay.textContent.replace('New Est. Price: ', ''));
         formData.append('unit_count', elements.unitDisplay.textContent.charAt(0));
+        if (elements.termsCheckbox && elements.termsCheckbox.checked) {
+            formData.append('terms_agreed', '1');
+        }
         formData.append(options.token, 1);
 
         elements.saveButton.disabled = true;

@@ -20,8 +20,8 @@ class BookingmanagerModelTerms extends BaseDatabaseModel
         $query = $db->getQuery(true)
             ->select($db->quoteName(array('log.terms_content', 'req.booking_ref', 'req.property_name')))
             ->from($db->quoteName('#__bookingmanager_terms_log', 'log'))
-            ->join('LEFT', $db->quoteName('#__booking_requests', 'req') . ' ON ' . $db->quoteName('log.booking_id') . ' = ' . $db->quoteName('req.id'))
-            ->where($db->quoteName('log.booking_id') . ' = ' . (int)$bookingId);
+            ->join('LEFT', $db->quoteName('#__booking_requests', 'req') . ' ON ' . $db->quoteName('log.booking_request_id') . ' = ' . $db->quoteName('req.id'))
+            ->where($db->quoteName('log.id') . ' = ' . (int)$bookingId);
 
         $db->setQuery($query);
 
