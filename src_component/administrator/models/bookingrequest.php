@@ -19,6 +19,25 @@ class BookingmanagerModelBookingrequest extends AdminModel
         return empty($form) ? false : $form;
     }
 
+    public function getItem($pk = null)
+    {
+        $item = parent::getItem($pk);
+
+        if ($item && !empty($item->terms_log_id)) {
+            $db = Factory::getDbo();
+            $query = $db->getQuery(true)
+                ->select($db->quoteName('terms_content'))
+                ->from($db->quoteName('#__bookingmanager_terms_log'))
+                ->where($db->quoteName('id') . ' = ' . (int) $item->terms_log_id);
+
+            $item->terms_content = $db->setQuery($query)->loadResult();
+        } else if ($item) {
+            $item->terms_content = null;
+        }
+
+        return $item;
+    }
+
     protected function loadFormData()
     {
         $data = Factory::getApplication()->getUserState('com_bookingmanager.edit.bookingrequest.data', array());
