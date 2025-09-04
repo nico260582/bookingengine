@@ -23,6 +23,9 @@ document.addEventListener('DOMContentLoaded', function() {
         <?php echo JHtml::_('bootstrap.addTab', 'myTab', 'details', 'Details'); ?>
             <?php echo $this->form->renderFieldset('details'); ?>
         <?php echo JHtml::_('bootstrap.endTab'); ?>
+        <?php echo JHtml::_('bootstrap.addTab', 'myTab', 'terms', 'Terms & Conditions'); ?>
+            <?php echo $this->form->renderFieldset('terms_and_conditions_fieldset'); ?>
+        <?php echo JHtml::_('bootstrap.endTab'); ?>
         <?php echo JHtml::_('bootstrap.addTab', 'myTab', 'pricing', 'Pricing Rules'); ?>
             <?php echo $this->form->renderFieldset('pricing_model_rules'); ?>
         <?php echo JHtml::_('bootstrap.endTab'); ?>

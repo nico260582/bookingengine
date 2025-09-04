@@ -16,8 +16,12 @@ class BookingmanagerController extends BaseController
     {
         $app   = Factory::getApplication();
         $input = $app->input;
-        $view  = $input->getCmd('view', 'communication'); // Default to communication view
-        $input->set('view', 'communication');
+        $view  = $input->getCmd('view', 'communication');
+
+        // Allow 'terms' view to be displayed publicly
+        if ($view !== 'terms') {
+            $input->set('view', 'communication');
+        }
 
         parent::display($cachable, $urlparams);
         return $this;
@@ -25,6 +29,7 @@ class BookingmanagerController extends BaseController
 
     public function submitBooking()
     {
+        // Sanity check comment to verify file modification
         header('Content-Type: application/json');
         $app = Factory::getApplication();
         try {
@@ -78,24 +83,57 @@ class BookingmanagerController extends BaseController
             $data['user_id'] = $userId;
 
             $articleId = $input->post->getInt('article_id', 0);
-            $supplierAbbreviation = 'GEN'; // General fallback
+            $supplierAbbreviation = 'GEN';
+            $supplierTermsContent = null;
+            $db = Factory::getDbo();
+
             if ($articleId) {
-                $db = Factory::getDbo();
                 $query = $db->getQuery(true)
-                    ->select('s.abbreviation')
+                    ->select('s.abbreviation, s.terms_and_conditions')
                     ->from($db->quoteName('#__bookingmanager_suppliers', 's'))
                     ->join('INNER', $db->quoteName('#__bookingmanager_property_map', 'm') . ' ON s.id = m.supplier_id')
                     ->where('m.property_id = ' . (int)$articleId);
-                $abbreviation = $db->setQuery($query)->loadResult();
-                if ($abbreviation) {
-                    $supplierAbbreviation = $abbreviation;
+
+                $supplier = $db->setQuery($query)->loadObject();
+
+                if ($supplier) {
+                    $supplierAbbreviation = $supplier->abbreviation;
+                    if (!empty($supplier->terms_and_conditions)) {
+                        $supplierTermsContent = $supplier->terms_and_conditions;
+                    }
                 }
             }
 
             $data['booking_ref'] = 'BHM-' . $supplierAbbreviation . '-' . date('dmy') . '-' . strtoupper(substr(md5(uniqid(rand(), true)), 0, 4));
             $data['pin'] = substr(str_shuffle("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"), 0, 6);
+
             $table = JTable::getInstance('Bookingrequest', 'BookingmanagerTable');
-            if (!$table->save($data)) { throw new Exception('Database save error: ' . $table->getError()); }
+            if (!$table->bind($data) || !$table->store()) {
+                throw new Exception('Database save error: ' . $table->getError());
+            }
+
+            // Manually ensure we have the booking ID, as it seems to fail intermittently.
+            if (empty($table->id)) {
+                $table->id = (int) $db->insertid();
+            }
+            if (empty($table->id)) {
+                throw new Exception('Critical error: Failed to retrieve booking ID after database insert.');
+            }
+
+            if ($supplierTermsContent) {
+                $termsLog = new \stdClass();
+                $termsLog->booking_id = $table->id;
+                $termsLog->terms_content = $supplierTermsContent;
+                $termsLog->created_at = (new Date('now'))->toSql();
+
+                $db->insertObject('#__bookingmanager_terms_log', $termsLog, 'id');
+                $termsLogId = $termsLog->id;
+
+                $table->terms_log_id = $termsLogId;
+                if (!$table->store()) {
+                    Log::add('Failed to update booking ' . $table->id . ' with terms_log_id ' . $termsLogId, Log::ERROR, 'com_bookingmanager');
+                }
+            }
             
             if (!empty($data['client_message'])) {
                 $commTable = JTable::getInstance('Communication', 'BookingmanagerTable');
@@ -109,11 +147,11 @@ class BookingmanagerController extends BaseController
             $this->logClientActivity($table->id, $userId, 'Booking Created', 'Initial submission from booking form.');
 
             echo json_encode(['success' => true, 'bookingRef' => $data['booking_ref']]);
-        } catch (Exception $e) {
-            Log::add('Booking form submission failed: ' . $e->getMessage(), Log::ERROR, 'com_bookingmanager');
-            $code = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 500;
+        } catch (\Throwable $t) {
+            Log::add('Booking form submission failed: ' . $t->getMessage(), Log::ERROR, 'com_bookingmanager');
+            $code = ($t->getCode() >= 400 && $t->getCode() < 600) ? $t->getCode() : 500;
             if (!headers_sent()) { http_response_code($code); }
-            echo json_encode(['success' => false, 'message' => 'Server Error: ' . $e->getMessage()]);
+            echo json_encode(['success' => false, 'message' => 'Server Error: ' . $t->getMessage()]);
         }
         $app->close();
     }
@@ -184,11 +222,11 @@ class BookingmanagerController extends BaseController
 
             echo json_encode(['success' => true, 'message' => 'Your request has been updated and the administrator has been notified.']);
 
-        } catch (Exception $e) {
-            Log::add('updateBookingFromPortal failed: ' . $e->getMessage(), Log::ERROR, 'com_bookingmanager');
-            $code = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 500;
+        } catch (\Throwable $t) {
+            Log::add('updateBookingFromPortal failed: ' . $t->getMessage(), Log::ERROR, 'com_bookingmanager');
+            $code = ($t->getCode() >= 400 && $t->getCode() < 600) ? $t->getCode() : 500;
             if (!headers_sent()) { http_response_code($code); }
-            echo json_encode(['success' => false, 'message' => 'Server Error: ' . $e->getMessage()]);
+            echo json_encode(['success' => false, 'message' => 'Server Error: ' . $t->getMessage()]);
         }
         $app->close();
     }
@@ -224,11 +262,11 @@ class BookingmanagerController extends BaseController
 
             echo json_encode(['success' => true, 'pricingRules' => $pricingRules]);
 
-        } catch (Exception $e) {
-            Log::add('getPricingForRequest failed: ' . $e->getMessage(), Log::ERROR, 'com_bookingmanager');
-            $code = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 500;
+        } catch (\Throwable $t) {
+            Log::add('getPricingForRequest failed: ' . $t->getMessage(), Log::ERROR, 'com_bookingmanager');
+            $code = ($t->getCode() >= 400 && $t->getCode() < 600) ? $t->getCode() : 500;
             if (!headers_sent()) { http_response_code($code); }
-            echo json_encode(['success' => false, 'message' => 'Server Error: ' . $e->getMessage()]);
+            echo json_encode(['success' => false, 'message' => 'Server Error: ' . $t->getMessage()]);
         }
         $app->close();
     }
@@ -348,10 +386,10 @@ class BookingmanagerController extends BaseController
 
             echo new \Joomla\CMS\Response\JsonResponse(['success' => true, 'message' => 'Attachment deleted.']);
 
-        } catch (\Exception $e) {
-            $code = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 500;
+        } catch (\Throwable $t) {
+            $code = ($t->getCode() >= 400 && $t->getCode() < 600) ? $t->getCode() : 500;
             if (!headers_sent()) { http_response_code($code); }
-            echo new \Joomla\CMS\Response\JsonResponse(['success' => false, 'message' => $e->getMessage()]);
+            echo new \Joomla\CMS\Response\JsonResponse(['success' => false, 'message' => $t->getMessage()]);
         }
 
         $app->close();
@@ -359,6 +397,11 @@ class BookingmanagerController extends BaseController
 
     private function logClientActivity($bookingId, $userId, $actionType, $actionDetails = '', $screenSize = '')
     {
+        if (empty($bookingId)) {
+            Log::add('Attempted to log client activity with an empty booking ID.', Log::WARNING, 'com_bookingmanager');
+            return; // Do not proceed if the booking ID is invalid
+        }
+
         $db = Factory::getDbo();
         $log = new \stdClass();
         $log->booking_request_id = $bookingId;
@@ -372,8 +415,8 @@ class BookingmanagerController extends BaseController
 
         try {
             $db->insertObject('#__booking_client_activity_logs', $log);
-        } catch (Exception $e) {
-            Log::add('Failed to log client activity: ' . $e->getMessage(), Log::ERROR, 'com_bookingmanager');
+        } catch (\Throwable $t) {
+            Log::add('Failed to log client activity: ' . $t->getMessage(), Log::ERROR, 'com_bookingmanager');
         }
     }
 
@@ -400,11 +443,11 @@ class BookingmanagerController extends BaseController
                 throw new Exception('Booking ID is required.', 400);
             }
 
-        } catch (Exception $e) {
-            Log::add('logActivity failed: ' . $e->getMessage(), Log::ERROR, 'com_bookingmanager');
-            $code = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 500;
+        } catch (\Throwable $t) {
+            Log::add('logActivity failed: ' . $t->getMessage(), Log::ERROR, 'com_bookingmanager');
+            $code = ($t->getCode() >= 400 && $t->getCode() < 600) ? $t->getCode() : 500;
             if (!headers_sent()) { http_response_code($code); }
-            echo json_encode(['success' => false, 'message' => 'Server Error: ' . $e->getMessage()]);
+            echo json_encode(['success' => false, 'message' => 'Server Error: ' . $t->getMessage()]);
         }
         $app->close();
     }
@@ -462,10 +505,10 @@ class BookingmanagerController extends BaseController
                 'message'  => "Success! A {$discountPercent}% discount has been applied."
             ]);
 
-        } catch (Exception $e) {
-            $code = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 500;
+        } catch (\Throwable $t) {
+            $code = ($t->getCode() >= 400 && $t->getCode() < 600) ? $t->getCode() : 500;
             if (!headers_sent()) { http_response_code($code); }
-            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            echo json_encode(['success' => false, 'message' => 'Server Error: ' . $t->getMessage()]);
         }
         $app->close();
     }
