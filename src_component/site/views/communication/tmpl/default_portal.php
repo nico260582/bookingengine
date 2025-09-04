@@ -82,6 +82,11 @@ use Joomla\CMS\Date\Date;
                 <label for="terms_agreed">
                     I have read and agree to the <a href="<?php echo Route::_('index.php?option=com_bookingmanager&view=terms&id=' . $this->request->terms_log_id); ?>" target="_blank">Terms & Conditions</a>.
                 </label>
+                <?php if ($this->request->terms_agreed && !empty($this->request->terms_agreed_at)) : ?>
+                    <span class="terms-agreed-date" style="font-style: italic; color: #666;">
+                        (Agreed on <?php echo (new Joomla\CMS\Date\Date($this->request->terms_agreed_at))->format('d M Y, H:i'); ?>)
+                    </span>
+                <?php endif; ?>
             </div>
         <?php endif; ?>
     </div>
