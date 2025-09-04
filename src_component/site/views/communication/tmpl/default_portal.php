@@ -84,7 +84,7 @@ use Joomla\CMS\Date\Date;
                 </label>
                 <?php if ($this->request->terms_agreed && !empty($this->request->terms_agreed_at)) : ?>
                     <span class="terms-agreed-date" style="font-style: italic; color: #666;">
-                        (Agreed on <?php echo (new Joomla\CMS\Date\Date($this->request->terms_agreed_at))->format('d M Y, H:i'); ?>)
+                        (Agreed on <span data-utc-date="<?php echo (new Joomla\CMS\Date\Date($this->request->terms_agreed_at))->format('c'); ?>"><?php echo (new Joomla\CMS\Date\Date($this->request->terms_agreed_at))->format('d M Y, H:i'); ?></span>)
                     </span>
                 <?php endif; ?>
             </div>
