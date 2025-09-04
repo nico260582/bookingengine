@@ -104,20 +104,6 @@ class ModBookingFormHelper
         }
 
 
-        $seasons = [];
-        if (isset($rules['seasons']) && is_array($rules['seasons'])) {
-            foreach (array_values($rules['seasons']) as $season) {
-                $seasons[] = [
-                    'name' => $season['name'],
-                    'start_date' => $season['start_date'],
-                    'end_date' => $season['end_date'],
-                    'min_stay' => $season['min_stay'] ?? 1,
-                    'apply_child_supplement' => $season['apply_child_supplement'] ?? 1,
-                    'admin_commission' => $season['admin_commission'] ?? 0,
-                ];
-            }
-        }
-
         $cleanRules = [
             'number_of_units' => $numberOfUnits,
             'allow_extra_mattress' => $allowExtraMattress,
@@ -131,7 +117,7 @@ class ModBookingFormHelper
             'child_max_age' => (int)($rules['child_max_age'] ?? 12),
             'teen_max_age' => (int)($rules['teen_max_age'] ?? 17),
             'free_with_parents_age' => (int)($rules['free_with_parents_age'] ?? 0),
-            'seasons' => $seasons,
+            'seasons' => isset($rules['seasons']) && is_array($rules['seasons']) ? array_values($rules['seasons']) : [],
             'rates' => $ratesBySeason,
             'active_markets' => $activeMarkets,
             'country_discounts' => isset($rules['country_discounts']) && is_array($rules['country_discounts']) ? array_values($rules['country_discounts']) : [],

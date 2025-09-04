@@ -170,27 +170,17 @@ document.addEventListener('DOMContentLoaded', function() {
         let currencySymbol = options.currencySymbol || '€';
 
         for (const [seasonName, nightsInSeason] of Object.entries(seasonRateCounts)) {
-            let actualSeasonName = seasonName;
-            let applySurcharge = false;
-            if (seasonName.endsWith('-surcharge')) {
-                actualSeasonName = seasonName.replace('-surcharge', '');
-                applySurcharge = true;
-            }
-
-            const seasonRates = pricingRules.rates[actualSeasonName];
+            const seasonRates = pricingRules.rates[seasonName];
             if (!seasonRates) continue;
 
             const marketRateData = seasonRates['Global Rate']; // In portal, we only use Global Rate for simplicity
             if (!marketRateData || !marketRateData.rate) continue;
 
             let nightlyRate = parseFloat(marketRateData.rate);
-            if (applySurcharge) {
-                nightlyRate *= (1 + (pricingRules.out_of_season_surcharge / 100));
-            }
             currencySymbol = marketRateData.currency_symbol || currencySymbol;
             const seasonBaseCost = nightlyRate * nightsInSeason * requiredUnits;
 
-            const currentSeason = pricingRules.seasons.find(s => s.name === actualSeasonName);
+            const currentSeason = pricingRules.seasons.find(s => s.name === seasonName);
             let seasonSupplementCost = 0;
             if (pricingRules.pricing_model === 'SupplementPerGuest' && currentSeason) {
                 const guestsCoveredByBaseRate = 2 * requiredUnits;
@@ -215,21 +205,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
 
-            let seasonTotalCost = seasonBaseCost + seasonSupplementCost;
-
-            let commissionRate = 0;
-            if (marketRateData.override_commission && marketRateData.commission > 0) {
-                commissionRate = parseFloat(marketRateData.commission);
-            } else if (currentSeason && currentSeason.admin_commission) {
-                commissionRate = parseFloat(currentSeason.admin_commission);
-            }
-
-            let seasonCommission = 0;
-            if (commissionRate > 0) {
-                seasonCommission = seasonTotalCost * (commissionRate / 100);
-            }
-
-            totalCost += seasonTotalCost + seasonCommission;
+            totalCost += seasonBaseCost + seasonSupplementCost;
         }
 
         elements.unitDisplay.textContent = `${requiredUnits} Unit${requiredUnits > 1 ? 's' : ''}`;
