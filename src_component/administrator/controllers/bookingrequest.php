@@ -82,25 +82,33 @@ class BookingmanagerControllerBookingrequest extends FormController
 
     public function sendSupplierMessage()
     {
-        // Check for request forgeries.
-        Session::checkToken() or jexit(JText::_('JINVALID_TOKEN'));
+        $app = Factory::getApplication();
+        try {
+            if (!Session::checkToken('post')) {
+                throw new \Exception(Text::_('JINVALID_TOKEN'), 403);
+            }
 
-        $app     = Factory::getApplication();
-        $input   = $app->input;
-        $data    = $input->post->get('jform', [], 'array');
-        $id      = $data['id'];
-        $message = $data['supplier_message'];
-        $whatsappSent = isset($data['whatsapp_sent']) && $data['whatsapp_sent'] == '1';
+            $input = $app->input->json;
+            $id = $input->get('id', 0, 'int');
+            $message = $input->get('supplier_message', '', 'raw');
+            $whatsappSent = $input->get('whatsapp_sent', false, 'bool');
 
-        $model = $this->getModel();
+            if (!$id) {
+                throw new \Exception('Missing required parameter: id.', 400);
+            }
 
-        if ($model->sendSupplierMessage($id, $message, $whatsappSent)) {
-            $this->setMessage(JText::_('Message sent to supplier successfully.'));
-        } else {
-            $this->setMessage(JText::_('Error sending message to supplier: ') . $model->getError(), 'error');
+            $model = $this->getModel();
+            if ($model->sendSupplierMessage($id, $message, $whatsappSent)) {
+                echo new JsonResponse(['success' => true, 'message' => Text::_('Message sent to supplier successfully.')]);
+            } else {
+                throw new \Exception($model->getError() ?: 'An unknown error occurred.', 500);
+            }
+        } catch (\Exception $e) {
+            $code = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 500;
+            if (!headers_sent()) { http_response_code($code); }
+            echo new JsonResponse(['success' => false, 'message' => $e->getMessage()]);
         }
-
-        $this->setRedirect(Route::_('index.php?option=com_bookingmanager&view=bookingrequest&layout=edit&id=' . $id, false));
+        $app->close();
     }
 
     public function upload()

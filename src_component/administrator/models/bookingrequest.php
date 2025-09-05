@@ -84,8 +84,95 @@ class BookingmanagerModelBookingrequest extends AdminModel
 
     public function sendSupplierMessage($requestId, $message, $whatsappSent = false)
     {
-        // This function is not part of the current task, but is required for the view to load.
-        // The logic will be implemented in a future task.
+        if (!$requestId || (empty($message) && !$whatsappSent)) {
+            $this->setError('No message content and WhatsApp not marked as sent.');
+            return false;
+        }
+
+        $db = Factory::getDbo();
+        $user = Factory::getUser();
+
+        // 1. Get Property from Booking Request to find the supplier
+        $query = $db->getQuery(true)
+            ->select($db->quoteName('property_name'))
+            ->from($db->quoteName('#__booking_requests'))
+            ->where($db->quoteName('id') . ' = ' . (int)$requestId);
+        $propertyName = $db->setQuery($query)->loadResult();
+
+        if (!$propertyName) {
+            $this->setError('Could not find property for the booking request.');
+            return false;
+        }
+
+        // 2. Get Supplier from Property
+        $query->clear()
+            ->select('s.id, s.contact_email')
+            ->from($db->quoteName('#__bookingmanager_suppliers', 's'))
+            ->join('LEFT', $db->quoteName('#__bookingmanager_property_map', 'm') . ' ON s.id = m.supplier_id')
+            ->join('LEFT', $db->quoteName('#__content', 'p') . ' ON m.property_id = p.id')
+            ->where('p.title = ' . $db->quote($propertyName));
+
+        $supplier = $db->setQuery($query)->loadObject();
+
+        if (!$supplier) {
+            $this->setError('Could not find a supplier for this property.');
+            return false;
+        }
+
+        // 3. Save the message to the database
+        $table = JTable::getInstance('SupplierCommunication', 'BookingmanagerTable');
+        $logData = [
+            'booking_request_id' => $requestId,
+            'supplier_id' => $supplier->id,
+            'supplier_email' => $supplier->contact_email,
+            'message' => $message,
+            'sent_at' => (new Date('now'))->toSql(),
+            'sent_by_user_id' => $user->id,
+            'whatsapp_sent' => (int)$whatsappSent
+        ];
+
+        if (!$table->save($logData)) {
+            $this->setError('Failed to save supplier message log: ' . $table->getError());
+            return false;
+        }
+
+        // 4. Send the email, if there is a message and an email address
+        if (!empty($message) && !empty($supplier->contact_email)) {
+            JLoader::register('BookingmanagerHelper', JPATH_ADMINISTRATOR . '/components/com_bookingmanager/helpers/bookingmanager.php');
+
+            // We need a different helper function for this, as getProcessedSupplierTemplateBody only returns the body
+            // Let's create a new helper function or expand the existing one. For now, let's build it here.
+            $emailTemplateQuery = $db->getQuery(true)
+                ->select(['subject', 'body'])
+                ->from($db->quoteName('#__bookingmanager_templates'))
+                ->where($db->quoteName('type') . ' = ' . $db->quote('email_supplier_availability'));
+            $emailTemplate = $db->setQuery($emailTemplateQuery)->loadObject();
+
+            if ($emailTemplate) {
+                $placeholders = BookingmanagerHelper::getPlaceholdersForRequest($requestId, 'email_supplier_availability', $message);
+
+                $finalSubject = str_replace(array_keys($placeholders), array_values($placeholders), $emailTemplate->subject);
+                $finalBody    = str_replace(array_keys($placeholders), array_values($placeholders), $emailTemplate->body);
+
+                $mailer = Factory::getMailer();
+                $mailer->isHtml(true);
+                $mailer->setSender([(string) Factory::getConfig()->get('mailfrom'), (string) Factory::getConfig()->get('fromname')]);
+                $mailer->addRecipient($supplier->contact_email);
+                $mailer->setSubject($finalSubject);
+                $mailer->setBody($finalBody);
+
+                try {
+                    $mailer->send();
+                } catch (\Exception $e) {
+                    $this->setError('Mailer Error: ' . $e->getMessage());
+                    // Log the error but don't prevent the success message if the log was saved.
+                    Log::add('Booking Manager email to supplier failed: ' . $e->getMessage(), Log::ERROR, 'com_bookingmanager');
+                }
+            } else {
+                Log::add('Booking Manager "email_supplier_availability" template not found.', Log::WARNING, 'com_bookingmanager');
+            }
+        }
+
         return true;
     }
 

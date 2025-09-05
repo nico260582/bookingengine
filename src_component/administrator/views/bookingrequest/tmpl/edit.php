@@ -134,7 +134,7 @@ use Joomla\CMS\Uri\Uri;
                     </div>
                     <div class="control-group">
                         <div class="controls">
-                            <button type="button" class="btn btn-primary" onclick="Joomla.submitbutton('bookingrequest.sendSupplierMessage');">Send Email</button>
+                            <button type="button" class="btn btn-primary" id="send-supplier-email-btn">Send Email</button>
                             <button type="button" class="btn" id="send-whatsapp-supplier-btn">Send via WhatsApp</button>
                         </div>
                     </div>
@@ -220,8 +220,10 @@ $doc = Factory::getDocument();
 $ajaxUrls = [
     'upload' => Route::_('index.php?option=com_bookingmanager&task=bookingrequest.upload', false),
     'deleteAttachment' => Route::_('index.php?option=com_bookingmanager&task=bookingrequest.deleteAttachment', false),
-    'getSupplierTemplate' => Route::_('index.php?option=com_bookingmanager&task=bookingrequest.getSupplierTemplate', false)
+    'getSupplierTemplate' => Route::_('index.php?option=com_bookingmanager&task=bookingrequest.getSupplierTemplate', false),
+    'sendSupplierMessage' => Route::_('index.php?option=com_bookingmanager&task=bookingrequest.sendSupplierMessage', false),
+    'supplier_phone' => $this->item->supplier_contact_phone ?? ''
 ];
 $doc->addScriptOptions('com_bookingmanager.admin', $ajaxUrls);
-$doc->addScript(Uri::root(true) . '/modules/mod_bookingform/media/js/communication-admin.js');
+$doc->addScript(Uri::root(true) . '/media/com_bookingmanager/js/bookingrequest-admin.js');
 ?>
