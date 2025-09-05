@@ -32,7 +32,6 @@ class BookingmanagerViewBookingrequest extends HtmlView
     {
         JToolbarHelper::title($this->item->id ? 'Edit Request' : 'New Request');
         JToolbarHelper::apply('bookingrequest.apply');
-        JToolbarHelper::save('bookingrequest.save');
         JToolbarHelper::cancel('bookingrequest.cancel');
     }
 }
