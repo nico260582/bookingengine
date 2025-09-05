@@ -53,6 +53,28 @@ class BookingmanagerControllerBookingrequest extends FormController
         return $this->save($key, $urlVar);
     }
 
+    public function sendSupplierMessage()
+    {
+        // Check for request forgeries.
+        Session::checkToken() or jexit(JText::_('JINVALID_TOKEN'));
+
+        $app     = Factory::getApplication();
+        $input   = $app->input;
+        $data    = $input->post->get('jform', [], 'array');
+        $id      = $data['id'];
+        $message = $data['supplier_message'];
+
+        $model = $this->getModel();
+
+        if ($model->sendSupplierMessage($id, $message)) {
+            $this->setMessage(JText::_('Message sent to supplier successfully.'));
+        } else {
+            $this->setMessage(JText::_('Error sending message to supplier: ') . $model->getError(), 'error');
+        }
+
+        $this->setRedirect(Route::_('index.php?option=com_bookingmanager&view=bookingrequest&layout=edit&id=' . $id, false));
+    }
+
     public function upload()
     {
         // Check for request forgeries. The token is sent in the POST body.

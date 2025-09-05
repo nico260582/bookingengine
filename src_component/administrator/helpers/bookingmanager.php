@@ -252,11 +252,13 @@ abstract class BookingmanagerHelper
             if (!empty($newUserPassword)) {
                 $emailTypes[] = 'email_client_new_user';
             }
+        } elseif ($type === 'email_supplier_availability') {
+            $emailTypes = ['email_supplier_availability'];
         } else {
             $emailTypes[] = $type;
         }
         
-        $templateTypes = array_merge($emailTypes, ['whatsapp_client_reply', 'whatsapp_admin_reply']);
+        $templateTypes = array_merge($emailTypes, ['whatsapp_client_reply', 'whatsapp_admin_reply', 'email_supplier_availability']);
         
         $query->clear()
             ->select('type, subject, body')
@@ -342,7 +344,7 @@ abstract class BookingmanagerHelper
             '[client_phone]'         => (string) ($request->client_phone ?? ''),
             '[client_country]'       => (string) ($request->client_country ?? ''),
             '[client_message]'       => $type === 'email_admin_client_reply' ? nl2br(htmlspecialchars($messageContent)) : nl2br(htmlspecialchars((string) ($request->client_message ?? ''))),
-            '[admin_message]'        => $type === 'email_client_admin_reply' ? $messageContent : '',
+            '[admin_message]'        => ($type === 'email_client_admin_reply' || $type === 'email_supplier_availability') ? $messageContent : '',
             '[accommodation_url]'    => (string) ($request->accommodation_url ?? ''),
             '[discount_note]'        => !empty($request->discount_note) ? '🇲🇺 ' . htmlspecialchars((string) $request->discount_note) : '',
             '[unit_count]'           => (string) ($request->unit_count ?? ''),
@@ -371,7 +373,19 @@ abstract class BookingmanagerHelper
 
         foreach ($emailTypes as $emailType) {
             Log::add('Processing email type: ' . $emailType, Log::INFO, 'com_bookingmanager');
-            $recipient = ($emailType === 'email_client_confirm' || $emailType === 'email_client_admin_reply' || $emailType === 'email_client_new_user') ? $request->client_email : $adminEmail;
+            $recipient = '';
+            if ($emailType === 'email_supplier_availability') {
+                $query->clear()
+                    ->select('s.contact_email')
+                    ->from($db->quoteName('#__bookingmanager_suppliers', 's'))
+                    ->join('LEFT', $db->quoteName('#__bookingmanager_property_map', 'm') . ' ON s.id = m.supplier_id')
+                    ->join('LEFT', $db->quoteName('#__content', 'p') . ' ON m.property_id = p.id')
+                    ->where('p.title = ' . $db->quote($request->property_name));
+                $recipient = $db->setQuery($query)->loadResult();
+            } else {
+                $recipient = ($emailType === 'email_client_confirm' || $emailType === 'email_client_admin_reply' || $emailType === 'email_client_new_user') ? $request->client_email : $adminEmail;
+            }
+
             Log::add('Recipient: ' . $recipient, Log::INFO, 'com_bookingmanager');
             
             if (isset($templates[$emailType])) {

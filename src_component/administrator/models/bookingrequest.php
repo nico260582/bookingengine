@@ -145,6 +145,80 @@ class BookingmanagerModelBookingrequest extends AdminModel
         return false;
     }
 
+    public function getSupplierMessages($requestId)
+    {
+        if (!$requestId) {
+            return [];
+        }
+        $db = Factory::getDbo();
+        $query = $db->getQuery(true)
+            ->select('sc.*, u.name as author_name')
+            ->from($db->quoteName('#__booking_supplier_communication', 'sc'))
+            ->join('LEFT', $db->quoteName('#__users', 'u') . ' ON sc.sent_by_user_id = u.id')
+            ->where('sc.booking_request_id = ' . (int)$requestId)
+            ->order('sc.sent_at DESC');
+        return $db->setQuery($query)->loadObjectList();
+    }
+
+    public function sendSupplierMessage($requestId, $message)
+    {
+        if (!$requestId || empty($message)) {
+            return false;
+        }
+
+        $db = Factory::getDbo();
+        $user = Factory::getUser();
+
+        // 1. Get Property from Booking Request to find the supplier
+        $query = $db->getQuery(true)
+            ->select($db->quoteName('property_name'))
+            ->from($db->quoteName('#__booking_requests'))
+            ->where($db->quoteName('id') . ' = ' . (int)$requestId);
+        $propertyName = $db->setQuery($query)->loadResult();
+
+        if (!$propertyName) {
+            $this->setError('Could not find property for the booking request.');
+            return false;
+        }
+
+        // 2. Get Supplier from Property
+        $query->clear()
+            ->select('s.id, s.contact_email')
+            ->from($db->quoteName('#__bookingmanager_suppliers', 's'))
+            ->join('LEFT', $db->quoteName('#__bookingmanager_property_map', 'm') . ' ON s.id = m.supplier_id')
+            ->join('LEFT', $db->quoteName('#__content', 'p') . ' ON m.property_id = p.id')
+            ->where('p.title = ' . $db->quote($propertyName));
+
+        $supplier = $db->setQuery($query)->loadObject();
+
+        if (!$supplier || empty($supplier->contact_email)) {
+            $this->setError('Could not find a supplier with a contact email for this property.');
+            return false;
+        }
+
+        // 3. Save the message to the database
+        $table = JTable::getInstance('SupplierCommunication', 'BookingmanagerTable');
+        $data = [
+            'booking_request_id' => $requestId,
+            'supplier_id' => $supplier->id,
+            'supplier_email' => $supplier->contact_email,
+            'message' => $message,
+            'sent_at' => (new Date('now'))->toSql(),
+            'sent_by_user_id' => $user->id
+        ];
+
+        if (!$table->save($data)) {
+            $this->setError('Failed to save supplier message: ' . $table->getError());
+            return false;
+        }
+
+        // 4. Send the email
+        JLoader::register('BookingmanagerHelper', JPATH_ADMINISTRATOR . '/components/com_bookingmanager/helpers/bookingmanager.php');
+        BookingmanagerHelper::sendNotificationEmails($requestId, 'email_supplier_availability', $message);
+
+        return true;
+    }
+
     public function addAdminMessage($requestId, $message, $attachments = [])
     {
         if (!$requestId || (empty($message) && empty($attachments))) {

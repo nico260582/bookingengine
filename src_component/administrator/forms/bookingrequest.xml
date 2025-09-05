@@ -38,4 +38,7 @@
     <fieldset name="communication_message">
         <field name="admin_message" type="editor" label="Message" description="The message to send to the client." filter="safehtml" />
     </fieldset>
+    <fieldset name="supplier_communication_message">
+        <field name="supplier_message" type="editor" label="Message" description="The message to send to the supplier for availability." filter="safehtml" />
+    </fieldset>
 </form>
