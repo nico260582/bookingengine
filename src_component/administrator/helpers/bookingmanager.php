@@ -326,8 +326,6 @@ abstract class BookingmanagerHelper
                                         "<li><strong>Client Email:</strong> " . htmlspecialchars((string) ($request->client_email ?? '')) . "</li>" .
                                       "</ul>"
         ];
-        
-        die('Debug Point G');
         return $placeholders;
     }
 
