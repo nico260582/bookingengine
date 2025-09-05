@@ -30,16 +30,17 @@ use Joomla\CMS\Date\Date;
         <div class="summary-header">
             <h3><?php echo Text::sprintf('COM_BOOKINGMANAGER_PORTAL_HEADING', $this->escape($this->request->booking_ref)); ?></h3>
             <?php
-                $statusMap = [
-                    'New' => 'New',
-                    'waiting_availability' => 'Waiting Availability',
-                    'client_approval' => 'Client Approval',
-                    'wait_payment' => 'Wait Payment',
-                    'Confirm' => 'Confirm',
-                    'Cancel' => 'Cancel',
-                ];
                 $rawStatus = $this->request->status ?? 'Unknown';
-                $displayStatus = $statusMap[$rawStatus] ?? $rawStatus;
+                // Construct the language key from the raw status value, e.g., 'waiting_availability' becomes 'COM_BOOKINGMANAGER_STATUS_WAITING_AVAILABILITY'
+                $langKey = 'COM_BOOKINGMANAGER_STATUS_' . strtoupper($rawStatus);
+                $displayStatus = Text::_($langKey);
+
+                // If a translation doesn't exist, Text::_ returns the key itself. In that case, fall back to the raw status.
+                if ($displayStatus === $langKey) {
+                    $displayStatus = $rawStatus;
+                }
+
+                // The class should be based on the raw status value for consistency
                 $statusClass = 'status-badge status-' . strtolower(preg_replace('/[^a-z0-9]/i', '', $rawStatus));
             ?>
             <span class="<?php echo $statusClass; ?>"><?php echo $this->escape($displayStatus); ?></span>

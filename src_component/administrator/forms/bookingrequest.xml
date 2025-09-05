@@ -4,12 +4,12 @@
         <field name="id" type="hidden" />
         <field name="booking_ref" type="text" label="Booking Reference" readonly="true" />
         <field name="status" type="list" label="Status" default="New">
-            <option value="New">New</option>
-            <option value="waiting_availability">Waiting Availability</option>
-            <option value="client_approval">Client Approval</option>
-            <option value="wait_payment">Wait Payment</option>
-            <option value="Confirm">Confirm</option>
-            <option value="Cancel">Cancel</option>
+            <option value="New">COM_BOOKINGMANAGER_STATUS_NEW</option>
+            <option value="waiting_availability">COM_BOOKINGMANAGER_STATUS_WAITING_AVAILABILITY</option>
+            <option value="client_approval">COM_BOOKINGMANAGER_STATUS_CLIENT_APPROVAL</option>
+            <option value="wait_payment">COM_BOOKINGMANAGER_STATUS_WAIT_PAYMENT</option>
+            <option value="Confirm">COM_BOOKINGMANAGER_STATUS_CONFIRM</option>
+            <option value="Cancel">COM_BOOKINGMANAGER_STATUS_CANCEL</option>
         </field>
         <field name="property_name" type="text" label="Property Name" readonly="true" />
         <field name="accommodation_url" type="text" label="Property URL" readonly="true"/>
