@@ -37,7 +37,7 @@
 
 .status-badge {
     display: inline-block;
-    padding: 0.35em 0.65em;
+    padding: 0.5em 0.8em;
     font-size: .75em;
     font-weight: 700;
     line-height: 1;
@@ -47,6 +47,7 @@
     vertical-align: baseline;
     border-radius: .25rem;
     margin-left: 15px;
+    margin-right: 10px;
 }
 
 /* Status-specific colors */
