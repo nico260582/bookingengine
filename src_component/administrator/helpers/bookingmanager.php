@@ -411,8 +411,53 @@ abstract class BookingmanagerHelper
         return true;
     }
 
+    public static function createDefaultTemplates()
+    {
+        $db = Factory::getDbo();
+        $query = $db->getQuery(true)
+            ->select('COUNT(*)')
+            ->from($db->quoteName('#__bookingmanager_templates'))
+            ->where($db->quoteName('type') . ' = ' . $db->quote('email_supplier_availability'));
+
+        $count = (int) $db->setQuery($query)->loadResult();
+
+        if ($count === 0) {
+            $defaultBody = <<<EOT
+<p>Dear Supplier,</p>
+<p>We have a booking request for [property_name] for the following dates:</p>
+<ul>
+<li>Check-in: [start_date_formatted]</li>
+<li>Check-out: [end_date_formatted]</li>
+<li>Nights: [nights]</li>
+</ul>
+<p>Guest details:</p>
+<ul>
+<li>Name: [client_name]</li>
+<li>Country: [client_country]</li>
+<li>Guests: [guest_details]</li>
+<li>Units: [unit_count]</li>
+</ul>
+<p>Client message: <br>[client_message]</p>
+<p>Our message: <br>[admin_message]</p>
+<p>Please confirm availability.</p>
+<p>Kind regards,</p>
+EOT;
+            $newTemplate = (object) [
+                'title' => 'Supplier - Availability Request',
+                'type' => 'email_supplier_availability',
+                'subject' => 'Availability Request for [property_name] - Ref: [booking_ref]',
+                'body' => $defaultBody,
+                'published' => 1,
+            ];
+
+            $db->insertObject('#__bookingmanager_templates', $newTemplate);
+        }
+    }
+
     public static function getProcessedSupplierTemplateBody($requestId)
     {
+        self::createDefaultTemplates();
+
         $db = Factory::getDbo();
         $query = $db->getQuery(true)
             ->select($db->quoteName('body'))
@@ -422,11 +467,11 @@ abstract class BookingmanagerHelper
         $templateBody = $db->setQuery($query)->loadResult();
 
         if (!$templateBody) {
-            return 'Template "email_supplier_availability" not found.';
+            // This should no longer happen, but as a fallback.
+            return 'Error: Could not find or create the supplier availability template.';
         }
 
         // Use the new centralized function to get all placeholders
-        // For this template, we don't have a specific message content, so we pass an empty string
         $placeholders = self::getPlaceholdersForRequest($requestId, 'email_supplier_availability', '');
 
         return str_replace(array_keys($placeholders), array_values($placeholders), $templateBody);

@@ -140,8 +140,10 @@ class BookingmanagerModelBookingrequest extends AdminModel
         if (!empty($message) && !empty($supplier->contact_email)) {
             JLoader::register('BookingmanagerHelper', JPATH_ADMINISTRATOR . '/components/com_bookingmanager/helpers/bookingmanager.php');
 
-            // We need a different helper function for this, as getProcessedSupplierTemplateBody only returns the body
-            // Let's create a new helper function or expand the existing one. For now, let's build it here.
+            // Ensure the default template exists before trying to use it.
+            BookingmanagerHelper::createDefaultTemplates();
+
+            // Now we can safely get the template
             $emailTemplateQuery = $db->getQuery(true)
                 ->select(['subject', 'body'])
                 ->from($db->quoteName('#__bookingmanager_templates'))
