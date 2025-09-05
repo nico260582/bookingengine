@@ -236,7 +236,6 @@ abstract class BookingmanagerHelper
             ->from($db->quoteName('#__booking_requests'))
             ->where('id = ' . (int) $requestId);
         $request = $db->setQuery($query)->loadObject();
-        die('Debug Point E');
 
         if (!$request) {
             return [];
@@ -251,6 +250,7 @@ abstract class BookingmanagerHelper
             $endDate   = new Date('now');
             $nights    = 0;
         }
+        die('Debug Point F');
 
         $guestDetails = ($request->adults ?? 0) . ' Adult' . (($request->adults ?? 0) > 1 ? 's' : '');
         if (($request->children ?? 0) > 0) {
