@@ -229,6 +229,7 @@ abstract class BookingmanagerHelper
 
     public static function getPlaceholdersForRequest($requestId, $type = 'all', $messageContent = '', $newUserPassword = '', $attachments = [], $changes = [])
     {
+        die('Debug Point D');
         $db      = Factory::getDbo();
         $config  = ComponentHelper::getParams('com_bookingmanager');
         $query   = $db->getQuery(true)
@@ -454,7 +455,6 @@ EOT;
     public static function getProcessedSupplierTemplateBody($requestId)
     {
         self::createDefaultTemplates();
-        die('Debug Point C');
 
         $db = Factory::getDbo();
         $query = $db->getQuery(true)
