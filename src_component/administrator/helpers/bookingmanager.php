@@ -250,7 +250,6 @@ abstract class BookingmanagerHelper
             $endDate   = new Date('now');
             $nights    = 0;
         }
-        die('Debug Point F');
 
         $guestDetails = ($request->adults ?? 0) . ' Adult' . (($request->adults ?? 0) > 1 ? 's' : '');
         if (($request->children ?? 0) > 0) {
@@ -328,6 +327,7 @@ abstract class BookingmanagerHelper
                                       "</ul>"
         ];
         
+        die('Debug Point G');
         return $placeholders;
     }
 
