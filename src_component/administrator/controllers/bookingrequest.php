@@ -33,16 +33,82 @@ class BookingmanagerControllerBookingrequest extends FormController
         // Get the ID of the item we just saved.
         $requestId = $model->getState('bookingrequest.id');
 
-        
+
         // Set the success message and redirect.
         $this->setMessage(JText::_('COM_BOOKINGMANAGER_ITEM_SAVED_SUCCESSFULLY'));
-        $this->setRedirect(Route::_('index.php?option=com_bookingmanager&view=bookingrequests', false));
+
+        $task = $this->getTask();
+        if ($task == 'apply') {
+            $this->setRedirect(Route::_('index.php?option=com_bookingmanager&view=bookingrequest&layout=edit&id=' . $requestId, false));
+        } else {
+            $this->setRedirect(Route::_('index.php?option=com_bookingmanager&view=bookingrequests', false));
+        }
+    }
+
+    public function getSupplierTemplate()
+    {
+        $app = Factory::getApplication();
+        try {
+            if (!\Joomla\CMS\Session\Session::checkToken('post')) {
+                throw new \Exception(\Joomla\CMS\Language\Text::_('JINVALID_TOKEN'), 403);
+            }
+
+            $model = $this->getModel('Bookingrequest');
+            $template = $model->getSupplierTemplate();
+
+            if ($template === false) {
+                throw new \Exception('Supplier template could not be processed.', 500);
+            }
+
+            echo new \Joomla\CMS\Response\JsonResponse($template);
+
+        } catch (\Exception $e) {
+            $code = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 500;
+            if (!headers_sent()) { http_response_code($code); }
+            echo new \Joomla\CMS\Response\JsonResponse(null, $e->getMessage(), true);
+        }
+        $app->close();
+    }
+
+    public function sendSupplierMessage()
+    {
+        $app = Factory::getApplication();
+        try {
+            if (!\Joomla\CMS\Session\Session::checkToken('post')) {
+                throw new \Exception(\Joomla\CMS\Language\Text::_('JINVALID_TOKEN'), 403);
+            }
+
+            $input = $app->input->post;
+            $id = $input->get('id', 0, 'int');
+            $message = $input->get('supplier_message', '', 'raw');
+            $whatsappSent = $input->get('whatsapp_sent', 0, 'int') == 1;
+
+            if (!$id) {
+                throw new \Exception('Missing required parameter: id.', 400);
+            }
+
+            $model = $this->getModel('Bookingrequest');
+            $result = $model->sendSupplierMessage($id, $message, $whatsappSent);
+
+            if ($result) {
+                echo new \Joomla\CMS\Response\JsonResponse(['success' => true, 'message' => \Joomla\CMS\Language\Text::_('Message sent to supplier successfully.')]);
+            } else {
+                throw new \Exception($model->getError() ?: 'An unknown error occurred.', 500);
+            }
+        } catch (\Exception $e) {
+            $code = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 500;
+            if (!headers_sent()) { http_response_code($code); }
+            echo new \Joomla\CMS\Response\JsonResponse(null, $e->getMessage(), true);
+        }
+        $app->close();
     }
 
     public function upload()
     {
-        Factory::getApplication()->input->post->set('jform', ['id' => Factory::getApplication()->input->getInt('id')]);
-        parent::checkToken('post');
+        if (!Joomla\CMS\Session\Session::checkToken('post')) {
+            echo new JsonResponse(null, Joomla\CMS\Language\Text::_('JINVALID_TOKEN'), true);
+            Factory::getApplication()->close();
+        }
 
         $app = Factory::getApplication();
         $input = $app->input;
