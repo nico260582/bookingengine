@@ -453,8 +453,8 @@ EOT;
 
     public static function getProcessedSupplierTemplateBody($requestId)
     {
-        die('Debug Point B');
         self::createDefaultTemplates();
+        die('Debug Point C');
 
         $db = Factory::getDbo();
         $query = $db->getQuery(true)
