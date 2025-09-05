@@ -35,10 +35,22 @@ class BookingmanagerControllerBookingrequest extends FormController
         // Get the ID of the item we just saved.
         $requestId = $model->getState('bookingrequest.id');
 
-        
-        // Set the success message and redirect.
         $this->setMessage(JText::_('COM_BOOKINGMANAGER_ITEM_SAVED_SUCCESSFULLY'));
-        $this->setRedirect(Route::_('index.php?option=com_bookingmanager&view=bookingrequests', false));
+
+        // Check the task to determine the redirect.
+        $task = $this->getTask();
+        if ($task == 'apply') {
+            // Redirect back to the edit view for 'apply'.
+            $this->setRedirect(Route::_('index.php?option=com_bookingmanager&view=bookingrequest&layout=edit&id=' . $requestId, false));
+        } else {
+            // Redirect to the list view for 'save'.
+            $this->setRedirect(Route::_('index.php?option=com_bookingmanager&view=bookingrequests', false));
+        }
+    }
+
+    public function apply($key = null, $urlVar = null)
+    {
+        return $this->save($key, $urlVar);
     }
 
     public function upload()
