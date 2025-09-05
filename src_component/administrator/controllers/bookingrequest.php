@@ -43,10 +43,8 @@ class BookingmanagerControllerBookingrequest extends FormController
 
     public function upload()
     {
-        // The security token is sent in the URL, so we have to check it as a GET parameter.
-        // The checkToken function in the controller redirects on failure, which is not suitable for an AJAX call.
-        // So we perform the check manually and return a JSON response on failure.
-        if (!Session::checkToken('get')) {
+        // Check for request forgeries. The token is sent in the POST body.
+        if (!Session::checkToken('post')) {
             echo new JsonResponse(null, Text::_('JINVALID_TOKEN'), true);
             Factory::getApplication()->close();
         }
@@ -104,7 +102,7 @@ class BookingmanagerControllerBookingrequest extends FormController
         $input = $app->input;
 
         try {
-            if (!Session::checkToken('get')) {
+            if (!Session::checkToken('post')) {
                 throw new \Exception('Invalid Token', 403);
             }
 

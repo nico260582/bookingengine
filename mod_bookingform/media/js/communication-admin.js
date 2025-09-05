@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const formData = new FormData();
         formData.append('attachment', file);
         formData.append('id', document.querySelector('input[name="id"]').value);
+        formData.append(Joomla.getOptions('csrf.token'), 1);
 
         const fileId = 'file-' + Date.now();
         const fileElement = document.createElement('div');
@@ -85,6 +86,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const options = Joomla.getOptions('com_bookingmanager.admin');
         const formData = new FormData();
         formData.append('filePath', filePath);
+        formData.append(Joomla.getOptions('csrf.token'), 1);
 
         fetch(options.deleteAttachment, {
             method: 'POST',
