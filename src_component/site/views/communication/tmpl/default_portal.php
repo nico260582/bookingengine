@@ -30,10 +30,19 @@ use Joomla\CMS\Date\Date;
         <div class="summary-header">
             <h3><?php echo Text::sprintf('COM_BOOKINGMANAGER_PORTAL_HEADING', $this->escape($this->request->booking_ref)); ?></h3>
             <?php
-                $status = $this->request->status ?? 'Unknown';
-                $statusClass = 'status-badge status-' . strtolower(preg_replace('/[^a-z0-9]/i', '', $status));
+                $statusMap = [
+                    'New' => 'New',
+                    'waiting_availability' => 'Waiting Availability',
+                    'client_approval' => 'Client Approval',
+                    'wait_payment' => 'Wait Payment',
+                    'Confirm' => 'Confirm',
+                    'Cancel' => 'Cancel',
+                ];
+                $rawStatus = $this->request->status ?? 'Unknown';
+                $displayStatus = $statusMap[$rawStatus] ?? $rawStatus;
+                $statusClass = 'status-badge status-' . strtolower(preg_replace('/[^a-z0-9]/i', '', $rawStatus));
             ?>
-            <span class="<?php echo $statusClass; ?>"><?php echo $this->escape($status); ?></span>
+            <span class="<?php echo $statusClass; ?>"><?php echo $this->escape($displayStatus); ?></span>
             <a href="<?php echo Route::_('index.php?option=com_bookingmanager&task=communication.logout'); ?>"><?php echo Text::_('COM_BOOKINGMANAGER_LOGOUT_BUTTON'); ?></a>
         </div>
         <p>
@@ -41,6 +50,15 @@ use Joomla\CMS\Date\Date;
             <strong>Dates:</strong> <?php echo (new Date($this->request->start_date))->format('d M Y'); ?> to <?php echo (new Date($this->request->end_date))->format('d M Y'); ?><br>
             <strong>Guests:</strong> <?php echo $this->escape($this->request->adults); ?> Adults, <?php echo $this->escape($this->request->children); ?> Children (Ages: <?php echo $this->escape($this->request->child_ages); ?>)<br>
             <strong>Estimated Price:</strong> <?php echo $this->escape($this->request->price_estimate); ?><br>
+            <?php if (!empty($this->request->final_price) && $this->request->final_price > 0) : ?>
+                <strong>Final Price:</strong> <?php echo $this->escape($this->request->final_price); ?><br>
+            <?php endif; ?>
+            <?php if (!empty($this->request->units)) : ?>
+                <strong>Units:</strong> <?php echo $this->escape($this->request->units); ?><br>
+            <?php endif; ?>
+            <?php if (!empty($this->request->payment_link)) : ?>
+                <a href="<?php echo $this->escape($this->request->payment_link); ?>" class="btn btn-success" target="_blank">Pay Now</a><br>
+            <?php endif; ?>
             <?php if (!empty($this->request->discount_note)) : ?>
                 <strong>Note:</strong> <?php echo $this->escape($this->request->discount_note); ?>
             <?php endif; ?>
