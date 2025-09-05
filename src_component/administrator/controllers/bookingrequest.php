@@ -8,6 +8,8 @@ use Joomla\CMS\Filesystem\Folder;
 use Joomla\CMS\Filesystem\File;
 use Joomla\CMS\MVC\Controller\FormController;
 use Joomla\CMS\Response\JsonResponse;
+use Joomla\CMS\Session\Session;
+use Joomla\CMS\Language\Text;
 
 class BookingmanagerControllerBookingrequest extends FormController
 {
@@ -41,8 +43,13 @@ class BookingmanagerControllerBookingrequest extends FormController
 
     public function upload()
     {
-        Factory::getApplication()->input->post->set('jform', ['id' => Factory::getApplication()->input->getInt('id')]);
-        parent::checkToken('post');
+        // The security token is sent in the URL, so we have to check it as a GET parameter.
+        // The checkToken function in the controller redirects on failure, which is not suitable for an AJAX call.
+        // So we perform the check manually and return a JSON response on failure.
+        if (!Session::checkToken('get')) {
+            echo new JsonResponse(null, Text::_('JINVALID_TOKEN'), true);
+            Factory::getApplication()->close();
+        }
 
         $app = Factory::getApplication();
         $input = $app->input;
@@ -97,7 +104,7 @@ class BookingmanagerControllerBookingrequest extends FormController
         $input = $app->input;
 
         try {
-            if (!Session::checkToken('post')) {
+            if (!Session::checkToken('get')) {
                 throw new \Exception('Invalid Token', 403);
             }
 
