@@ -217,6 +217,19 @@ class com_bookingmanagerInstallerScript
           KEY `idx_request_id` (`request_id`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;";
 
+        $queries[] = "CREATE TABLE IF NOT EXISTS `#__booking_supplier_communication` (
+          `id` int(11) NOT NULL AUTO_INCREMENT,
+          `booking_request_id` int(11) NOT NULL,
+          `supplier_id` int(11) NOT NULL,
+          `supplier_email` varchar(255) NOT NULL,
+          `message` text NOT NULL,
+          `sent_at` datetime NOT NULL,
+          `sent_by_user_id` int(11) NOT NULL,
+          PRIMARY KEY (`id`),
+          KEY `idx_booking_request_id` (`booking_request_id`),
+          KEY `idx_supplier_id` (`supplier_id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;";
+
         $queries[] = "CREATE TABLE IF NOT EXISTS `#__booking_supplier_logs` (
           `id` int NOT NULL AUTO_INCREMENT,
           `supplier_id` int NOT NULL,
@@ -368,6 +381,7 @@ class com_bookingmanagerInstallerScript
             "DROP TABLE IF EXISTS `#__booking_requests`;",
             "DROP TABLE IF EXISTS `#__booking_request_logs`;",
             "DROP TABLE IF EXISTS `#__booking_supplier_logs`;",
+            "DROP TABLE IF EXISTS `#__booking_supplier_communication`;",
             "DROP TABLE IF EXISTS `#__bookingmanager_suppliers`;",
             "DROP TABLE IF EXISTS `#__bookingmanager_property_map`;",
             "DROP TABLE IF EXISTS `#__bookingmanager_rates`;",
