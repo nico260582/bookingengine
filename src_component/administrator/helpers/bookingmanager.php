@@ -227,107 +227,28 @@ abstract class BookingmanagerHelper
         ];
     }
 
-    public static function getProcessedSupplierTemplate($requestId)
+    public static function getPlaceholdersForRequest($requestId, $type = 'all', $messageContent = '', $newUserPassword = '', $attachments = [], $changes = [])
     {
-        $db = Factory::getDbo();
-
-        // 1. Get the template body
-        $query = $db->getQuery(true)
-            ->select($db->quoteName('body'))
-            ->from($db->quoteName('#__bookingmanager_templates'))
-            ->where($db->quoteName('title') . ' = ' . $db->quote('Supplier - Availability Request'));
-        $templateBody = $db->setQuery($query)->loadResult();
-
-        if (!$templateBody) {
-            return false;
-        }
-
-        // 2. Get placeholders for this request
-        // This uses a simplified version of the placeholder logic
-        $query->clear()
-            ->select('br.*')
-            ->from($db->quoteName('#__booking_requests', 'br'))
-            ->where('br.id = ' . (int)$requestId);
-        $request = $db->setQuery($query)->loadObject();
-
-        if (!$request) {
-            return $templateBody; // Return raw template if request not found
-        }
-
-        try {
-            $startDate = new Date($request->start_date);
-            $endDate   = new Date($request->end_date);
-            $nights    = $endDate->diff($startDate)->days;
-        } catch (\Exception $e) {
-            $nights = 0;
-        }
-
-        $guestDetails = ($request->adults ?? 0) . ' Adult' . (($request->adults ?? 0) > 1 ? 's' : '');
-        if (($request->children ?? 0) > 0) {
-            $guestDetails .= ', ' . $request->children . ' Child' . ($request->children > 1 ? 'ren' : '');
-            if (!empty($request->child_ages)) {
-                $guestDetails .= ' (Ages: ' . $request->child_ages . ')';
-            }
-        }
-
-        $placeholders = [
-            '[client_name]'    => (string) ($request->client_name ?? ''),
-            '[booking_ref]'    => (string) ($request->booking_ref ?? ''),
-            '[property_name]'  => (string) ($request->property_name ?? ''),
-            '[start_date]'     => (new Date($request->start_date))->format('Y-m-d'),
-            '[end_date]'       => (new Date($request->end_date))->format('Y-m-d'),
-            '[nights]'         => $nights,
-            '[guest_details]'  => $guestDetails,
-        ];
-
-        return str_replace(array_keys($placeholders), array_values($placeholders), $templateBody);
-    }
-
-    public static function sendNotificationEmails($requestId, $type = 'all', $messageContent = '', $newUserPassword = '', $attachments = [], $changes = [])
-    {
-        Log::add('--- New Email Notification ---', Log::INFO, 'com_bookingmanager');
-        Log::add('Request ID: ' . $requestId . ' | Type: ' . $type, Log::INFO, 'com_bookingmanager');
-        Log::add('Message Content: ' . $messageContent, Log::INFO, 'com_bookingmanager');
-        Log::add('Attachments Data: ' . print_r($attachments, true), Log::INFO, 'com_bookingmanager');
-        Log::add('Changes Data: ' . print_r($changes, true), Log::INFO, 'com_bookingmanager');
-
-        $db     = Factory::getDbo();
-        $config = ComponentHelper::getParams('com_bookingmanager');
-
-        $query = $db->getQuery(true)
+        $db      = Factory::getDbo();
+        $config  = ComponentHelper::getParams('com_bookingmanager');
+        $query   = $db->getQuery(true)
             ->select('*')
             ->from($db->quoteName('#__booking_requests'))
             ->where('id = ' . (int) $requestId);
         $request = $db->setQuery($query)->loadObject();
 
-        if (!$request) { return false; }
-        
-        $emailTypes = [];
-        if ($type === 'all') {
-            $emailTypes = ['email_client_confirm', 'email_admin_notify'];
-            if (!empty($newUserPassword)) {
-                $emailTypes[] = 'email_client_new_user';
-            }
-        } else {
-            $emailTypes[] = $type;
+        if (!$request) {
+            return [];
         }
-        
-        $templateTypes = array_merge($emailTypes, ['whatsapp_client_reply', 'whatsapp_admin_reply']);
-        
-        $query->clear()
-            ->select('type, subject, body')
-            ->from($db->quoteName('#__bookingmanager_templates'))
-            ->where($db->quoteName('type') . ' IN ("' . implode('","', $templateTypes) . '")');
-        $templates = $db->setQuery($query)->loadObjectList('type');
-        
+
         try {
             $startDate = new Date($request->start_date);
             $endDate   = new Date($request->end_date);
             $nights    = $endDate->diff($startDate)->days;
         } catch (\Exception $e) {
             $startDate = new Date('now');
-            $endDate = new Date('now');
-            $nights = 0;
+            $endDate   = new Date('now');
+            $nights    = 0;
         }
 
         $guestDetails = ($request->adults ?? 0) . ' Adult' . (($request->adults ?? 0) > 1 ? 's' : '');
@@ -337,25 +258,14 @@ abstract class BookingmanagerHelper
                 $guestDetails .= ' (Ages: ' . $request->child_ages . ')';
             }
         }
-        
-        $adminEmail      = (string) $config->get('recipient_email');
-        $companyWhatsApp = (string) $config->get('company_whatsapp');
 
-        $companyWhatsAppNum = preg_replace('/[^0-9]/', '', $companyWhatsApp);
-        $clientWhatsAppNum  = preg_replace('/[^0-9]/', '', (string) ($request->client_phone ?? ''));
-
-        $portalLinkParams = http_build_query([
-            'email' => $request->client_email,
-            'pin'   => $request->pin
-        ]);
-        $portalLink = Uri::root() . 'index.php?option=com_bookingmanager&view=communication&' . $portalLinkParams;
-        $loginLink = Uri::root() . 'index.php?option=com_users&view=login';
+        $portalLinkParams = http_build_query(['email' => $request->client_email, 'pin'   => $request->pin]);
+        $portalLink       = Uri::root() . 'index.php?option=com_bookingmanager&view=communication&' . $portalLinkParams;
+        $loginLink        = Uri::root() . 'index.php?option=com_users&view=login';
 
         $termsLink = '';
         if (!empty($request->terms_log_id)) {
-            // Note: SEF URLs might not work well in emails depending on the mail client.
-            // Using the non-SEF URL is safer. The 'false' in Route signifies non-SEF.
-            $termsUrl = rtrim(Uri::root(), '/') . Route::_('index.php?option=com_bookingmanager&view=terms&id=' . $request->terms_log_id, false);
+            $termsUrl  = rtrim(Uri::root(), '/') . Route::_('index.php?option=com_bookingmanager&view=terms&id=' . $request->terms_log_id, false);
             $termsLink = '<p><a href="' . $termsUrl . '">View Supplier Terms and Conditions</a></p>';
         } else {
             $termsLink = '<p><em>The supplier for this property has not provided any specific terms and conditions.</em></p>';
@@ -372,6 +282,7 @@ abstract class BookingmanagerHelper
 
         $changesTableHtml = '';
         if (!empty($changes)) {
+            $changesTableHtml = '<table border="1" cellpadding="5" style="width:100%; border-collapse: collapse;"><tr><th>Field</th><th>Old Value</th><th>New Value</th></tr>';
             foreach ($changes as $field => $value) {
                 $changesTableHtml .= '<tr>';
                 $changesTableHtml .= '<td>' . htmlspecialchars($field) . '</td>';
@@ -379,6 +290,7 @@ abstract class BookingmanagerHelper
                 $changesTableHtml .= '<td>' . htmlspecialchars($value['new']) . '</td>';
                 $changesTableHtml .= '</tr>';
             }
+             $changesTableHtml .= '</table>';
         }
 
         $placeholders = [
@@ -415,6 +327,55 @@ abstract class BookingmanagerHelper
                                       "</ul>"
         ];
         
+        // This part has to stay in sendNotificationEmails because it needs the templates
+        // We will handle whatsapp links separately if needed for the supplier template.
+
+        return $placeholders;
+    }
+
+    public static function sendNotificationEmails($requestId, $type = 'all', $messageContent = '', $newUserPassword = '', $attachments = [], $changes = [])
+    {
+        Log::add('--- New Email Notification ---', Log::INFO, 'com_bookingmanager');
+        Log::add('Request ID: ' . $requestId . ' | Type: ' . $type, Log::INFO, 'com_bookingmanager');
+        Log::add('Message Content: ' . $messageContent, Log::INFO, 'com_bookingmanager');
+        Log::add('Attachments Data: ' . print_r($attachments, true), Log::INFO, 'com_bookingmanager');
+        Log::add('Changes Data: ' . print_r($changes, true), Log::INFO, 'com_bookingmanager');
+
+        $db     = Factory::getDbo();
+        $config = ComponentHelper::getParams('com_bookingmanager');
+        $adminEmail = (string) $config->get('recipient_email');
+
+        $query = $db->getQuery(true)
+            ->select('*')
+            ->from($db->quoteName('#__booking_requests'))
+            ->where('id = ' . (int) $requestId);
+        $request = $db->setQuery($query)->loadObject();
+
+        if (!$request) { return false; }
+
+        $emailTypes = [];
+        if ($type === 'all') {
+            $emailTypes = ['email_client_confirm', 'email_admin_notify'];
+            if (!empty($newUserPassword)) {
+                $emailTypes[] = 'email_client_new_user';
+            }
+        } else {
+            $emailTypes[] = $type;
+        }
+
+        $templateTypes = array_merge($emailTypes, ['whatsapp_client_reply', 'whatsapp_admin_reply']);
+
+        $query->clear()
+            ->select('type, subject, body')
+            ->from($db->quoteName('#__bookingmanager_templates'))
+            ->where($db->quoteName('type') . ' IN ("' . implode('","', $templateTypes) . '")');
+        $templates = $db->setQuery($query)->loadObjectList('type');
+
+        $placeholders = self::getPlaceholdersForRequest($requestId, $type, $messageContent, $newUserPassword, $attachments, $changes);
+
+        $companyWhatsAppNum = preg_replace('/[^0-9]/', '', (string) $config->get('company_whatsapp'));
+        $clientWhatsAppNum  = preg_replace('/[^0-9]/', '', (string) ($request->client_phone ?? ''));
+
         $waClientTpl = isset($templates['whatsapp_client_reply']) ? ($templates['whatsapp_client_reply']->body ?? '') : '';
         $waClientMsg = str_replace(array_keys($placeholders), array_values($placeholders), $waClientTpl);
         $waClientLink = 'https://wa.me/' . $companyWhatsAppNum . '?text=' . urlencode($waClientMsg);
@@ -448,5 +409,26 @@ abstract class BookingmanagerHelper
         }
         
         return true;
+    }
+
+    public static function getProcessedSupplierTemplateBody($requestId)
+    {
+        $db = Factory::getDbo();
+        $query = $db->getQuery(true)
+            ->select($db->quoteName('body'))
+            ->from($db->quoteName('#__bookingmanager_templates'))
+            ->where($db->quoteName('type') . ' = ' . $db->quote('email_supplier_availability'));
+
+        $templateBody = $db->setQuery($query)->loadResult();
+
+        if (!$templateBody) {
+            return 'Template "email_supplier_availability" not found.';
+        }
+
+        // Use the new centralized function to get all placeholders
+        // For this template, we don't have a specific message content, so we pass an empty string
+        $placeholders = self::getPlaceholdersForRequest($requestId, 'email_supplier_availability', '');
+
+        return str_replace(array_keys($placeholders), array_values($placeholders), $templateBody);
     }
 }
