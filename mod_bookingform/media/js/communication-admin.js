@@ -119,4 +119,40 @@ document.addEventListener('DOMContentLoaded', function() {
         uploadedFilesInput.value = JSON.stringify(uploadedFiles);
         form.appendChild(uploadedFilesInput);
     });
+
+    const loadTemplateBtn = document.getElementById('load-supplier-template-btn');
+    if (loadTemplateBtn) {
+        loadTemplateBtn.addEventListener('click', function() {
+            const options = Joomla.getOptions('com_bookingmanager.admin');
+            if (!options.getSupplierTemplate) {
+                alert('Error: Template URL not found.');
+                return;
+            }
+
+            this.textContent = 'Loading...';
+            this.disabled = true;
+
+            fetch(options.getSupplierTemplate)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        if (typeof tinyMCE !== 'undefined' && tinyMCE.get('jform_supplier_message')) {
+                            tinyMCE.get('jform_supplier_message').setContent(data.data);
+                        } else {
+                            document.getElementById('jform_supplier_message').value = data.data;
+                        }
+                    } else {
+                        alert('Failed to load template: ' + (data.message || 'Unknown error'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading template:', error);
+                    alert('An error occurred while loading the template.');
+                })
+                .finally(() => {
+                    this.textContent = 'Load Template';
+                    this.disabled = false;
+                });
+        });
+    }
 });

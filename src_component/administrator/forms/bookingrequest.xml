@@ -40,5 +40,6 @@
     </fieldset>
     <fieldset name="supplier_communication_message">
         <field name="supplier_message" type="editor" label="Message" description="The message to send to the supplier for availability." filter="safehtml" />
+        <field name="whatsapp_sent" type="checkbox" label="Request sent via WhatsApp" value="1" />
     </fieldset>
 </form>

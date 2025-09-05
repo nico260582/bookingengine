@@ -119,12 +119,22 @@ use Joomla\CMS\Uri\Uri;
                     <h4>Send Availability Request</h4>
                     <div class="control-group">
                         <div class="controls">
+                            <button type="button" class="btn" id="load-supplier-template-btn">Load Template</button>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <div class="controls">
                             <?php echo $this->form->getField('supplier_message')->renderField(); ?>
                         </div>
                     </div>
                     <div class="control-group">
                         <div class="controls">
-                            <button type="button" class="btn btn-primary" onclick="Joomla.submitbutton('bookingrequest.sendSupplierMessage');">Send Message to Supplier</button>
+                            <?php echo $this->form->getField('whatsapp_sent')->renderField(); ?>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <div class="controls">
+                            <button type="button" class="btn btn-primary" onclick="Joomla.submitbutton('bookingrequest.sendSupplierMessage');">Send Email</button>
                         </div>
                     </div>
                 </div>
@@ -208,7 +218,8 @@ use Joomla\CMS\Uri\Uri;
 $doc = Factory::getDocument();
 $ajaxUrls = [
     'upload' => Route::_('index.php?option=com_bookingmanager&task=bookingrequest.upload', false),
-    'deleteAttachment' => Route::_('index.php?option=com_bookingmanager&task=bookingrequest.deleteAttachment', false)
+    'deleteAttachment' => Route::_('index.php?option=com_bookingmanager&task=bookingrequest.deleteAttachment', false),
+    'getSupplierTemplate' => Route::_('index.php?option=com_bookingmanager&task=bookingrequest.getSupplierTemplate&' . Session::getFormToken() . '=1', false)
 ];
 $doc->addScriptOptions('com_bookingmanager.admin', $ajaxUrls);
 $doc->addScript(Uri::root(true) . '/modules/mod_bookingform/media/js/communication-admin.js');

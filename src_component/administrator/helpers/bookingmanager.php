@@ -374,7 +374,11 @@ abstract class BookingmanagerHelper
         foreach ($emailTypes as $emailType) {
             Log::add('Processing email type: ' . $emailType, Log::INFO, 'com_bookingmanager');
             $recipient = '';
+            $emailBody = '';
+
             if ($emailType === 'email_supplier_availability') {
+                if (empty($messageContent)) { continue; } // Don't send email if message is empty (e.g., only logging a WhatsApp message)
+
                 $query->clear()
                     ->select('s.contact_email')
                     ->from($db->quoteName('#__bookingmanager_suppliers', 's'))
@@ -382,8 +386,12 @@ abstract class BookingmanagerHelper
                     ->join('LEFT', $db->quoteName('#__content', 'p') . ' ON m.property_id = p.id')
                     ->where('p.title = ' . $db->quote($request->property_name));
                 $recipient = $db->setQuery($query)->loadResult();
+                // For this type, the body is the message content itself.
+                $emailBody = $messageContent;
             } else {
                 $recipient = ($emailType === 'email_client_confirm' || $emailType === 'email_client_admin_reply' || $emailType === 'email_client_new_user') ? $request->client_email : $adminEmail;
+                // For other types, the body is from the template.
+                $emailBody = isset($templates[$emailType]) ? ($templates[$emailType]->body ?? '') : '';
             }
 
             Log::add('Recipient: ' . $recipient, Log::INFO, 'com_bookingmanager');
@@ -400,7 +408,7 @@ abstract class BookingmanagerHelper
                 $mailer->setSender([(string) Factory::getConfig()->get('mailfrom'), (string) Factory::getConfig()->get('fromname')]);
                 $mailer->addRecipient($recipient);
                 $mailer->setSubject(str_replace(array_keys($placeholders), array_values($placeholders), $templates[$emailType]->subject ?? ''));
-                $mailer->setBody(str_replace(array_keys($placeholders), array_values($placeholders), $templates[$emailType]->body ?? ''));
+                $mailer->setBody(str_replace(array_keys($placeholders), array_values($placeholders), $emailBody));
                 try { $mailer->send(); } catch (\Exception $e) { Log::add('Booking Manager email (' . $emailType . ') failed: ' . $e->getMessage(), Log::ERROR, 'com_bookingmanager'); }
             }
         }

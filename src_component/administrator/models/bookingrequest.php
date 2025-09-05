@@ -145,6 +145,19 @@ class BookingmanagerModelBookingrequest extends AdminModel
         return false;
     }
 
+    public function getSupplierTemplate()
+    {
+        $db = Factory::getDbo();
+        $query = $db->getQuery(true)
+            ->select($db->quoteName('body'))
+            ->from($db->quoteName('#__bookingmanager_templates'))
+            ->where($db->quoteName('title') . ' = ' . $db->quote('Supplier - Availability Request'));
+
+        $templateBody = $db->setQuery($query)->loadResult();
+
+        return $templateBody ?: false;
+    }
+
     public function getSupplierMessages($requestId)
     {
         if (!$requestId) {
@@ -160,9 +173,10 @@ class BookingmanagerModelBookingrequest extends AdminModel
         return $db->setQuery($query)->loadObjectList();
     }
 
-    public function sendSupplierMessage($requestId, $message)
+    public function sendSupplierMessage($requestId, $message, $whatsappSent = false)
     {
-        if (!$requestId || empty($message)) {
+        if (!$requestId || (empty($message) && !$whatsappSent)) {
+            $this->setError('No message content and WhatsApp not marked as sent.');
             return false;
         }
 
@@ -204,7 +218,8 @@ class BookingmanagerModelBookingrequest extends AdminModel
             'supplier_email' => $supplier->contact_email,
             'message' => $message,
             'sent_at' => (new Date('now'))->toSql(),
-            'sent_by_user_id' => $user->id
+            'sent_by_user_id' => $user->id,
+            'whatsapp_sent' => (int)$whatsappSent
         ];
 
         if (!$table->save($data)) {

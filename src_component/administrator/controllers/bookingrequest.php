@@ -53,6 +53,27 @@ class BookingmanagerControllerBookingrequest extends FormController
         return $this->save($key, $urlVar);
     }
 
+    public function getSupplierTemplate()
+    {
+        header('Content-Type: application/json');
+        $app = Factory::getApplication();
+        try {
+            if (!Session::checkToken('get')) { throw new \Exception('Invalid Token', 403); }
+
+            $model = $this->getModel();
+            $template = $model->getSupplierTemplate();
+
+            if ($template === false) {
+                throw new \Exception('Template not found or could not be loaded.');
+            }
+            echo new JsonResponse($template);
+        } catch (\Throwable $e) {
+            if (!headers_sent()) { http_response_code(500); }
+            echo new JsonResponse(null, $e->getMessage(), true);
+        }
+        $app->close();
+    }
+
     public function sendSupplierMessage()
     {
         // Check for request forgeries.
@@ -63,10 +84,11 @@ class BookingmanagerControllerBookingrequest extends FormController
         $data    = $input->post->get('jform', [], 'array');
         $id      = $data['id'];
         $message = $data['supplier_message'];
+        $whatsappSent = isset($data['whatsapp_sent']) && $data['whatsapp_sent'] == '1';
 
         $model = $this->getModel();
 
-        if ($model->sendSupplierMessage($id, $message)) {
+        if ($model->sendSupplierMessage($id, $message, $whatsappSent)) {
             $this->setMessage(JText::_('Message sent to supplier successfully.'));
         } else {
             $this->setMessage(JText::_('Error sending message to supplier: ') . $model->getError(), 'error');
