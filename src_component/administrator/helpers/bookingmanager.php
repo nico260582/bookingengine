@@ -230,6 +230,7 @@ abstract class BookingmanagerHelper
     public static function getPlaceholdersForRequest($requestId, $type = 'all', $messageContent = '', $newUserPassword = '', $attachments = [], $changes = [])
     {
         $db      = Factory::getDbo();
+        die('Debug Point A');
         $config  = ComponentHelper::getParams('com_bookingmanager');
         $query   = $db->getQuery(true)
             ->select('*')
