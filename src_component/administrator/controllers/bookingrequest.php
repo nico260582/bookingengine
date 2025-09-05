@@ -88,7 +88,9 @@ class BookingmanagerControllerBookingrequest extends FormController
             }
 
             $model = $this->getModel('Bookingrequest');
-            if ($model->sendSupplierMessage($id, $message, $whatsappSent)) {
+            $result = $model->sendSupplierMessage($id, $message, $whatsappSent);
+
+            if ($result) {
                 echo new \Joomla\CMS\Response\JsonResponse(['success' => true, 'message' => \Joomla\CMS\Language\Text::_('Message sent to supplier successfully.')]);
             } else {
                 throw new \Exception($model->getError() ?: 'An unknown error occurred.', 500);

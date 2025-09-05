@@ -56,8 +56,15 @@ class BookingmanagerModelBookingrequest extends AdminModel
 
     public function getSupplierTemplate()
     {
-        // This will be fully implemented in a later step.
-        return "This is a placeholder for the supplier template.";
+        $app = Factory::getApplication();
+        $requestId = $app->input->getInt('id', 0);
+
+        if (!$requestId) {
+            return false;
+        }
+
+        JLoader::register('BookingmanagerHelper', JPATH_ADMINISTRATOR . '/components/com_bookingmanager/helpers/bookingmanager.php');
+        return BookingmanagerHelper::getProcessedSupplierTemplateBody($requestId);
     }
 
     public function getSupplierMessages($requestId)
