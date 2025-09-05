@@ -310,7 +310,7 @@ abstract class BookingmanagerHelper
             '[client_phone]'         => (string) ($request->client_phone ?? ''),
             '[client_country]'       => (string) ($request->client_country ?? ''),
             '[client_message]'       => $type === 'email_admin_client_reply' ? nl2br(htmlspecialchars($messageContent)) : nl2br(htmlspecialchars((string) ($request->client_message ?? ''))),
-            '[admin_message]'        => $type === 'email_client_admin_reply' ? $messageContent : '',
+            '[admin_message]'        => $type === 'email_client_admin_reply' || $type === 'email_supplier_availability' ? $messageContent : '',
             '[accommodation_url]'    => (string) ($request->accommodation_url ?? ''),
             '[discount_note]'        => !empty($request->discount_note) ? '🇲🇺 ' . htmlspecialchars((string) $request->discount_note) : '',
             '[unit_count]'           => (string) ($request->unit_count ?? ''),
@@ -327,9 +327,6 @@ abstract class BookingmanagerHelper
                                       "</ul>"
         ];
         
-        // This part has to stay in sendNotificationEmails because it needs the templates
-        // We will handle whatsapp links separately if needed for the supplier template.
-
         return $placeholders;
     }
 
@@ -409,71 +406,5 @@ abstract class BookingmanagerHelper
         }
         
         return true;
-    }
-
-    public static function createDefaultTemplates()
-    {
-        $db = Factory::getDbo();
-        $query = $db->getQuery(true)
-            ->select('COUNT(*)')
-            ->from($db->quoteName('#__bookingmanager_templates'))
-            ->where($db->quoteName('type') . ' = ' . $db->quote('email_supplier_availability'));
-
-        $count = (int) $db->setQuery($query)->loadResult();
-
-        if ($count === 0) {
-            $defaultBody = <<<EOT
-<p>Dear Supplier,</p>
-<p>We have a booking request for [property_name] for the following dates:</p>
-<ul>
-<li>Check-in: [start_date_formatted]</li>
-<li>Check-out: [end_date_formatted]</li>
-<li>Nights: [nights]</li>
-</ul>
-<p>Guest details:</p>
-<ul>
-<li>Name: [client_name]</li>
-<li>Country: [client_country]</li>
-<li>Guests: [guest_details]</li>
-<li>Units: [unit_count]</li>
-</ul>
-<p>Client message: <br>[client_message]</p>
-<p>Our message: <br>[admin_message]</p>
-<p>Please confirm availability.</p>
-<p>Kind regards,</p>
-EOT;
-            $newTemplate = (object) [
-                'title' => 'Supplier - Availability Request',
-                'type' => 'email_supplier_availability',
-                'subject' => 'Availability Request for [property_name] - Ref: [booking_ref]',
-                'body' => $defaultBody,
-                'published' => 1,
-            ];
-
-            $db->insertObject('#__bookingmanager_templates', $newTemplate);
-        }
-    }
-
-    public static function getProcessedSupplierTemplateBody($requestId)
-    {
-        self::createDefaultTemplates();
-
-        $db = Factory::getDbo();
-        $query = $db->getQuery(true)
-            ->select($db->quoteName('body'))
-            ->from($db->quoteName('#__bookingmanager_templates'))
-            ->where($db->quoteName('type') . ' = ' . $db->quote('email_supplier_availability'));
-
-        $templateBody = $db->setQuery($query)->loadResult();
-
-        if (!$templateBody) {
-            // This should no longer happen, but as a fallback.
-            return 'Error: Could not find or create the supplier availability template.';
-        }
-
-        // Use the new centralized function to get all placeholders
-        $placeholders = self::getPlaceholdersForRequest($requestId, 'email_supplier_availability', '');
-
-        return str_replace(array_keys($placeholders), array_values($placeholders), $templateBody);
     }
 }

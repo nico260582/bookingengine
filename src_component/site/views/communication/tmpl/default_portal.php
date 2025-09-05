@@ -30,20 +30,11 @@ use Joomla\CMS\Date\Date;
         <div class="summary-header">
             <h3><?php echo Text::sprintf('COM_BOOKINGMANAGER_PORTAL_HEADING', $this->escape($this->request->booking_ref)); ?></h3>
             <?php
-                $rawStatus = $this->request->status ?? 'Unknown';
-                // Construct the language key from the raw status value, e.g., 'waiting_availability' becomes 'COM_BOOKINGMANAGER_STATUS_WAITING_AVAILABILITY'
-                $langKey = 'COM_BOOKINGMANAGER_STATUS_' . strtoupper($rawStatus);
-                $displayStatus = Text::_($langKey);
-
-                // If a translation doesn't exist, Text::_ returns the key itself. In that case, fall back to the raw status.
-                if ($displayStatus === $langKey) {
-                    $displayStatus = $rawStatus;
-                }
-
-                // The class should be based on the raw status value for consistency
-                $statusClass = 'status-badge status-' . strtolower(preg_replace('/[^a-z0-9]/i', '', $rawStatus));
+                $status = $this->request->status ?? 'unknown';
+                $statusClass = 'status-badge status-' . str_replace('_', '-', $status);
+                $statusText = Text::_('COM_BOOKINGMANAGER_STATUS_' . strtoupper($status));
             ?>
-            <span class="<?php echo $statusClass; ?>"><?php echo $this->escape($displayStatus); ?></span>
+            <span class="<?php echo $statusClass; ?>"><?php echo $this->escape($statusText); ?></span>
             <a href="<?php echo Route::_('index.php?option=com_bookingmanager&task=communication.logout'); ?>"><?php echo Text::_('COM_BOOKINGMANAGER_LOGOUT_BUTTON'); ?></a>
         </div>
         <p>
@@ -58,7 +49,7 @@ use Joomla\CMS\Date\Date;
                 <strong>Units:</strong> <?php echo $this->escape($this->request->unit_count); ?><br>
             <?php endif; ?>
             <?php if (!empty($this->request->payment_link)) : ?>
-                <a href="<?php echo $this->escape($this->request->payment_link); ?>" class="btn btn-success" target="_blank">Pay Now</a><br>
+                <strong>Payment Link:</strong> <a href="<?php echo $this->escape($this->request->payment_link); ?>" target="_blank">Pay Now</a><br>
             <?php endif; ?>
             <?php if (!empty($this->request->discount_note)) : ?>
                 <strong>Note:</strong> <?php echo $this->escape($this->request->discount_note); ?>

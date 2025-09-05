@@ -221,13 +221,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
             let seasonTotalCost = seasonBaseCost + seasonSupplementCost;
 
-            // Apply global discount if available
-            let discountPercent = 0;
-            if (pricingRules.global_discount && parseFloat(pricingRules.global_discount) > 0) {
-                discountPercent = parseFloat(pricingRules.global_discount);
-                seasonTotalCost *= (1 - (discountPercent / 100));
-            }
-
             let commissionRate = 0;
             if (marketRateData.override_commission && marketRateData.commission > 0) {
                 commissionRate = parseFloat(marketRateData.commission);

@@ -8,8 +8,6 @@ use Joomla\CMS\Filesystem\Folder;
 use Joomla\CMS\Filesystem\File;
 use Joomla\CMS\MVC\Controller\FormController;
 use Joomla\CMS\Response\JsonResponse;
-use Joomla\CMS\Session\Session;
-use Joomla\CMS\Language\Text;
 
 class BookingmanagerControllerBookingrequest extends FormController
 {
@@ -35,47 +33,39 @@ class BookingmanagerControllerBookingrequest extends FormController
         // Get the ID of the item we just saved.
         $requestId = $model->getState('bookingrequest.id');
 
+
+        // Set the success message and redirect.
         $this->setMessage(JText::_('COM_BOOKINGMANAGER_ITEM_SAVED_SUCCESSFULLY'));
 
-        // Check the task to determine the redirect.
         $task = $this->getTask();
         if ($task == 'apply') {
-            // Redirect back to the edit view for 'apply'.
             $this->setRedirect(Route::_('index.php?option=com_bookingmanager&view=bookingrequest&layout=edit&id=' . $requestId, false));
         } else {
-            // Redirect to the list view for 'save'.
             $this->setRedirect(Route::_('index.php?option=com_bookingmanager&view=bookingrequests', false));
         }
-    }
-
-    public function apply($key = null, $urlVar = null)
-    {
-        return $this->save($key, $urlVar);
     }
 
     public function getSupplierTemplate()
     {
         $app = Factory::getApplication();
         try {
-            if (!Session::checkToken('post')) {
-                throw new \Exception('Invalid Token', 403);
+            if (!\Joomla\CMS\Session\Session::checkToken('post')) {
+                throw new \Exception(\Joomla\CMS\Language\Text::_('JINVALID_TOKEN'), 403);
             }
 
-            $model = $this->getModel();
-            // The model method will get the ID from the application input
+            $model = $this->getModel('Bookingrequest');
             $template = $model->getSupplierTemplate();
 
             if ($template === false) {
-                throw new \Exception('Supplier template not found.', 404);
+                throw new \Exception('Supplier template could not be processed.', 500);
             }
 
-            // JsonResponse will handle the content type header and wrapping the data
-            echo new JsonResponse($template);
+            echo new \Joomla\CMS\Response\JsonResponse($template);
 
         } catch (\Exception $e) {
             $code = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 500;
-            $app->setHeader('Status', $code . ' ' . $e->getMessage(), true);
-            echo new JsonResponse(null, $e->getMessage(), true);
+            if (!headers_sent()) { http_response_code($code); }
+            echo new \Joomla\CMS\Response\JsonResponse(null, $e->getMessage(), true);
         }
         $app->close();
     }
@@ -84,38 +74,37 @@ class BookingmanagerControllerBookingrequest extends FormController
     {
         $app = Factory::getApplication();
         try {
-            if (!Session::checkToken('post')) {
-                throw new \Exception(Text::_('JINVALID_TOKEN'), 403);
+            if (!\Joomla\CMS\Session\Session::checkToken('post')) {
+                throw new \Exception(\Joomla\CMS\Language\Text::_('JINVALID_TOKEN'), 403);
             }
 
-            $input = $app->input->json;
+            $input = $app->input->post;
             $id = $input->get('id', 0, 'int');
             $message = $input->get('supplier_message', '', 'raw');
-            $whatsappSent = $input->get('whatsapp_sent', false, 'bool');
+            $whatsappSent = $input->get('whatsapp_sent', 0, 'int') == 1;
 
             if (!$id) {
                 throw new \Exception('Missing required parameter: id.', 400);
             }
 
-            $model = $this->getModel();
+            $model = $this->getModel('Bookingrequest');
             if ($model->sendSupplierMessage($id, $message, $whatsappSent)) {
-                echo new JsonResponse(['success' => true, 'message' => Text::_('Message sent to supplier successfully.')]);
+                echo new \Joomla\CMS\Response\JsonResponse(['success' => true, 'message' => \Joomla\CMS\Language\Text::_('Message sent to supplier successfully.')]);
             } else {
                 throw new \Exception($model->getError() ?: 'An unknown error occurred.', 500);
             }
         } catch (\Exception $e) {
             $code = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 500;
             if (!headers_sent()) { http_response_code($code); }
-            echo new JsonResponse(['success' => false, 'message' => $e->getMessage()]);
+            echo new \Joomla\CMS\Response\JsonResponse(null, $e->getMessage(), true);
         }
         $app->close();
     }
 
     public function upload()
     {
-        // Check for request forgeries. The token is sent in the POST body.
-        if (!Session::checkToken('post')) {
-            echo new JsonResponse(null, Text::_('JINVALID_TOKEN'), true);
+        if (!Joomla\CMS\Session\Session::checkToken('post')) {
+            echo new JsonResponse(null, Joomla\CMS\Language\Text::_('JINVALID_TOKEN'), true);
             Factory::getApplication()->close();
         }
 

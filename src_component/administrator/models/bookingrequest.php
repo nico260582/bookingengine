@@ -56,15 +56,8 @@ class BookingmanagerModelBookingrequest extends AdminModel
 
     public function getSupplierTemplate()
     {
-        $app = Factory::getApplication();
-        $requestId = $app->input->getInt('id', 0);
-
-        if (!$requestId) {
-            return false;
-        }
-
-        JLoader::register('BookingmanagerHelper', JPATH_ADMINISTRATOR . '/components/com_bookingmanager/helpers/bookingmanager.php');
-        return BookingmanagerHelper::getProcessedSupplierTemplateBody($requestId);
+        // This will be fully implemented in a later step.
+        return "This is a placeholder for the supplier template.";
     }
 
     public function getSupplierMessages($requestId)
@@ -140,10 +133,9 @@ class BookingmanagerModelBookingrequest extends AdminModel
         if (!empty($message) && !empty($supplier->contact_email)) {
             JLoader::register('BookingmanagerHelper', JPATH_ADMINISTRATOR . '/components/com_bookingmanager/helpers/bookingmanager.php');
 
-            // Ensure the default template exists before trying to use it.
+            // The helper will now create the template if it doesn't exist.
             BookingmanagerHelper::createDefaultTemplates();
 
-            // Now we can safely get the template
             $emailTemplateQuery = $db->getQuery(true)
                 ->select(['subject', 'body'])
                 ->from($db->quoteName('#__bookingmanager_templates'))
@@ -167,11 +159,10 @@ class BookingmanagerModelBookingrequest extends AdminModel
                     $mailer->send();
                 } catch (\Exception $e) {
                     $this->setError('Mailer Error: ' . $e->getMessage());
-                    // Log the error but don't prevent the success message if the log was saved.
-                    Log::add('Booking Manager email to supplier failed: ' . $e->getMessage(), Log::ERROR, 'com_bookingmanager');
+                    \Joomla\CMS\Log\Log::add('Booking Manager email to supplier failed: ' . $e->getMessage(), \Joomla\CMS\Log\Log::ERROR, 'com_bookingmanager');
                 }
             } else {
-                Log::add('Booking Manager "email_supplier_availability" template not found.', Log::WARNING, 'com_bookingmanager');
+                \Joomla\CMS\Log\Log::add('Booking Manager "email_supplier_availability" template not found.', \Joomla\CMS\Log\Log::WARNING, 'com_bookingmanager');
             }
         }
 
@@ -260,6 +251,10 @@ class BookingmanagerModelBookingrequest extends AdminModel
 
     public function save($data)
     {
+        if (empty($data['final_price'])) {
+            $data['final_price'] = 0;
+        }
+
         $table = $this->getTable();
         $pkValue = $data['id'] ?? 0;
         $oldData = null;

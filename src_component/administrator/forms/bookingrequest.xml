@@ -3,13 +3,13 @@
     <fieldset name="details" label="Booking Details">
         <field name="id" type="hidden" />
         <field name="booking_ref" type="text" label="Booking Reference" readonly="true" />
-        <field name="status" type="list" label="Status" default="new">
-            <option value="new">COM_BOOKINGMANAGER_STATUS_NEW</option>
-            <option value="waiting_availability">COM_BOOKINGMANAGER_STATUS_WAITING_AVAILABILITY</option>
-            <option value="client_approval">COM_BOOKINGMANAGER_STATUS_CLIENT_APPROVAL</option>
-            <option value="wait_payment">COM_BOOKINGMANAGER_STATUS_WAIT_PAYMENT</option>
-            <option value="confirm">COM_BOOKINGMANAGER_STATUS_CONFIRM</option>
-            <option value="cancel">COM_BOOKINGMANAGER_STATUS_CANCEL</option>
+        <field name="status" type="list" label="Status" default="New">
+            <option value="New">New</option>
+            <option value="waiting_availability">Waiting Availability</option>
+            <option value="client_approval">Client Approval</option>
+            <option value="wait_payment">Wait Payment</option>
+            <option value="Confirm">Confirm</option>
+            <option value="Cancel">Cancel</option>
         </field>
         <field name="property_name" type="text" label="Property Name" readonly="true" />
         <field name="accommodation_url" type="text" label="Property URL" readonly="true"/>
@@ -38,8 +38,22 @@
     <fieldset name="communication_message">
         <field name="admin_message" type="editor" label="Message" description="The message to send to the client." filter="safehtml" />
     </fieldset>
-    <fieldset name="supplier_communication_message">
-        <field name="supplier_message" type="editor" label="Message" description="The message to send to the supplier for availability." filter="safehtml" />
-        <field name="whatsapp_sent" type="checkbox" label="Request sent via WhatsApp" value="1" />
+    <fieldset name="supplier_communication">
+        <field
+            name="supplier_message"
+            type="editor"
+            label="Supplier Message"
+            description="Message to send to the supplier."
+            filter="JComponentHelper::filterText"
+            buttons="true"
+            hide="false"
+        />
+        <field
+            name="whatsapp_sent"
+            type="checkbox"
+            label="WhatsApp Sent"
+            description="Check this box if the availability was confirmed via WhatsApp."
+            value="1"
+        />
     </fieldset>
 </form>

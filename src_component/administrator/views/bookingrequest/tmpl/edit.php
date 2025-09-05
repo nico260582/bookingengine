@@ -106,7 +106,12 @@ use Joomla\CMS\Uri\Uri;
                                                 <span class="message-date-admin"><?php echo HTMLHelper::_('date', $message->sent_at, 'Y-m-d H:i'); ?></span>
                                             </div>
                                             <div class="message-body-admin">
-                                                <?php echo $message->message; ?>
+                                                <?php if($message->message): ?>
+                                                    <?php echo $this->escape($message->message); ?>
+                                                <?php endif; ?>
+                                                <?php if ($message->whatsapp_sent) : ?>
+                                                    <p><em>Message sent via WhatsApp.</em></p>
+                                                <?php endif; ?>
                                             </div>
                                         </div>
                                     </div>
@@ -218,12 +223,13 @@ use Joomla\CMS\Uri\Uri;
 <?php
 $doc = Factory::getDocument();
 $ajaxUrls = [
-    'upload' => Route::_('index.php?option=com_bookingmanager&task=bookingrequest.upload', false),
-    'deleteAttachment' => Route::_('index.php?option=com_bookingmanager&task=bookingrequest.deleteAttachment', false),
-    'getSupplierTemplate' => Route::_('index.php?option=com_bookingmanager&task=bookingrequest.getSupplierTemplate', false),
-    'sendSupplierMessage' => Route::_('index.php?option=com_bookingmanager&task=bookingrequest.sendSupplierMessage', false),
+    'upload' => Route::_('index.php?option=com_bookingmanager&task=bookingrequest.upload&' . Session::getFormToken() . '=1', false),
+    'deleteAttachment' => Route::_('index.php?option=com_bookingmanager&task=bookingrequest.deleteAttachment&' . Session::getFormToken() . '=1', false),
+    'getSupplierTemplate' => Route::_('index.php?option=com_bookingmanager&task=bookingrequest.getSupplierTemplate&' . Session::getFormToken() . '=1', false),
+    'sendSupplierMessage' => Route::_('index.php?option=com_bookingmanager&task=bookingrequest.sendSupplierMessage&' . Session::getFormToken() . '=1', false),
     'supplier_phone' => $this->item->supplier_contact_phone ?? ''
 ];
 $doc->addScriptOptions('com_bookingmanager.admin', $ajaxUrls);
-$doc->addScript(Uri::root(true) . '/media/com_bookingmanager/js/bookingrequest-admin.js');
+$doc->addScript(Uri::root(true) . '/media/com_bookingmanager/js/communication-admin.js');
+$doc->addScript(Uri::root(true) . '/media/com_bookingmanager/js/supplier-communication.js');
 ?>
