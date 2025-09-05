@@ -23,6 +23,22 @@ class BookingmanagerModelBookingrequest extends AdminModel
     {
         $item = parent::getItem($pk);
 
+        if ($item) {
+            // Get supplier details
+            $db = Factory::getDbo();
+            $query = $db->getQuery(true)
+                ->select('s.contact_phone')
+                ->from($db->quoteName('#__bookingmanager_suppliers', 's'))
+                ->join('LEFT', $db->quoteName('#__bookingmanager_property_map', 'm') . ' ON s.id = m.supplier_id')
+                ->join('LEFT', $db->quoteName('#__content', 'p') . ' ON m.property_id = p.id')
+                ->where('p.title = ' . $db->quote($item->property_name));
+
+            $supplierDetails = $db->setQuery($query)->loadObject();
+            if ($supplierDetails) {
+                $item->supplier_contact_phone = $supplierDetails->contact_phone;
+            }
+        }
+
         if ($item && !empty($item->terms_log_id)) {
             $db = Factory::getDbo();
             $query = $db->getQuery(true)

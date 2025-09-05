@@ -155,4 +155,32 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
         });
     }
+
+    const sendWhatsAppBtn = document.getElementById('send-whatsapp-supplier-btn');
+    if (sendWhatsAppBtn) {
+        sendWhatsAppBtn.addEventListener('click', function() {
+            const supplierOptions = Joomla.getOptions('com_bookingmanager.supplier');
+            const supplierPhone = supplierOptions ? supplierOptions.phone : '';
+
+            if (!supplierPhone) {
+                alert('Supplier phone number is not available.');
+                return;
+            }
+
+            let message = '';
+            if (typeof tinyMCE !== 'undefined' && tinyMCE.get('jform_supplier_message')) {
+                message = tinyMCE.get('jform_supplier_message').getContent({ format: 'text' });
+            } else {
+                message = document.getElementById('jform_supplier_message').value;
+            }
+
+            if (!message.trim()) {
+                alert('Please load the template or write a message first.');
+                return;
+            }
+
+            const whatsappUrl = `https://wa.me/${supplierPhone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(message)}`;
+            window.open(whatsappUrl, '_blank');
+        });
+    }
 });

@@ -280,6 +280,11 @@ class com_bookingmanagerInstallerScript
             try { $db->execute(); } catch (Exception $e) {}
         }
 
+        if (!$this->columnExists('#__bookingmanager_suppliers', 'contact_phone')) {
+            $db->setQuery("ALTER TABLE `#__bookingmanager_suppliers` ADD `contact_phone` VARCHAR(50) DEFAULT NULL;");
+            try { $db->execute(); } catch (Exception $e) {}
+        }
+
         if (!$this->columnExists('#__booking_supplier_communication', 'whatsapp_sent')) {
             $db->setQuery("ALTER TABLE `#__booking_supplier_communication` ADD `whatsapp_sent` TINYINT(1) NOT NULL DEFAULT 0;");
             try { $db->execute(); } catch (Exception $e) {}

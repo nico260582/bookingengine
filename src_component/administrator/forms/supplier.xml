@@ -6,6 +6,7 @@
         <field name="alias" type="text" label="Alias" />
         <field name="abbreviation" type="text" label="Abbreviation" required="true" size="10" />
         <field name="contact_email" type="email" label="Contact Email" />
+        <field name="contact_phone" type="tel" label="Contact Phone" />
         <field name="published" type="list" label="Status" default="1">
             <option value="1">JPUBLISHED</option>
             <option value="0">JUNPUBLISHED</option>

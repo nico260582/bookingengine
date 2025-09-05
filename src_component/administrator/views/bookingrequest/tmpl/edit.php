@@ -135,6 +135,7 @@ use Joomla\CMS\Uri\Uri;
                     <div class="control-group">
                         <div class="controls">
                             <button type="button" class="btn btn-primary" onclick="Joomla.submitbutton('bookingrequest.sendSupplierMessage');">Send Email</button>
+                            <button type="button" class="btn" id="send-whatsapp-supplier-btn">Send via WhatsApp</button>
                         </div>
                     </div>
                 </div>

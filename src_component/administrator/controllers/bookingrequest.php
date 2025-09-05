@@ -55,20 +55,25 @@ class BookingmanagerControllerBookingrequest extends FormController
 
     public function getSupplierTemplate()
     {
-        header('Content-Type: application/json');
         $app = Factory::getApplication();
         try {
-            if (!Session::checkToken('get')) { throw new \Exception('Invalid Token', 403); }
+            if (!Session::checkToken('get')) {
+                throw new \Exception('Invalid Token', 403);
+            }
 
             $model = $this->getModel();
             $template = $model->getSupplierTemplate();
 
             if ($template === false) {
-                throw new \Exception('Template not found or could not be loaded.');
+                throw new \Exception('Supplier template not found.', 404);
             }
+
+            // JsonResponse will handle the content type header and wrapping the data
             echo new JsonResponse($template);
-        } catch (\Throwable $e) {
-            if (!headers_sent()) { http_response_code(500); }
+
+        } catch (\Exception $e) {
+            $code = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 500;
+            $app->setHeader('Status', $code . ' ' . $e->getMessage(), true);
             echo new JsonResponse(null, $e->getMessage(), true);
         }
         $app->close();
