@@ -37,23 +37,26 @@
 
 .status-badge {
     display: inline-block;
-    padding: 0.25em 0.6em;
-    font-size: 75%;
+    padding: 0.35em 0.65em;
+    font-size: .75em;
     font-weight: 700;
     line-height: 1;
+    color: #fff;
     text-align: center;
     white-space: nowrap;
     vertical-align: baseline;
-    border-radius: 0.25rem;
-    color: #fff;
+    border-radius: .25rem;
     margin-left: 15px;
 }
 
-.status-new { background-color: #007bff; }
-.status-confirmed { background-color: #28a745; }
-.status-cancelled { background-color: #dc3545; }
-.status-awaitingpayment { background-color: #ffc107; color: #212529;}
-.status-unknown { background-color: #6c757d; }
+/* Status-specific colors */
+.status-new { background-color: #007bff !important; }
+.status-waitingavailability { background-color: #fd7e14 !important; }
+.status-clientapproval { background-color: #6f42c1 !important; }
+.status-waitpayment { background-color: #ffc107 !important; color: #212529 !important; }
+.status-confirm { background-color: #28a745 !important; }
+.status-cancel { background-color: #dc3545 !important; }
+.status-unknown { background-color: #6c757d !important; }
 .login-form .btn-primary {
     padding: 10px 20px;
     font-size: 1.1rem;
