@@ -132,7 +132,14 @@ document.addEventListener('DOMContentLoaded', function() {
             this.textContent = 'Loading...';
             this.disabled = true;
 
-            fetch(options.getSupplierTemplate)
+            const formData = new FormData();
+            formData.append('id', document.querySelector('input[name="id"]').value);
+            formData.append(Joomla.getOptions('csrf.token'), 1);
+
+            fetch(options.getSupplierTemplate, {
+                method: 'POST',
+                body: formData
+            })
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {

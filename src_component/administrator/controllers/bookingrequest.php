@@ -57,11 +57,12 @@ class BookingmanagerControllerBookingrequest extends FormController
     {
         $app = Factory::getApplication();
         try {
-            if (!Session::checkToken('get')) {
+            if (!Session::checkToken('post')) {
                 throw new \Exception('Invalid Token', 403);
             }
 
             $model = $this->getModel();
+            // The model method will get the ID from the application input
             $template = $model->getSupplierTemplate();
 
             if ($template === false) {

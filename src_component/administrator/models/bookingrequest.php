@@ -163,15 +163,18 @@ class BookingmanagerModelBookingrequest extends AdminModel
 
     public function getSupplierTemplate()
     {
-        $db = Factory::getDbo();
-        $query = $db->getQuery(true)
-            ->select($db->quoteName('body'))
-            ->from($db->quoteName('#__bookingmanager_templates'))
-            ->where($db->quoteName('title') . ' = ' . $db->quote('Supplier - Availability Request'));
+        $app = Factory::getApplication();
+        // The ID is now sent in the POST body of the AJAX request
+        $requestId = $app->input->getInt('id', 0);
 
-        $templateBody = $db->setQuery($query)->loadResult();
+        if (!$requestId) {
+            return false;
+        }
 
-        return $templateBody ?: false;
+        JLoader::register('BookingmanagerHelper', JPATH_ADMINISTRATOR . '/components/com_bookingmanager/helpers/bookingmanager.php');
+        $processedTemplate = BookingmanagerHelper::getProcessedSupplierTemplate($requestId);
+
+        return $processedTemplate;
     }
 
     public function getSupplierMessages($requestId)

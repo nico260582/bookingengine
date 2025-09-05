@@ -220,7 +220,7 @@ $doc = Factory::getDocument();
 $ajaxUrls = [
     'upload' => Route::_('index.php?option=com_bookingmanager&task=bookingrequest.upload', false),
     'deleteAttachment' => Route::_('index.php?option=com_bookingmanager&task=bookingrequest.deleteAttachment', false),
-    'getSupplierTemplate' => Route::_('index.php?option=com_bookingmanager&task=bookingrequest.getSupplierTemplate&' . Session::getFormToken() . '=1', false)
+    'getSupplierTemplate' => Route::_('index.php?option=com_bookingmanager&task=bookingrequest.getSupplierTemplate', false)
 ];
 $doc->addScriptOptions('com_bookingmanager.admin', $ajaxUrls);
 $doc->addScript(Uri::root(true) . '/modules/mod_bookingform/media/js/communication-admin.js');
