@@ -53,8 +53,8 @@ use Joomla\CMS\Date\Date;
             <?php if (!empty($this->request->final_price) && $this->request->final_price > 0) : ?>
                 <strong>Final Price:</strong> <?php echo $this->escape($this->request->final_price); ?><br>
             <?php endif; ?>
-            <?php if (!empty($this->request->units)) : ?>
-                <strong>Units:</strong> <?php echo $this->escape($this->request->units); ?><br>
+            <?php if (!empty($this->request->unit_count)) : ?>
+                <strong>Units:</strong> <?php echo $this->escape($this->request->unit_count); ?><br>
             <?php endif; ?>
             <?php if (!empty($this->request->payment_link)) : ?>
                 <a href="<?php echo $this->escape($this->request->payment_link); ?>" class="btn btn-success" target="_blank">Pay Now</a><br>

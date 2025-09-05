@@ -120,6 +120,11 @@ class BookingmanagerModelBookingrequest extends AdminModel
 
     public function save($data)
     {
+        // Ensure final_price is not null or empty, default to 0 to prevent DB errors.
+        if (empty($data['final_price'])) {
+            $data['final_price'] = 0;
+        }
+
         $table = $this->getTable();
         $pkValue = $data['id'] ?? 0;
         $oldData = null;
