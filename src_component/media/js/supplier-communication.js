@@ -96,6 +96,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     Joomla.renderMessages({'message': [data.message]});
                     supplierMessageEditor.setValue('');
                     document.getElementById('jform_whatsapp_sent').checked = false;
+                    // Disable the beforeunload confirmation
+                    window.onbeforeunload = null;
                     // Reload the page to show the new message in the history
                     window.location.reload();
                 } else {
