@@ -162,17 +162,17 @@ class BookingmanagerModelBookingrequest extends AdminModel
             $emailTemplate = $db->setQuery($emailTemplateQuery)->loadObject();
 
             if ($emailTemplate) {
+                // The message from the textarea is the body.
+                // The subject is still generated from the template.
                 $placeholders = BookingmanagerHelper::getPlaceholdersForRequest($requestId, 'email_supplier_availability', $message);
-
                 $finalSubject = str_replace(array_keys($placeholders), array_values($placeholders), $emailTemplate->subject);
-                $finalBody    = str_replace(array_keys($placeholders), array_values($placeholders), $emailTemplate->body);
 
                 $mailer = Factory::getMailer();
                 $mailer->isHtml(true);
                 $mailer->setSender([(string) Factory::getConfig()->get('mailfrom'), (string) Factory::getConfig()->get('fromname')]);
                 $mailer->addRecipient($supplier->contact_email);
                 $mailer->setSubject($finalSubject);
-                $mailer->setBody($finalBody);
+                $mailer->setBody($message);
 
                 try {
                     $mailer->send();
