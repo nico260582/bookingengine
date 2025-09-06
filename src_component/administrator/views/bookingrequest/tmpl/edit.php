@@ -104,14 +104,16 @@ use Joomla\CMS\Uri\Uri;
                                             <div class="message-header-admin">
                                                 <span class="message-author-admin"><?php echo $this->escape($message->author_name); ?> (Admin)</span>
                                                 <span class="message-date-admin"><?php echo HTMLHelper::_('date', $message->sent_at, 'Y-m-d H:i'); ?></span>
+                                                <span class="message-method-icon">
+                                                    <?php if ($message->whatsapp_sent) : ?>
+                                                        <i class="icon-whatsapp" title="Sent via WhatsApp"></i>
+                                                    <?php else : ?>
+                                                        <i class="icon-envelope" title="Sent via Email"></i>
+                                                    <?php endif; ?>
+                                                </span>
                                             </div>
                                             <div class="message-body-admin">
-                                                <?php if($message->message): ?>
-                                                    <?php echo $this->escape($message->message); ?>
-                                                <?php endif; ?>
-                                                <?php if ($message->whatsapp_sent) : ?>
-                                                    <p><em>Message sent via WhatsApp.</em></p>
-                                                <?php endif; ?>
+                                                <?php echo nl2br($this->escape($message->message)); ?>
                                             </div>
                                         </div>
                                     </div>
