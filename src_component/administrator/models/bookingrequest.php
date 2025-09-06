@@ -126,6 +126,14 @@ class BookingmanagerModelBookingrequest extends AdminModel
         }
 
         // 3. Save the message to the database
+
+        // Proactively check message length to prevent database errors for oversized content.
+        // A standard TEXT column in MySQL has a limit of 65,535 bytes.
+        if (strlen($message) > 65000) {
+            $this->setError('The message is too long to be saved in the conversation history. Please shorten it and try again.');
+            return false;
+        }
+
         $table = JTable::getInstance('SupplierCommunication', 'BookingmanagerTable');
 
         $logMessage = $message;
