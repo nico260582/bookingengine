@@ -10,20 +10,46 @@ document.addEventListener('DOMContentLoaded', function() {
                 const supplierMessageEditor = Joomla.editors.instances['jform_supplier_message'];
                 const message = supplierMessageEditor.getValue();
 
-                // Convert HTML to plain text for WhatsApp
+                // Convert HTML to plain text for the WhatsApp link
                 function htmlToPlainText(html) {
                     let temp = document.createElement("div");
-                    // First, do replacements for block-level elements to get newlines
                     let text = html.replace(/<p>/gi, "").replace(/<\/p>|<br\s*\/?>/gi, "\n");
                     temp.innerHTML = text;
-                    // Then use textContent to strip any remaining tags
                     return temp.textContent || temp.innerText || "";
                 }
                 const plainTextMessage = htmlToPlainText(message);
-
                 const url = 'https://wa.me/' + phone.replace(/[^0-9]/g, '') + '?text=' + encodeURIComponent(plainTextMessage);
                 window.open(url, '_blank');
-                document.getElementById('jform_whatsapp_sent').checked = true;
+
+                // Now, also save this action to the database
+                const saveUrl = options.sendSupplierMessage;
+                const requestId = document.querySelector('#item-form input[name="id"]').value;
+                const token = Joomla.getOptions('csrf.token');
+
+                const formData = new FormData();
+                formData.append('id', requestId);
+                formData.append('supplier_message', message); // Log the original HTML message
+                formData.append('whatsapp_sent', '1');
+                formData.append(token, '1');
+
+                fetch(saveUrl, {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        Joomla.renderMessages({'message': ['WhatsApp communication has been logged successfully.']});
+                        window.onbeforeunload = null; // Prevent "leave page" confirmation
+                        window.location.reload();
+                    } else {
+                        Joomla.renderMessages({'error': [data.message || 'An error occurred while logging the WhatsApp message.']});
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Joomla.renderMessages({'error': ['An error occurred while logging the WhatsApp message.']});
+                });
             } else {
                 alert('Supplier phone number is not available.');
             }
