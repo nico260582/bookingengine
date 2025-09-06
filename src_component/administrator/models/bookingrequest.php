@@ -106,7 +106,7 @@ class BookingmanagerModelBookingrequest extends AdminModel
 
         // 2. Get Supplier from Property
         $query->clear()
-            ->select('s.id, s.contact_email')
+            ->select('s.id, s.contact_email, s.contact_phone')
             ->from($db->quoteName('#__bookingmanager_suppliers', 's'))
             ->join('LEFT', $db->quoteName('#__bookingmanager_property_map', 'm') . ' ON s.id = m.supplier_id')
             ->join('LEFT', $db->quoteName('#__content', 'p') . ' ON m.property_id = p.id')
@@ -145,6 +145,7 @@ class BookingmanagerModelBookingrequest extends AdminModel
             'booking_request_id' => $requestId,
             'supplier_id'        => $supplier->id,
             'supplier_email'     => $supplier->contact_email,
+            'supplier_phone'     => $supplier->contact_phone,
             'message'            => $logMessage,
             'sent_at'            => (new Date('now'))->toSql(),
             'sent_by_user_id'    => $user->id,
@@ -220,7 +221,7 @@ class BookingmanagerModelBookingrequest extends AdminModel
         }
 
         $query->clear()
-            ->select('s.id, s.contact_email')
+            ->select('s.id, s.contact_email, s.contact_phone')
             ->from($db->quoteName('#__bookingmanager_suppliers', 's'))
             ->join('LEFT', $db->quoteName('#__bookingmanager_property_map', 'm') . ' ON s.id = m.supplier_id')
             ->join('LEFT', $db->quoteName('#__content', 'p') . ' ON m.property_id = p.id')
@@ -242,6 +243,7 @@ class BookingmanagerModelBookingrequest extends AdminModel
             'booking_request_id' => $requestId,
             'supplier_id'        => $supplier->id,
             'supplier_email'     => $supplier->contact_email,
+            'supplier_phone'     => $supplier->contact_phone,
             'message'            => $logMessage,
             'sent_at'            => (new Date('now'))->toSql(),
             'sent_by_user_id'    => $user->id,
