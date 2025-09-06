@@ -113,7 +113,7 @@ use Joomla\CMS\Uri\Uri;
                                                 </span>
                                             </div>
                                             <div class="message-body-admin">
-                                                <?php echo nl2br($this->escape($message->message)); ?>
+                                                <?php echo $message->message; // Message is saved as HTML, so no escaping ?>
                                             </div>
                                         </div>
                                     </div>
