@@ -207,13 +207,24 @@ class BookingmanagerModelBookingrequest extends AdminModel
         $user = Factory::getUser();
 
         // Get supplier ID and email for logging purposes
+        // Use the same two-step query as sendSupplierMessage to avoid collation issues.
         $query = $db->getQuery(true)
+            ->select($db->quoteName('property_name'))
+            ->from($db->quoteName('#__booking_requests'))
+            ->where($db->quoteName('id') . ' = ' . (int)$requestId);
+        $propertyName = $db->setQuery($query)->loadResult();
+
+        if (!$propertyName) {
+            $this->setError('Could not find property for the booking request.');
+            return false;
+        }
+
+        $query->clear()
             ->select('s.id, s.contact_email')
             ->from($db->quoteName('#__bookingmanager_suppliers', 's'))
             ->join('LEFT', $db->quoteName('#__bookingmanager_property_map', 'm') . ' ON s.id = m.supplier_id')
             ->join('LEFT', $db->quoteName('#__content', 'p') . ' ON m.property_id = p.id')
-            ->join('LEFT', $db->quoteName('#__booking_requests', 'br') . ' ON p.title = br.property_name')
-            ->where('br.id = ' . (int)$requestId);
+            ->where('p.title = ' . $db->quote($propertyName));
         $supplier = $db->setQuery($query)->loadObject();
 
         if (!$supplier) {
