@@ -119,6 +119,12 @@ class BookingmanagerModelBookingrequest extends AdminModel
             return false;
         }
 
+        // If the intention is to send an email, ensure there is an email address.
+        if (!empty($message) && empty($supplier->contact_email)) {
+            $this->setError('Unable to send email: This supplier does not have a contact email address.');
+            return false;
+        }
+
         // 3. Save the message to the database
         $table = JTable::getInstance('SupplierCommunication', 'BookingmanagerTable');
 
