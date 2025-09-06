@@ -196,6 +196,55 @@ class BookingmanagerModelBookingrequest extends AdminModel
         return true;
     }
 
+    public function logWhatsAppMessage($requestId, $message)
+    {
+        if (!$requestId) {
+            $this->setError('Invalid request ID.');
+            return false;
+        }
+
+        $db = Factory::getDbo();
+        $user = Factory::getUser();
+
+        // Get supplier ID and email for logging purposes
+        $query = $db->getQuery(true)
+            ->select('s.id, s.contact_email')
+            ->from($db->quoteName('#__bookingmanager_suppliers', 's'))
+            ->join('LEFT', $db->quoteName('#__bookingmanager_property_map', 'm') . ' ON s.id = m.supplier_id')
+            ->join('LEFT', $db->quoteName('#__content', 'p') . ' ON m.property_id = p.id')
+            ->join('LEFT', $db->quoteName('#__booking_requests', 'br') . ' ON p.title = br.property_name')
+            ->where('br.id = ' . (int)$requestId);
+        $supplier = $db->setQuery($query)->loadObject();
+
+        if (!$supplier) {
+            $this->setError('Could not find a supplier for this property.');
+            return false;
+        }
+
+        $logMessage = $message;
+        if (empty($logMessage)) {
+            $logMessage = 'WhatsApp communication sent to supplier.';
+        }
+
+        $table = JTable::getInstance('SupplierCommunication', 'BookingmanagerTable');
+        $logData = [
+            'booking_request_id' => $requestId,
+            'supplier_id'        => $supplier->id,
+            'supplier_email'     => $supplier->contact_email,
+            'message'            => $logMessage,
+            'sent_at'            => (new Date('now'))->toSql(),
+            'sent_by_user_id'    => $user->id,
+            'whatsapp_sent'      => 1,
+        ];
+
+        if (!$table->save($logData)) {
+            $this->setError('Failed to save WhatsApp message log: ' . $table->getError());
+            return false;
+        }
+
+        return true;
+    }
+
     protected function loadFormData()
     {
         $data = Factory::getApplication()->getUserState('com_bookingmanager.edit.bookingrequest.data', array());

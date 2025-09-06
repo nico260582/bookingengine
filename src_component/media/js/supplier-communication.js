@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 window.open(url, '_blank');
 
                 // Now, also save this action to the database
-                const saveUrl = options.sendSupplierMessage;
+                const saveUrl = options.logWhatsAppMessage; // Use the new dedicated task
                 const requestId = document.querySelector('#item-form input[name="id"]').value;
                 const token = Joomla.getOptions('csrf.token');
 
