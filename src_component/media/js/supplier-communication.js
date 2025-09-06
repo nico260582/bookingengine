@@ -9,7 +9,19 @@ document.addEventListener('DOMContentLoaded', function() {
             if (phone) {
                 const supplierMessageEditor = Joomla.editors.instances['jform_supplier_message'];
                 const message = supplierMessageEditor.getValue();
-                const url = 'https://wa.me/' + phone.replace(/[^0-9]/g, '') + '?text=' + encodeURIComponent(message);
+
+                // Convert HTML to plain text for WhatsApp
+                function htmlToPlainText(html) {
+                    let temp = document.createElement("div");
+                    // First, do replacements for block-level elements to get newlines
+                    let text = html.replace(/<p>/gi, "").replace(/<\/p>|<br\s*\/?>/gi, "\n");
+                    temp.innerHTML = text;
+                    // Then use textContent to strip any remaining tags
+                    return temp.textContent || temp.innerText || "";
+                }
+                const plainTextMessage = htmlToPlainText(message);
+
+                const url = 'https://wa.me/' + phone.replace(/[^0-9]/g, '') + '?text=' + encodeURIComponent(plainTextMessage);
                 window.open(url, '_blank');
                 document.getElementById('jform_whatsapp_sent').checked = true;
             } else {

@@ -121,14 +121,20 @@ class BookingmanagerModelBookingrequest extends AdminModel
 
         // 3. Save the message to the database
         $table = JTable::getInstance('SupplierCommunication', 'BookingmanagerTable');
+
+        $logMessage = $message;
+        if (empty($logMessage) && $whatsappSent) {
+            $logMessage = 'WhatsApp communication sent to supplier.';
+        }
+
         $logData = [
             'booking_request_id' => $requestId,
-            'supplier_id' => $supplier->id,
-            'supplier_email' => $supplier->contact_email,
-            'message' => $message,
-            'sent_at' => (new Date('now'))->toSql(),
-            'sent_by_user_id' => $user->id,
-            'whatsapp_sent' => (int)$whatsappSent
+            'supplier_id'        => $supplier->id,
+            'supplier_email'     => $supplier->contact_email,
+            'message'            => $logMessage,
+            'sent_at'            => (new Date('now'))->toSql(),
+            'sent_by_user_id'    => $user->id,
+            'whatsapp_sent'      => (int) $whatsappSent,
         ];
 
         if (!$table->save($logData)) {
