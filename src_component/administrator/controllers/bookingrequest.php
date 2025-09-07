@@ -87,14 +87,15 @@ class BookingmanagerControllerBookingrequest extends FormController
             $result = $model->logWhatsAppMessage($id, $message);
 
             if ($result) {
-                echo new \Joomla\CMS\Response\JsonResponse(null, \Joomla\CMS\Language\Text::_('WhatsApp communication logged successfully.'));
+                header('Content-Type: application/json; charset=utf-8');
+                echo json_encode(['success' => true, 'message' => \Joomla\CMS\Language\Text::_('WhatsApp communication logged successfully.')]);
             } else {
                 throw new \Exception($model->getError() ?: 'An unknown error occurred while logging WhatsApp message.', 500);
             }
         } catch (\Exception $e) {
             $code = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 500;
-            if (!headers_sent()) { http_response_code($code); }
-            echo new \Joomla\CMS\Response\JsonResponse(null, $e->getMessage(), true);
+            header('Content-Type: application/json; charset=utf-8', true, $code);
+            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
         }
         $app->close();
     }
@@ -120,14 +121,15 @@ class BookingmanagerControllerBookingrequest extends FormController
             $result = $model->sendSupplierMessage($id, $message, $whatsappSent);
 
             if ($result) {
-                echo new \Joomla\CMS\Response\JsonResponse(null, \Joomla\CMS\Language\Text::_('Message sent to supplier successfully.'));
+                header('Content-Type: application/json; charset=utf-8');
+                echo json_encode(['success' => true, 'message' => \Joomla\CMS\Language\Text::_('Message sent to supplier successfully.')]);
             } else {
                 throw new \Exception($model->getError() ?: 'An unknown error occurred.', 500);
             }
         } catch (\Exception $e) {
             $code = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 500;
-            if (!headers_sent()) { http_response_code($code); }
-            echo new \Joomla\CMS\Response\JsonResponse(null, $e->getMessage(), true);
+            header('Content-Type: application/json; charset=utf-8', true, $code);
+            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
         }
         $app->close();
     }

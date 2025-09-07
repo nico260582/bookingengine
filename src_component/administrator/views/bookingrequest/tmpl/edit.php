@@ -142,6 +142,12 @@ use Joomla\CMS\Uri\Uri;
                         </div>
                     </div>
                     <div class="control-group">
+                        <div class="control-label"><label for="supplier_attachment">Attachment</label></div>
+                        <div class="controls">
+                            <input type="file" name="supplier_attachment" id="supplier_attachment">
+                        </div>
+                    </div>
+                    <div class="control-group">
                         <div class="controls">
                             <button type="button" class="btn btn-primary" id="send-supplier-email-btn">Send Email</button>
                             <button type="button" class="btn" id="send-whatsapp-supplier-btn">Send via WhatsApp</button>

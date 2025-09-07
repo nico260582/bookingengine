@@ -107,11 +107,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
+            const attachmentInput = document.getElementById('supplier_attachment');
+            const attachmentFile = attachmentInput.files[0];
+
             const formData = new FormData();
             formData.append('id', requestId);
             formData.append('supplier_message', message);
             formData.append('whatsapp_sent', whatsappSent ? '1' : '0');
             formData.append(token, '1');
+            if (attachmentFile) {
+                formData.append('supplier_attachment', attachmentFile);
+            }
 
             fetch(url, {
                 method: 'POST',

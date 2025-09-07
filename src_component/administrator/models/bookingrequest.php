@@ -84,6 +84,28 @@ class BookingmanagerModelBookingrequest extends AdminModel
 
     public function sendSupplierMessage($requestId, $message, $whatsappSent = false)
     {
+        $attachment = Factory::getApplication()->input->files->get('supplier_attachment');
+        $attachmentPath = null;
+
+        // Handle file upload first
+        if ($attachment && $attachment['error'] === UPLOAD_ERR_OK) {
+            $filename = \Joomla\CMS\Filesystem\File::makeSafe($attachment['name']);
+            $destFolder = JPATH_ROOT . '/media/com_bookingmanager/attachments/' . $requestId;
+
+            if (!\Joomla\CMS\Filesystem\Folder::exists($destFolder)) {
+                \Joomla\CMS\Filesystem\Folder::create($destFolder);
+            }
+
+            $destPath = $destFolder . '/' . $filename;
+
+            if (\Joomla\CMS\Filesystem\File::upload($attachment['tmp_name'], $destPath)) {
+                $attachmentPath = 'media/com_bookingmanager/attachments/' . $requestId . '/' . $filename;
+            } else {
+                $this->setError('Failed to upload attachment.');
+                return false;
+            }
+        }
+
         if (!$requestId || (empty($message) && !$whatsappSent)) {
             $this->setError('No message content and WhatsApp not marked as sent.');
             return false;
@@ -160,6 +182,23 @@ class BookingmanagerModelBookingrequest extends AdminModel
             return false;
         }
 
+        // If an attachment was uploaded, save it to the attachments table
+        if ($attachmentPath) {
+            $attachmentTable = JTable::getInstance('Attachment', 'BookingmanagerTable');
+            $attachmentData = [
+                'request_id' => $requestId,
+                'message_id' => $table->id, // Link to the supplier communication message
+                'file_name' => basename($attachmentPath),
+                'file_path' => $attachmentPath,
+                'uploaded_by' => $user->name . ' (Admin)',
+                'created_at' => (new Date('now'))->toSql()
+            ];
+            if (!$attachmentTable->save($attachmentData)) {
+                $this->setError('Failed to save attachment record: ' . $attachmentTable->getError());
+                // Optionally, decide if you should roll back the message save or just log this error
+            }
+        }
+
         // 4. Send the email, if there is a message and an email address
         if (!empty($message) && !empty($supplier->contact_email)) {
             JLoader::register('BookingmanagerHelper', JPATH_ADMINISTRATOR . '/components/com_bookingmanager/helpers/bookingmanager.php');
@@ -185,6 +224,10 @@ class BookingmanagerModelBookingrequest extends AdminModel
                 $mailer->addRecipient($supplier->contact_email);
                 $mailer->setSubject($finalSubject);
                 $mailer->setBody($message);
+
+                if ($attachmentPath) {
+                    $mailer->addAttachment(JPATH_ROOT . '/' . $attachmentPath);
+                }
 
                 try {
                     $mailer->send();
