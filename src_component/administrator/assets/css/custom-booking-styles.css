@@ -62,31 +62,36 @@
 
 .message-header-admin {
     margin-bottom: 5px;
-    position: relative; /* For icon positioning */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .message-author-admin {
     font-weight: bold;
 }
 
+.header-right-group {
+    display: flex;
+    align-items: center;
+}
+
 .message-date-admin {
-    float: right;
     font-size: 0.9em;
     color: #777;
+    margin-left: 10px;
+}
+
+.message-method-icon {
+    font-size: 1.2em;
+    color: #888;
+    margin-left: 10px;
 }
 
 .message-attachments-admin {
     margin-top: 10px;
     padding-top: 10px;
     border-top: 1px dashed #ccc;
-}
-
-.message-method-icon {
-    position: absolute;
-    top: -2px;
-    right: 0;
-    font-size: 1.2em;
-    color: #888;
 }
 
 

@@ -103,14 +103,16 @@ use Joomla\CMS\Uri\Uri;
                                         <div class="timeline-content-admin">
                                             <div class="message-header-admin">
                                                 <span class="message-author-admin"><?php echo $this->escape($message->author_name); ?> (Admin)</span>
-                                                <span class="message-date-admin"><?php echo HTMLHelper::_('date', $message->sent_at, 'Y-m-d H:i'); ?></span>
-                                                <span class="message-method-icon">
-                                                    <?php if ($message->whatsapp_sent) : ?>
-                                                        <i class="icon-whatsapp" title="Sent via WhatsApp"></i>
-                                                    <?php else : ?>
-                                                        <i class="icon-envelope" title="Sent via Email"></i>
-                                                    <?php endif; ?>
-                                                </span>
+                                                <div class="header-right-group">
+                                                    <span class="message-date-admin"><?php echo HTMLHelper::_('date', $message->sent_at, 'Y-m-d H:i'); ?></span>
+                                                    <span class="message-method-icon">
+                                                        <?php if ($message->whatsapp_sent) : ?>
+                                                            <i class="icon-whatsapp" title="Sent via WhatsApp"></i>
+                                                        <?php else : ?>
+                                                            <i class="icon-envelope" title="Sent via Email"></i>
+                                                        <?php endif; ?>
+                                                    </span>
+                                                </div>
                                             </div>
                                             <div class="message-body-admin">
                                                 <?php echo $message->message; // Message is saved as HTML, so no escaping ?>
@@ -229,7 +231,6 @@ $ajaxUrls = [
     'deleteAttachment' => Route::_('index.php?option=com_bookingmanager&task=bookingrequest.deleteAttachment&' . Session::getFormToken() . '=1', false),
     'getSupplierTemplate' => Route::_('index.php?option=com_bookingmanager&task=bookingrequest.getSupplierTemplate&' . Session::getFormToken() . '=1', false),
     'sendSupplierMessage' => Route::_('index.php?option=com_bookingmanager&task=bookingrequest.sendSupplierMessage&' . Session::getFormToken() . '=1', false),
-    'logWhatsAppMessage' => Route::_('index.php?option=com_bookingmanager&task=bookingrequest.logWhatsAppMessage&' . Session::getFormToken() . '=1', false),
     'supplier_phone' => $this->item->supplier_contact_phone ?? ''
 ];
 $doc->addScriptOptions('com_bookingmanager.admin', $ajaxUrls);

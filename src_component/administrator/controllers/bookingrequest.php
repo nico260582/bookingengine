@@ -70,34 +70,6 @@ class BookingmanagerControllerBookingrequest extends FormController
         $app->close();
     }
 
-    public function logWhatsAppMessage()
-    {
-        $app = Factory::getApplication();
-        try {
-            if (!\Joomla\CMS\Session\Session::checkToken('post')) {
-                throw new \Exception(\Joomla\CMS\Language\Text::_('JINVALID_TOKEN'), 403);
-            }
-
-            $input = $app->input->post;
-            $id = $input->get('id', 0, 'int');
-            $message = $input->get('supplier_message', '', 'raw');
-
-            $model = $this->getModel('Bookingrequest');
-            $result = $model->logWhatsAppMessage($id, $message);
-
-            if ($result) {
-                header('Content-Type: application/json; charset=utf-8');
-                echo json_encode(['success' => true, 'message' => \Joomla\CMS\Language\Text::_('WhatsApp communication logged successfully.')]);
-            } else {
-                throw new \Exception($model->getError() ?: 'An unknown error occurred while logging WhatsApp message.', 500);
-            }
-        } catch (\Exception $e) {
-            $code = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 500;
-            header('Content-Type: application/json; charset=utf-8', true, $code);
-            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
-        }
-        $app->close();
-    }
 
     public function sendSupplierMessage()
     {
