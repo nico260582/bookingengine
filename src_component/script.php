@@ -278,7 +278,7 @@ class com_bookingmanagerInstallerScript
             try { $db->execute(); } catch (Exception $e) {}
         }
 
-        if (!$this->columnExists('#__booking_supplier_communication', 'supplier_phone')) {
+        if (!BookingmanagerHelper::columnExists('#__booking_supplier_communication', 'supplier_phone')) {
             $db->setQuery("ALTER TABLE `#__booking_supplier_communication` ADD COLUMN `supplier_phone` VARCHAR(100) NULL DEFAULT NULL AFTER `supplier_email`;");
             try { $db->execute(); } catch (Exception $e) {}
         }
