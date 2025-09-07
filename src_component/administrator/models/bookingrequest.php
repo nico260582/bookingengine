@@ -82,31 +82,9 @@ class BookingmanagerModelBookingrequest extends AdminModel
         return $db->setQuery($query)->loadObjectList();
     }
 
-    public function sendSupplierMessage($requestId, $message, $whatsappSent = false)
+    public function sendSupplierMessage($requestId, $message, $whatsappSent = false, $attachments = [])
     {
-        $attachment = Factory::getApplication()->input->files->get('supplier_attachment');
-        $attachmentPath = null;
-
-        // Handle file upload first
-        if ($attachment && $attachment['error'] === UPLOAD_ERR_OK) {
-            $filename = \Joomla\CMS\Filesystem\File::makeSafe($attachment['name']);
-            $destFolder = JPATH_ROOT . '/media/com_bookingmanager/attachments/' . $requestId;
-
-            if (!\Joomla\CMS\Filesystem\Folder::exists($destFolder)) {
-                \Joomla\CMS\Filesystem\Folder::create($destFolder);
-            }
-
-            $destPath = $destFolder . '/' . $filename;
-
-            if (\Joomla\CMS\Filesystem\File::upload($attachment['tmp_name'], $destPath)) {
-                $attachmentPath = 'media/com_bookingmanager/attachments/' . $requestId . '/' . $filename;
-            } else {
-                $this->setError('Failed to upload attachment.');
-                return false;
-            }
-        }
-
-        if (!$requestId || (empty($message) && !$whatsappSent)) {
+        if (!$requestId || (empty($message) && !$whatsappSent && empty($attachments))) {
             $this->setError('No message content and WhatsApp not marked as sent.');
             return false;
         }
@@ -182,53 +160,47 @@ class BookingmanagerModelBookingrequest extends AdminModel
             return false;
         }
 
-        // If an attachment was uploaded, save it to the attachments table
-        if ($attachmentPath) {
-            $attachmentTable = JTable::getInstance('Attachment', 'BookingmanagerTable');
-            $attachmentData = [
-                'request_id' => $requestId,
-                'message_id' => $table->id, // Link to the supplier communication message
-                'file_name' => basename($attachmentPath),
-                'file_path' => $attachmentPath,
-                'uploaded_by' => $user->name . ' (Admin)',
-                'created_at' => (new Date('now'))->toSql()
-            ];
-            if (!$attachmentTable->save($attachmentData)) {
-                $this->setError('Failed to save attachment record: ' . $attachmentTable->getError());
-                // Optionally, decide if you should roll back the message save or just log this error
+        // Save attachments
+        $messageId = $table->id;
+        if (!empty($attachments)) {
+            foreach ($attachments as $attachmentPath) {
+                $attachment = new stdClass();
+                $attachment->request_id = $requestId;
+                $attachment->message_id = $messageId; // This should be the ID of the supplier_communication record
+                $attachment->file_name = basename($attachmentPath);
+                $attachment->file_path = $attachmentPath;
+                $attachment->created_at = (new Date('now'))->toSql();
+                $attachment->uploaded_by = $user->name . ' (Admin)';
+                $db->insertObject('#__booking_attachments', $attachment);
             }
         }
 
         // 4. Send the email, if there is a message and an email address
-        if (!empty($message) && !empty($supplier->contact_email)) {
+        if (!empty($message) && !empty($supplier->contact_email) && !$whatsappSent) {
+            // Logic to send email remains the same...
             JLoader::register('BookingmanagerHelper', JPATH_ADMINISTRATOR . '/components/com_bookingmanager/helpers/bookingmanager.php');
-
-            // The helper will now create the template if it doesn't exist.
             BookingmanagerHelper::createDefaultTemplates();
-
-            $emailTemplateQuery = $db->getQuery(true)
-                ->select(['subject', 'body'])
-                ->from($db->quoteName('#__bookingmanager_templates'))
-                ->where($db->quoteName('type') . ' = ' . $db->quote('email_supplier_availability'));
+            $emailTemplateQuery = $db->getQuery(true)->select(['subject', 'body'])->from($db->quoteName('#__bookingmanager_templates'))->where($db->quoteName('type') . ' = ' . $db->quote('email_supplier_availability'));
             $emailTemplate = $db->setQuery($emailTemplateQuery)->loadObject();
-
             if ($emailTemplate) {
-                // The message from the textarea is the body.
-                // The subject is still generated from the template.
                 $placeholders = BookingmanagerHelper::getPlaceholdersForRequest($requestId, 'email_supplier_availability', $message);
                 $finalSubject = str_replace(array_keys($placeholders), array_values($placeholders), $emailTemplate->subject);
+
+                // Also replace placeholders in the body, including our custom message
+                $finalBody = str_replace(array_keys($placeholders), array_values($placeholders), $emailTemplate->body);
 
                 $mailer = Factory::getMailer();
                 $mailer->isHtml(true);
                 $mailer->setSender([(string) Factory::getConfig()->get('mailfrom'), (string) Factory::getConfig()->get('fromname')]);
                 $mailer->addRecipient($supplier->contact_email);
                 $mailer->setSubject($finalSubject);
-                $mailer->setBody($message);
-
-                if ($attachmentPath) {
-                    $mailer->addAttachment(JPATH_ROOT . '/' . $attachmentPath);
+                $mailer->setBody($finalBody);
+                if (!empty($attachments)) {
+                    foreach ($attachments as $attachmentPath) {
+                        $fullPath = JPATH_SITE . '/' . $attachmentPath;
+                        if (file_exists($fullPath)) { $mailer->addAttachment($fullPath); }
+                    }
                 }
-
                 try {
                     $mailer->send();
                 } catch (\Exception $e) {
@@ -240,51 +212,45 @@ class BookingmanagerModelBookingrequest extends AdminModel
             }
         }
 
-        return true;
+        // 5. Return the newly created message object for dynamic UI update
+        $query->clear()
+            ->select('sc.*, u.name as author_name')
+            ->from($db->quoteName('#__booking_supplier_communication', 'sc'))
+            ->join('LEFT', $db->quoteName('#__users', 'u') . ' ON sc.sent_by_user_id = u.id')
+            ->where('sc.id = ' . (int)$table->id);
+
+        $newMessage = $db->setQuery($query)->loadObject();
+
+        // Format date for display
+        if ($newMessage) {
+            $newMessage->sent_at = (new Date($newMessage->sent_at))->format('Y-m-d H:i');
+        }
+
+        return $newMessage;
     }
 
 
-    public function logWhatsAppMessage($requestId, $message)
+    public function logWhatsAppMessage($requestId, $message, $whatsappSent = true)
     {
         if (!$requestId) {
             $this->setError('Invalid request ID.');
             return false;
         }
-
         $db = Factory::getDbo();
         $user = Factory::getUser();
-
-        // Get supplier ID and email for logging purposes
-        // Use the same two-step query as sendSupplierMessage to avoid collation issues.
-        $query = $db->getQuery(true)
-            ->select($db->quoteName('property_name'))
-            ->from($db->quoteName('#__booking_requests'))
-            ->where($db->quoteName('id') . ' = ' . (int)$requestId);
+        $query = $db->getQuery(true)->select($db->quoteName('property_name'))->from($db->quoteName('#__booking_requests'))->where($db->quoteName('id') . ' = ' . (int)$requestId);
         $propertyName = $db->setQuery($query)->loadResult();
-
         if (!$propertyName) {
             $this->setError('Could not find property for the booking request.');
             return false;
         }
-
-        $query->clear()
-            ->select('s.id, s.contact_email, s.contact_phone')
-            ->from($db->quoteName('#__bookingmanager_suppliers', 's'))
-            ->join('LEFT', $db->quoteName('#__bookingmanager_property_map', 'm') . ' ON s.id = m.supplier_id')
-            ->join('LEFT', $db->quoteName('#__content', 'p') . ' ON m.property_id = p.id')
-            ->where('p.title = ' . $db->quote($propertyName));
+        $query->clear()->select('s.id, s.contact_email, s.contact_phone')->from($db->quoteName('#__bookingmanager_suppliers', 's'))->join('LEFT', $db->quoteName('#__bookingmanager_property_map', 'm') . ' ON s.id = m.supplier_id')->join('LEFT', $db->quoteName('#__content', 'p') . ' ON m.property_id = p.id')->where('p.title = ' . $db->quote($propertyName));
         $supplier = $db->setQuery($query)->loadObject();
-
         if (!$supplier) {
             $this->setError('Could not find a supplier for this property.');
             return false;
         }
-
-        $logMessage = $message;
-        if (empty($logMessage)) {
-            $logMessage = 'WhatsApp communication sent to supplier.';
-        }
-
+        $logMessage = $message ?: 'WhatsApp communication sent to supplier.';
         $table = JTable::getInstance('SupplierCommunication', 'BookingmanagerTable');
         $logData = [
             'booking_request_id' => $requestId,
@@ -295,13 +261,54 @@ class BookingmanagerModelBookingrequest extends AdminModel
             'sent_by_user_id'    => $user->id,
             'whatsapp_sent'      => 1,
         ];
-
         if (BookingmanagerHelper::columnExists('#__booking_supplier_communication', 'supplier_phone')) {
             $logData['supplier_phone'] = $supplier->contact_phone;
         }
-
         if (!$table->save($logData)) {
             $this->setError('Failed to save WhatsApp message log: ' . $table->getError());
+            return false;
+        }
+        $query->clear()->select('sc.*, u.name as author_name')->from($db->quoteName('#__booking_supplier_communication', 'sc'))->join('LEFT', $db->quoteName('#__users', 'u') . ' ON sc.sent_by_user_id = u.id')->where('sc.id = ' . (int)$table->id);
+        $newMessage = $db->setQuery($query)->loadObject();
+        if ($newMessage) {
+            $newMessage->sent_at = (new Date($newMessage->sent_at))->format('Y-m-d H:i');
+        }
+        return $newMessage;
+    }
+
+    public function deleteSupplierAttachment($filePath)
+    {
+        if (empty($filePath)) {
+            $this->setError('File path is required.');
+            return false;
+        }
+
+        // Basic security check: ensure the path is within the expected directory
+        if (strpos($filePath, 'images/booking-attachments/') !== 0) {
+            $this->setError('Invalid file path specified.');
+            return false;
+        }
+
+        $fullPath = JPATH_SITE . '/' . $filePath;
+
+        // Delete the file from the filesystem
+        if (Joomla\CMS\Filesystem\File::exists($fullPath)) {
+            if (!Joomla\CMS\Filesystem\File::delete($fullPath)) {
+                $this->setError('Failed to delete file from filesystem.');
+                return false;
+            }
+        }
+
+        // Delete the record from the database
+        $db = $this->getDbo();
+        $query = $db->getQuery(true)
+            ->delete($db->quoteName('#__booking_attachments'))
+            ->where($db->quoteName('file_path') . ' = ' . $db->quote($filePath));
+
+        try {
+            $db->setQuery($query)->execute();
+        } catch (\Exception $e) {
+            $this->setError('Database error during attachment deletion: ' . $e->getMessage());
             return false;
         }
 

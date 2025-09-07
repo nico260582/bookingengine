@@ -71,7 +71,7 @@ class BookingmanagerControllerBookingrequest extends FormController
     }
 
 
-    public function logWhatsAppMessage()
+    private function _executeSupplierAction(callable $modelCall, $successMessage, $errorMessage)
     {
         $app = Factory::getApplication();
         try {
@@ -79,92 +79,102 @@ class BookingmanagerControllerBookingrequest extends FormController
                 throw new \Exception(\Joomla\CMS\Language\Text::_('JINVALID_TOKEN'), 403);
             }
 
-            $input = $app->input->post;
-            $id = $input->get('id', 0, 'int');
-            $message = $input->get('supplier_message', '', 'raw');
-
             $model = $this->getModel('Bookingrequest');
-            $result = $model->logWhatsAppMessage($id, $message);
+            $result = $modelCall($model);
 
             if ($result) {
-                header('Content-Type: application/json; charset=utf-8');
-                echo json_encode(['success' => true, 'message' => \Joomla\CMS\Language\Text::_('WhatsApp communication logged successfully.')]);
+                echo new \Joomla\CMS\Response\JsonResponse(['success' => true, 'message' => $successMessage, 'data' => $result]);
             } else {
-                throw new \Exception($model->getError() ?: 'An unknown error occurred while logging WhatsApp message.', 500);
+                throw new \Exception($model->getError() ?: $errorMessage, 500);
             }
         } catch (\Exception $e) {
+            $logMessage = sprintf(
+                "Supplier Action Error: %s | Input Data: %s",
+                $e->getMessage(),
+                json_encode(Factory::getApplication()->input->post->getArray())
+            );
+            \Joomla\CMS\Log\Log::add($logMessage, \Joomla\CMS\Log\Log::ERROR, 'com_bookingmanager');
+
             $code = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 500;
-            header('Content-Type: application/json; charset=utf-8', true, $code);
-            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            if (!headers_sent()) { http_response_code($code); }
+            echo new \Joomla\CMS\Response\JsonResponse(null, $e->getMessage(), true);
         }
         $app->close();
+    }
+
+    public function logWhatsAppMessage()
+    {
+        $input = Factory::getApplication()->input;
+        $id = $input->getInt('id', 0);
+        $message = $input->get('supplier_message', '', 'raw');
+        $whatsappSent = $input->getBool('whatsapp_sent', false);
+
+        $modelCall = function($model) use ($id, $message, $whatsappSent) {
+            return $model->logWhatsAppMessage($id, $message, $whatsappSent);
+        };
+
+        $this->_executeSupplierAction($modelCall, 'WhatsApp communication logged successfully.', 'An unknown error occurred while logging WhatsApp message.');
     }
 
     public function sendSupplierMessage()
     {
+        $input = Factory::getApplication()->input;
+        $id = $input->getInt('id', 0);
+        $message = $input->get('supplier_message', '', 'raw');
+        $whatsappSent = $input->getBool('whatsapp_sent', false);
+        $attachments = $input->get('attachments', [], 'array');
+
+        $modelCall = function($model) use ($id, $message, $whatsappSent, $attachments) {
+            return $model->sendSupplierMessage($id, $message, $whatsappSent, $attachments);
+        };
+
+        $this->_executeSupplierAction($modelCall, 'Message sent successfully.', 'An unknown error occurred while sending the message.');
+    }
+
+    public function upload()
+    {
         $app = Factory::getApplication();
         try {
             if (!\Joomla\CMS\Session\Session::checkToken('post')) {
                 throw new \Exception(\Joomla\CMS\Language\Text::_('JINVALID_TOKEN'), 403);
             }
 
-            $input = $app->input->post;
-            $id = $input->get('id', 0, 'int');
-            $message = $input->get('supplier_message', '', 'raw');
-            $whatsappSent = $input->get('whatsapp_sent', 0, 'int') == 1;
+            $input = $app->input;
+            $file = $input->files->get('file'); // The JS should send the file under the key 'file'
+            $id = $input->getInt('id');
 
-            if (!$id) {
-                throw new \Exception('Missing required parameter: id.', 400);
+            if (empty($file) || $file['error'] !== UPLOAD_ERR_OK) {
+                throw new \Exception('File upload error: ' . ($file['error'] ?? 'Unknown Error'));
             }
 
-            $model = $this->getModel('Bookingrequest');
-            $result = $model->sendSupplierMessage($id, $message, $whatsappSent);
+            $targetDir = JPATH_SITE . '/images/booking-attachments/';
+            if (!is_dir($targetDir)) {
+                mkdir($targetDir, 0755, true);
+            }
 
-            if ($result) {
-                header('Content-Type: application/json; charset=utf-8');
-                echo json_encode(['success' => true, 'message' => \Joomla\CMS\Language\Text::_('Message sent to supplier successfully.')]);
+            $fileName = preg_replace('/[^A-Za-z0-9_.-]/', '', basename($file['name']));
+            $targetFile = $targetDir . $fileName;
+
+            $fileNameWithoutExt = pathinfo($fileName, PATHINFO_FILENAME);
+            $extension = pathinfo($fileName, PATHINFO_EXTENSION);
+            $counter = 1;
+            while (file_exists($targetFile)) {
+                $fileName = $fileNameWithoutExt . '_' . $counter++ . '.' . $extension;
+                $targetFile = $targetDir . $fileName;
+            }
+
+            if (move_uploaded_file($file['tmp_name'], $targetFile)) {
+                $relativePath = 'images/booking-attachments/' . $fileName;
+                echo new \Joomla\CMS\Response\JsonResponse(['success' => true, 'filePath' => $relativePath, 'fileName' => $fileName]);
             } else {
-                throw new \Exception($model->getError() ?: 'An unknown error occurred.', 500);
+                throw new \Exception('Failed to move uploaded file.');
             }
+
         } catch (\Exception $e) {
             $code = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 500;
-            header('Content-Type: application/json; charset=utf-8', true, $code);
-            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            if (!headers_sent()) { http_response_code($code); }
+            echo new \Joomla\CMS\Response\JsonResponse(null, $e->getMessage(), true);
         }
-        $app->close();
-    }
-
-    public function upload()
-    {
-        if (!Joomla\CMS\Session\Session::checkToken('post')) {
-            echo new JsonResponse(null, Joomla\CMS\Language\Text::_('JINVALID_TOKEN'), true);
-            Factory::getApplication()->close();
-        }
-
-        $app = Factory::getApplication();
-        $input = $app->input;
-        $file = $input->files->get('attachment');
-        $id = $input->getInt('id');
-
-        if (empty($file) || $file['error'] !== UPLOAD_ERR_OK) {
-            echo new JsonResponse(null, JText::_('COM_BOOKINGMANAGER_ERROR_NO_FILE_UPLOADED'), true);
-            $app->close();
-        }
-
-        $filename = File::makeSafe($file['name']);
-        $filepath = JPATH_ROOT . '/media/com_bookingmanager/attachments/' . $id . '/' . $filename;
-
-        if (!Folder::exists(dirname($filepath))) {
-            Folder::create(dirname($filepath));
-        }
-
-        if (File::upload($file['tmp_name'], $filepath)) {
-            $data = ['filePath' => 'media/com_bookingmanager/attachments/' . $id . '/' . $filename];
-            echo new JsonResponse($data);
-        } else {
-            echo new JsonResponse(null, JText::_('COM_BOOKINGMANAGER_ERROR_FAILED_TO_MOVE_UPLOADED_FILE'), true);
-        }
-
         $app->close();
     }
 
@@ -237,6 +247,34 @@ class BookingmanagerControllerBookingrequest extends FormController
             echo new JsonResponse(['success' => false, 'message' => $e->getMessage()]);
         }
 
+        $app->close();
+    }
+
+    public function deleteSupplierAttachment()
+    {
+        $app = Factory::getApplication();
+        try {
+            if (!\Joomla\CMS\Session\Session::checkToken('post')) {
+                throw new \Exception(\Joomla\CMS\Language\Text::_('JINVALID_TOKEN'), 403);
+            }
+
+            $input = $app->input;
+            $filePath = $input->getString('filePath');
+            if (empty($filePath)) {
+                throw new \Exception('File path is required.', 400);
+            }
+
+            $model = $this->getModel('Bookingrequest');
+            if ($model->deleteSupplierAttachment($filePath)) {
+                echo new \Joomla\CMS\Response\JsonResponse(['success' => true, 'message' => 'Attachment deleted.']);
+            } else {
+                throw new \Exception($model->getError() ?: 'An unknown error occurred while deleting the attachment.', 500);
+            }
+        } catch (\Exception $e) {
+            $code = ($e->getCode() >= 400 && $e->getCode() < 600) ? $e->getCode() : 500;
+            if (!headers_sent()) { http_response_code($code); }
+            echo new \Joomla\CMS\Response\JsonResponse(null, $e->getMessage(), true);
+        }
         $app->close();
     }
 }

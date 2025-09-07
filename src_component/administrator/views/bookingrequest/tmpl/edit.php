@@ -115,7 +115,7 @@ use Joomla\CMS\Uri\Uri;
                                                 </div>
                                             </div>
                                             <div class="message-body-admin">
-                                                <?php echo $message->message; // Message is saved as HTML, so no escaping ?>
+                                                <?php echo JHtml::_('content.prepare', $message->message); ?>
                                             </div>
                                         </div>
                                     </div>
@@ -142,15 +142,16 @@ use Joomla\CMS\Uri\Uri;
                         </div>
                     </div>
                     <div class="control-group">
-                        <div class="control-label"><label for="supplier_attachment">Attachment</label></div>
+                        <div class="control-label"><label for="supplier_attachments">Attachments</label></div>
                         <div class="controls">
-                            <input type="file" name="supplier_attachment" id="supplier_attachment">
+                            <input type="file" name="supplier_attachments[]" id="supplier_attachments" multiple>
+                            <div id="supplier_attachment_list"></div>
                         </div>
                     </div>
                     <div class="control-group">
                         <div class="controls">
                             <button type="button" class="btn btn-primary" id="send-supplier-email-btn">Send Email</button>
-                            <button type="button" class="btn" id="send-whatsapp-supplier-btn">Send via WhatsApp</button>
+                            <button type="button" class="btn" id="send-whatsapp-supplier-btn">Log WhatsApp</button>
                         </div>
                     </div>
                 </div>
@@ -234,7 +235,8 @@ use Joomla\CMS\Uri\Uri;
 $doc = Factory::getDocument();
 $ajaxUrls = [
     'upload' => Route::_('index.php?option=com_bookingmanager&task=bookingrequest.upload&' . Session::getFormToken() . '=1', false),
-    'deleteAttachment' => Route::_('index.php?option=com_bookingmanager&task=bookingrequest.deleteAttachment&' . Session::getFormToken() . '=1', false),
+    'deleteAttachment' => Route::_('index.php?option=com_bookingmanager&task=bookingrequest.deleteAttachment&' . Session::getFormToken() . '=1', false), // For client side
+    'deleteSupplierAttachment' => Route::_('index.php?option=com_bookingmanager&task=bookingrequest.deleteSupplierAttachment&' . Session::getFormToken() . '=1', false), // For supplier side
     'getSupplierTemplate' => Route::_('index.php?option=com_bookingmanager&task=bookingrequest.getSupplierTemplate&' . Session::getFormToken() . '=1', false),
     'sendSupplierMessage' => Route::_('index.php?option=com_bookingmanager&task=bookingrequest.sendSupplierMessage&' . Session::getFormToken() . '=1', false),
     'logWhatsAppMessage' => Route::_('index.php?option=com_bookingmanager&task=bookingrequest.logWhatsAppMessage&' . Session::getFormToken() . '=1', false),
