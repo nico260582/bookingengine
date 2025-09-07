@@ -145,12 +145,15 @@ class BookingmanagerModelBookingrequest extends AdminModel
             'booking_request_id' => $requestId,
             'supplier_id'        => $supplier->id,
             'supplier_email'     => $supplier->contact_email,
-            'supplier_phone'     => $supplier->contact_phone,
             'message'            => $logMessage,
             'sent_at'            => (new Date('now'))->toSql(),
             'sent_by_user_id'    => $user->id,
             'whatsapp_sent'      => (int) $whatsappSent,
         ];
+
+        if (BookingmanagerHelper::columnExists('#__booking_supplier_communication', 'supplier_phone')) {
+            $logData['supplier_phone'] = $supplier->contact_phone;
+        }
 
         if (!$table->save($logData)) {
             $this->setError('Failed to save supplier message log: ' . $table->getError());
@@ -243,12 +246,15 @@ class BookingmanagerModelBookingrequest extends AdminModel
             'booking_request_id' => $requestId,
             'supplier_id'        => $supplier->id,
             'supplier_email'     => $supplier->contact_email,
-            'supplier_phone'     => $supplier->contact_phone,
             'message'            => $logMessage,
             'sent_at'            => (new Date('now'))->toSql(),
             'sent_by_user_id'    => $user->id,
             'whatsapp_sent'      => 1,
         ];
+
+        if (BookingmanagerHelper::columnExists('#__booking_supplier_communication', 'supplier_phone')) {
+            $logData['supplier_phone'] = $supplier->contact_phone;
+        }
 
         if (!$table->save($logData)) {
             $this->setError('Failed to save WhatsApp message log: ' . $table->getError());

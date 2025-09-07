@@ -470,4 +470,19 @@ EOT;
 
         return str_replace(array_keys($placeholders), array_values($placeholders), $templateBody);
     }
+    public static function columnExists($tableName, $columnName)
+    {
+        $db = Factory::getDbo();
+        $tableName = $db->replacePrefix($tableName);
+
+        $query = $db->getQuery(true)
+            ->select('COUNT(*)')
+            ->from('information_schema.COLUMNS')
+            ->where('TABLE_SCHEMA = DATABASE()')
+            ->where('TABLE_NAME = ' . $db->quote($tableName))
+            ->where('COLUMN_NAME = ' . $db->quote($columnName));
+
+        $db->setQuery($query);
+        return (bool) $db->loadResult();
+    }
 }
