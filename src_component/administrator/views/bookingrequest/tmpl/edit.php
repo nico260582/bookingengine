@@ -231,6 +231,7 @@ $ajaxUrls = [
     'deleteAttachment' => Route::_('index.php?option=com_bookingmanager&task=bookingrequest.deleteAttachment&' . Session::getFormToken() . '=1', false),
     'getSupplierTemplate' => Route::_('index.php?option=com_bookingmanager&task=bookingrequest.getSupplierTemplate&' . Session::getFormToken() . '=1', false),
     'sendSupplierMessage' => Route::_('index.php?option=com_bookingmanager&task=bookingrequest.sendSupplierMessage&' . Session::getFormToken() . '=1', false),
+    'logWhatsAppMessage' => Route::_('index.php?option=com_bookingmanager&task=bookingrequest.logWhatsAppMessage&' . Session::getFormToken() . '=1', false),
     'supplier_phone' => $this->item->supplier_contact_phone ?? ''
 ];
 $doc->addScriptOptions('com_bookingmanager.admin', $ajaxUrls);

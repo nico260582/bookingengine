@@ -21,8 +21,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 const url = 'https://wa.me/' + phone.replace(/[^0-9]/g, '') + '?text=' + encodeURIComponent(plainTextMessage);
                 window.open(url, '_blank');
 
-                // Now, also save this action to the database using the main sendSupplierMessage task
-                const saveUrl = options.sendSupplierMessage;
+                // Now, also save this action to the database
+                const saveUrl = options.logWhatsAppMessage; // Use the new dedicated task
                 const requestId = document.querySelector('#item-form input[name="id"]').value;
                 const token = Joomla.getOptions('csrf.token');
 
@@ -30,7 +30,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 formData.append('id', requestId);
                 formData.append('supplier_message', message); // Log the original HTML message
                 formData.append('whatsapp_sent', '1');
-                formData.append('email_do_not_send', '1'); // Add flag to prevent email sending
                 formData.append(token, '1');
 
                 fetch(saveUrl, {

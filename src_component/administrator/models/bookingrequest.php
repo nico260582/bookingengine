@@ -161,10 +161,7 @@ class BookingmanagerModelBookingrequest extends AdminModel
         }
 
         // 4. Send the email, if there is a message and an email address
-        $input = Factory::getApplication()->input;
-        $emailDoNotSend = $input->get('email_do_not_send', 0, 'int');
-
-        if (!$emailDoNotSend && !empty($message) && !empty($supplier->contact_email)) {
+        if (!empty($message) && !empty($supplier->contact_email)) {
             JLoader::register('BookingmanagerHelper', JPATH_ADMINISTRATOR . '/components/com_bookingmanager/helpers/bookingmanager.php');
 
             // The helper will now create the template if it doesn't exist.
@@ -203,6 +200,70 @@ class BookingmanagerModelBookingrequest extends AdminModel
         return true;
     }
 
+
+    public function logWhatsAppMessage($requestId, $message)
+    {
+        if (!$requestId) {
+            $this->setError('Invalid request ID.');
+            return false;
+        }
+
+        $db = Factory::getDbo();
+        $user = Factory::getUser();
+
+        // Get supplier ID and email for logging purposes
+        // Use the same two-step query as sendSupplierMessage to avoid collation issues.
+        $query = $db->getQuery(true)
+            ->select($db->quoteName('property_name'))
+            ->from($db->quoteName('#__booking_requests'))
+            ->where($db->quoteName('id') . ' = ' . (int)$requestId);
+        $propertyName = $db->setQuery($query)->loadResult();
+
+        if (!$propertyName) {
+            $this->setError('Could not find property for the booking request.');
+            return false;
+        }
+
+        $query->clear()
+            ->select('s.id, s.contact_email, s.contact_phone')
+            ->from($db->quoteName('#__bookingmanager_suppliers', 's'))
+            ->join('LEFT', $db->quoteName('#__bookingmanager_property_map', 'm') . ' ON s.id = m.supplier_id')
+            ->join('LEFT', $db->quoteName('#__content', 'p') . ' ON m.property_id = p.id')
+            ->where('p.title = ' . $db->quote($propertyName));
+        $supplier = $db->setQuery($query)->loadObject();
+
+        if (!$supplier) {
+            $this->setError('Could not find a supplier for this property.');
+            return false;
+        }
+
+        $logMessage = $message;
+        if (empty($logMessage)) {
+            $logMessage = 'WhatsApp communication sent to supplier.';
+        }
+
+        $table = JTable::getInstance('SupplierCommunication', 'BookingmanagerTable');
+        $logData = [
+            'booking_request_id' => $requestId,
+            'supplier_id'        => $supplier->id,
+            'supplier_email'     => $supplier->contact_email,
+            'message'            => $logMessage,
+            'sent_at'            => (new Date('now'))->toSql(),
+            'sent_by_user_id'    => $user->id,
+            'whatsapp_sent'      => 1,
+        ];
+
+        if (BookingmanagerHelper::columnExists('#__booking_supplier_communication', 'supplier_phone')) {
+            $logData['supplier_phone'] = $supplier->contact_phone;
+        }
+
+        if (!$table->save($logData)) {
+            $this->setError('Failed to save WhatsApp message log: ' . $table->getError());
+            return false;
+        }
+
+        return true;
+    }
 
     protected function loadFormData()
     {
