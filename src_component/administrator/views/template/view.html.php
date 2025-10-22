@@ -2,6 +2,8 @@
 defined('_JEXEC') or die;
 
 use Joomla\CMS\MVC\View\HtmlView;
+use Joomla\CMS\Toolbar\ToolbarHelper;
+use Joomla\CMS\HTML\HTMLHelper;
 
 class BookingmanagerViewTemplate extends HtmlView
 {
@@ -15,16 +17,16 @@ class BookingmanagerViewTemplate extends HtmlView
         $this->item = $this->get('Item');
         $this->placeholders = BookingmanagerHelper::getPlaceholders();
 
-        JHtml::_('behavior.formvalidator');
+        HTMLHelper::_('behavior.formvalidator');
         $this->addToolbar();
         parent::display($tpl);
     }
     
     protected function addToolbar()
     {
-        JToolbarHelper::title('Edit Template');
-        JToolbarHelper::apply('template.apply');
-        JToolbarHelper::save('template.save');
-        JToolbarHelper::cancel('template.cancel');
+        ToolbarHelper::title('Edit Template');
+        ToolbarHelper::apply('template.apply');
+        ToolbarHelper::save('template.save');
+        ToolbarHelper::cancel('template.cancel');
     }
 }

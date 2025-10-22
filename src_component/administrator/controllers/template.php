@@ -1,6 +1,8 @@
 <?php
 defined('_JEXEC') or die;
 
-class BookingmanagerControllerTemplate extends JControllerForm
+use Joomla\CMS\MVC\Controller\FormController;
+
+class BookingmanagerControllerTemplate extends FormController
 {
 }

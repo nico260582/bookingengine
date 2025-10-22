@@ -1,7 +1,9 @@
 <?php
 defined('_JEXEC') or die;
 
-class BookingmanagerControllerSuppliers extends JControllerAdmin
+use Joomla\CMS\MVC\Controller\AdminController;
+
+class BookingmanagerControllerSuppliers extends AdminController
 {
     public function getModel($name = 'Supplier', $prefix = 'BookingmanagerModel', $config = ['ignore_request' => true])
     {
