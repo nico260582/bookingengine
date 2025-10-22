@@ -3,28 +3,15 @@ defined('_JEXEC') or die;
 use Joomla\CMS\Factory;
 class com_bookingmanagerInstallerScript
 {
-    private function columnExists($tableName, $columnName)
-    {
-        $db = Factory::getDbo();
-        $tableName = $db->replacePrefix($tableName);
-
-        $query = $db->getQuery(true)
-            ->select('COUNT(*)')
-            ->from('information_schema.COLUMNS')
-            ->where('TABLE_SCHEMA = DATABASE()')
-            ->where('TABLE_NAME = ' . $db->quote($tableName))
-            ->where('COLUMN_NAME = ' . $db->quote($columnName));
-
-        $db->setQuery($query);
-        return (bool) $db->loadResult();
-    }
-
     public function install($parent) { $this->runInstallQueries($parent); return true; }
     public function uninstall($parent) { $this->runUninstallQueries($parent); return true; }
     public function update($parent) { $this->runInstallQueries($parent); return true; }
 
     private function runInstallQueries($parent)
     {
+        // Load the helper file
+        JLoader::register('BookingmanagerHelper', JPATH_ADMINISTRATOR . '/components/com_bookingmanager/helpers/bookingmanager.php');
+
         $db = Factory::getDbo();
 
         $queries = array();
@@ -240,11 +227,11 @@ class com_bookingmanagerInstallerScript
         }
 
         // Add new columns and tables for T&C feature
-        if (!$this->columnExists('#__bookingmanager_suppliers', 'terms_and_conditions')) {
+        if (!BookingmanagerHelper::columnExists('#__bookingmanager_suppliers', 'terms_and_conditions')) {
             $db->setQuery("ALTER TABLE `#__bookingmanager_suppliers` ADD `terms_and_conditions` TEXT;");
             try { $db->execute(); } catch (Exception $e) {}
         }
-        if (!$this->columnExists('#__booking_requests', 'terms_log_id')) {
+        if (!BookingmanagerHelper::columnExists('#__booking_requests', 'terms_log_id')) {
             $db->setQuery("ALTER TABLE `#__booking_requests` ADD `terms_log_id` INT(11) NULL DEFAULT NULL;");
             try { $db->execute(); } catch (Exception $e) {}
         }
@@ -258,17 +245,43 @@ class com_bookingmanagerInstallerScript
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;");
         try { $db->execute(); } catch (Exception $e) {}
 
-        if (!$this->columnExists('#__booking_requests', 'terms_agreed')) {
+        if (!BookingmanagerHelper::columnExists('#__booking_requests', 'terms_agreed')) {
             $db->setQuery("ALTER TABLE `#__booking_requests` ADD `terms_agreed` TINYINT(1) NOT NULL DEFAULT 0;");
             try { $db->execute(); } catch (Exception $e) {}
         }
-        if (!$this->columnExists('#__booking_requests', 'terms_agreed_at')) {
+        if (!BookingmanagerHelper::columnExists('#__booking_requests', 'terms_agreed_at')) {
             $db->setQuery("ALTER TABLE `#__booking_requests` ADD `terms_agreed_at` DATETIME;");
             try { $db->execute(); } catch (Exception $e) {}
         }
 
 
         $this->addDefaultTemplates($db);
+
+        // For 1.15.0
+        $db->setQuery("CREATE TABLE IF NOT EXISTS `#__booking_supplier_communication` (
+          `id` int(11) NOT NULL AUTO_INCREMENT,
+          `booking_request_id` int(11) NOT NULL,
+          `supplier_id` int(11) NOT NULL,
+          `supplier_email` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+          `message` text COLLATE utf8mb4_unicode_ci NOT NULL,
+          `sent_at` datetime NOT NULL,
+          `sent_by_user_id` int(11) NOT NULL,
+          `whatsapp_sent` tinyint(1) NOT NULL DEFAULT '0',
+          PRIMARY KEY (`id`),
+          KEY `booking_request_id` (`booking_request_id`),
+          KEY `supplier_id` (`supplier_id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+        try { $db->execute(); } catch (Exception $e) {}
+
+        if (!BookingmanagerHelper::columnExists('#__bookingmanager_suppliers', 'contact_phone')) {
+            $db->setQuery("ALTER TABLE `#__bookingmanager_suppliers` ADD `contact_phone` VARCHAR(255) NULL DEFAULT NULL AFTER `contact_email`;");
+            try { $db->execute(); } catch (Exception $e) {}
+        }
+
+        if (!BookingmanagerHelper::columnExists('#__booking_supplier_communication', 'supplier_phone')) {
+            $db->setQuery("ALTER TABLE `#__booking_supplier_communication` ADD COLUMN `supplier_phone` VARCHAR(100) NULL DEFAULT NULL AFTER `supplier_email`;");
+            try { $db->execute(); } catch (Exception $e) {}
+        }
     }
 
     private function addSampleData($db) {
