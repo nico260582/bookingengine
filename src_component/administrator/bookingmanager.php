@@ -1,9 +1,10 @@
 <?php
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Extension\ComponentInterface;
+use Joomla\CMS\Extension\MVCComponent;
 use Joomla\CMS\Factory;
-use Joomla\CMS\Language\Text;
-use Joomla\CMS\MVC\Controller\BaseController;
+use Joomla\CMS\Dispatcher\ComponentDispatcherFactoryInterface;
 
 // Access check.
 if (!Factory::getUser()->authorise('core.manage', 'com_bookingmanager'))
@@ -11,19 +12,12 @@ if (!Factory::getUser()->authorise('core.manage', 'com_bookingmanager'))
 	throw new \Exception(Text::_('JERROR_ALERTNOAUTHOR'), 403);
 }
 
-// Register the helper
-JLoader::register('BookingmanagerHelper', __DIR__ . '/helpers/bookingmanager.php');
+// Get the component instance
+$component = Factory::getContainer()->get(ComponentInterface::class);
 
-// Load component CSS
-$doc = Factory::getDocument();
-$doc->addStyleSheet('components/com_bookingmanager/assets/css/bookingmanager.css');
-$doc->addStyleSheet('components/com_bookingmanager/assets/css/custom-booking-styles.css');
+// Get the dispatcher and dispatch the request
+$dispatcher = Factory::getContainer()
+    ->get(ComponentDispatcherFactoryInterface::class)
+    ->createDispatcher($component);
 
-// Get an instance of the controller prefixed by Bookingmanager
-$controller = BaseController::getInstance('Bookingmanager');
-
-// Perform the Request task
-$controller->execute(Factory::getApplication()->input->getCmd('task'));
-
-// Redirect if set by the controller
-$controller->redirect();
+$dispatcher->dispatch();
