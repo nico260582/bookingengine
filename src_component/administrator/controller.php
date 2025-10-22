@@ -1,19 +1,15 @@
 <?php
 defined('_JEXEC') or die;
 
-use Joomla\CMS\MVC\Controller\AdminController;
+use Joomla\CMS\MVC\Controller\BaseController;
 
-class BookingmanagerController extends AdminController
+class BookingmanagerController extends BaseController
 {
     protected $default_view = 'bookingrequests';
 
 	public function __construct($config = [])
 	{
 		parent::__construct($config);
-
-		$this->registerTask('apply', 'save');
-		$this->registerTask('save2new', 'save');
-		$this->registerTask('save2copy', 'save');
 	}
 
     public function display($cachable = false, $urlparams = array())
