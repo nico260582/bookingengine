@@ -5,6 +5,15 @@ use Joomla\CMS\MVC\Controller\AdminController;
 
 class BookingmanagerControllerSubregions extends AdminController
 {
+	public function __construct($config = [])
+	{
+		parent::__construct($config);
+
+		$this->registerTask('apply', 'save');
+		$this->registerTask('save2new', 'save');
+		$this->registerTask('save2copy', 'save');
+	}
+
     /**
      * The prefix to use with controller messages.
      */
