@@ -5,6 +5,8 @@ use Joomla\CMS\MVC\Controller\AdminController;
 
 class BookingmanagerController extends AdminController
 {
+    protected $default_view = 'bookingrequests';
+
 	public function __construct($config = [])
 	{
 		parent::__construct($config);
@@ -16,8 +18,7 @@ class BookingmanagerController extends AdminController
 
     public function display($cachable = false, $urlparams = array())
     {
-        $view = $this->input->get('view', 'bookingrequests');
-        $this->input->set('view', $view);
+        $this->input->set('view', $this->input->getCmd('view', $this->default_view));
         parent::display($cachable, $urlparams);
         return $this;
     }
