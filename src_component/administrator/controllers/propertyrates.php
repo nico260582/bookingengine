@@ -2,12 +2,20 @@
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
+use Joomla\CMS\MVC\Controller\AdminController;
+use Joomla\CMS\Session\Session;
+use Joomla\CMS\Language\Text;
 
-class BookingmanagerControllerPropertyrates extends JControllerAdmin
+class BookingmanagerControllerPropertyrates extends AdminController
 {
+    public function getModel($name = 'Propertyrates', $prefix = 'BookingmanagerModel', $config = array('ignore_request' => true))
+    {
+        return parent::getModel($name, $prefix, $config);
+    }
+
     public function save()
     {
-        JSession::checkToken() or jexit(JText::_('JINVALID_TOKEN'));
+        Session::checkToken() or die(Text::_('JINVALID_TOKEN'));
         $app   = Factory::getApplication();
         $model = $this->getModel('Propertyrates', 'BookingmanagerModel');
         $data  = $this->input->post->get('jform', array(), 'array');
