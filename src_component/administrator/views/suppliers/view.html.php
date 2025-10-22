@@ -2,7 +2,6 @@
 defined('_JEXEC') or die;
 
 use Joomla\CMS\MVC\View\HtmlView;
-use Joomla\CMS\Toolbar\ToolbarHelper;
 
 class BookingmanagerViewSuppliers extends HtmlView
 {
@@ -18,9 +17,9 @@ class BookingmanagerViewSuppliers extends HtmlView
 
     protected function addToolbar()
     {
-        ToolbarHelper::title('Suppliers');
-        ToolbarHelper::addNew('supplier.add');
-        ToolbarHelper::editList('supplier.edit');
-        ToolbarHelper::deleteList('Are you sure?', 'suppliers.delete');
+        JToolbarHelper::title('Suppliers');
+        JToolbarHelper::addNew('supplier.add');
+        JToolbarHelper::editList('supplier.edit');
+        JToolbarHelper::deleteList('Are you sure?', 'suppliers.delete');
     }
 }

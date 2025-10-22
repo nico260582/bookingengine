@@ -9,7 +9,6 @@
     <authorUrl>https://www.book-holidays-mauritius.com</authorUrl>
     <version>1.15.0</version>
     <description>A component to manage booking requests and suppliers.</description>
-    <namespace>Rtholidays\Component\Bookingmanager</namespace>
     <scriptfile>script.php</scriptfile>
     
     <files folder="site">
@@ -72,7 +71,6 @@
             <folder>views</folder>
             <folder>assets</folder>
             <folder>layouts</folder>
-            <folder>src</folder>
         </files>
         <languages folder="administrator/language">
             <language tag="en-GB">en-GB/en-GB.com_bookingmanager.sys.ini</language>

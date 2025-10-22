@@ -2,8 +2,6 @@
 defined('_JEXEC') or die;
 
 use Joomla\CMS\MVC\View\HtmlView;
-use Joomla\CMS\Toolbar\ToolbarHelper;
-use Joomla\CMS\Uri\Uri;
 
 class BookingmanagerViewBookingrequest extends HtmlView
 {
@@ -25,17 +23,17 @@ class BookingmanagerViewBookingrequest extends HtmlView
         $this->activityLogs = $model->getActivityLog($this->item->id);
         $this->attachments = $model->getAttachments($this->item->id);
         $this->document->getWebAssetManager()->useScript('form.validate');
-        $this->document->addStyleSheet(Uri::root(true) . '/administrator/components/com_bookingmanager/assets/css/bookingmanager.css');
-        $this->document->addStyleSheet(Uri::root(true) . '/administrator/components/com_bookingmanager/assets/css/custom-booking-styles.css');
+        $this->document->addStyleSheet(JUri::root(true) . '/administrator/components/com_bookingmanager/assets/css/bookingmanager.css');
+        $this->document->addStyleSheet(JUri::root(true) . '/administrator/components/com_bookingmanager/assets/css/custom-booking-styles.css');
         $this->addToolbar();
         parent::display($tpl);
     }
 
     protected function addToolbar()
     {
-        ToolbarHelper::title($this->item->id ? 'Edit Request' : 'New Request');
-        ToolbarHelper::apply('bookingrequest.apply');
-        ToolbarHelper::save('bookingrequest.save');
-        ToolbarHelper::cancel('bookingrequest.cancel');
+        JToolbarHelper::title($this->item->id ? 'Edit Request' : 'New Request');
+        JToolbarHelper::apply('bookingrequest.apply');
+        JToolbarHelper::save('bookingrequest.save');
+        JToolbarHelper::cancel('bookingrequest.cancel');
     }
 }

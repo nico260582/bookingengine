@@ -3,15 +3,12 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
 use Joomla\CMS\Mail\MailHelper;
-use Joomla\CMS\MVC\Controller\BaseController;
-use Joomla\CMS\Session\Session;
-use Joomla\CMS\Language\Text;
 
-class BookingmanagerControllerDiagnostic extends BaseController
+class BookingmanagerControllerDiagnostic extends JControllerLegacy
 {
     public function sendTestEmail()
     {
-        Session::checkToken() or die(Text::_('JINVALID_TOKEN'));
+        JSession::checkToken() or jexit(JText::_('JINVALID_TOKEN'));
         $app = Factory::getApplication();
         $input = $app->input;
         $recipient = $input->post->getString('recipient_email', '');
@@ -46,7 +43,7 @@ class BookingmanagerControllerDiagnostic extends BaseController
 
     public function installSampleData()
     {
-        Session::checkToken('get') or die(Text::_('JINVALID_TOKEN'));
+        JSession::checkToken('get') or jexit(JText::_('JINVALID_TOKEN'));
 
         $app = Factory::getApplication();
         $db = Factory::getDbo();

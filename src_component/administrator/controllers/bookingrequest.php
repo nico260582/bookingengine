@@ -8,15 +8,13 @@ use Joomla\CMS\Filesystem\Folder;
 use Joomla\CMS\Filesystem\File;
 use Joomla\CMS\MVC\Controller\FormController;
 use Joomla\CMS\Response\JsonResponse;
-use Joomla\CMS\Session\Session;
-use Joomla\CMS\Language\Text;
 
 class BookingmanagerControllerBookingrequest extends FormController
 {
     public function save($key = null, $urlVar = null)
     {
         // Check for request forgeries.
-        Session::checkToken() or die(Text::_('JINVALID_TOKEN'));
+        JSession::checkToken() or jexit(JText::_('JINVALID_TOKEN'));
 
         $app   = Factory::getApplication();
         $input = $app->input;

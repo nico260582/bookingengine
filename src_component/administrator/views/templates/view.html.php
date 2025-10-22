@@ -2,7 +2,6 @@
 defined('_JEXEC') or die;
 
 use Joomla\CMS\MVC\View\HtmlView;
-use Joomla\CMS\Toolbar\ToolbarHelper;
 
 class BookingmanagerViewTemplates extends HtmlView
 {
@@ -12,8 +11,8 @@ class BookingmanagerViewTemplates extends HtmlView
     {
         $this->items = $this->get('Items');
         BookingmanagerHelper::addSubmenu('templates');
-        ToolbarHelper::title('Email Templates');
-        ToolbarHelper::editList('template.edit');
+        JToolbarHelper::title('Email Templates');
+        JToolbarHelper::editList('template.edit');
         parent::display($tpl);
     }
 }
