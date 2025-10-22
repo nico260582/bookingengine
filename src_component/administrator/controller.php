@@ -5,17 +5,12 @@ use Joomla\CMS\MVC\Controller\BaseController;
 
 class BookingmanagerController extends BaseController
 {
-    protected $default_view = 'bookingrequests';
-
-	public function __construct($config = [])
-	{
-		parent::__construct($config);
-	}
-
     public function display($cachable = false, $urlparams = array())
     {
-        $this->input->set('view', $this->input->getCmd('view', $this->default_view));
-        parent::display($cachable, $urlparams);
-        return $this;
+        $viewName   = $this->input->get('view', 'bookingrequests');
+        $viewLayout = $this->input->get('layout', 'default');
+        $view = $this->getView($viewName, 'html');
+        $view->setLayout($viewLayout);
+        $view->display();
     }
 }
