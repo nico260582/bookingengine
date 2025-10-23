@@ -7,8 +7,7 @@ use Joomla\CMS\Layout\LayoutHelper;
 use Joomla\CMS\Language\Text;
 
 $wa = $this->document->getWebAssetManager();
-$wa->useScript('form.validate');
-$wa->useBehavior('chosen');
+$wa->useScript('com_bookingmanager.admin-scripts');
 
 $listOrder = $this->state->get('list.ordering');
 $listDirn  = $this->state->get('list.direction');
