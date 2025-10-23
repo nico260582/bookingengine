@@ -6,15 +6,6 @@
   "license": "GPL-2.0-or-later",
   "assets": [
     {
-      "name": "com_bookingmanager.admin-styles",
-      "type": "style",
-      "uri": "com_bookingmanager/css/admin.css",
-      "dependencies": [
-        "core"
-      ],
-      "version": "1.0.0"
-    },
-    {
       "name": "com_bookingmanager.admin-scripts",
       "type": "script",
       "uri": "com_bookingmanager/js/admin.js",

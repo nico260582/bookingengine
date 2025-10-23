@@ -27,6 +27,9 @@
         <folder>css</folder>
         <folder>js</folder>
     </media>
+    <assets>
+        <asset name="joomla.asset.json" />
+    </assets>
 
     <administration>
         <menu link="option=com_bookingmanager">Booking Manager</menu>
