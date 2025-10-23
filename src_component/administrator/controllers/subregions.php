@@ -1,12 +1,19 @@
 <?php
 defined('_JEXEC') or die;
 
-class BookingmanagerControllerSubregions extends JControllerAdmin
+use Joomla\CMS\MVC\Controller\AdminController;
+
+class BookingmanagerControllerSubregions extends AdminController
 {
     /**
      * The prefix to use with controller messages.
      */
     protected $text_prefix = 'COM_BOOKINGMANAGER_SUB_REGIONS';
+
+    public function __construct($config = [])
+    {
+        parent::__construct($config);
+    }
 
     /**
      * Method to get the model for list view tasks like delete.
