@@ -2,11 +2,10 @@
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
-use Joomla\CMS\MVC\Controller\AdminController;
 use Joomla\CMS\Session\Session;
 use Joomla\CMS\Language\Text;
 
-class BookingmanagerControllerPropertyrates extends AdminController
+class BookingmanagerControllerPropertyrates extends JControllerAdmin
 {
     public function getModel($name = 'Propertyrates', $prefix = 'BookingmanagerModel', $config = array('ignore_request' => true))
     {

@@ -1,15 +1,16 @@
 <?php
 defined('_JEXEC') or die;
 
-use Joomla\CMS\MVC\Controller\AdminController;
+use Joomla\CMS\MVC\Controller\BaseController;
 
-class BookingmanagerController extends AdminController
+class BookingmanagerController extends BaseController
 {
+    protected $default_view = 'bookingrequests';
+
     public function display($cachable = false, $urlparams = array())
     {
-        $viewName = $this->input->get('view', 'bookingrequests');
-        $this->input->set('view', $viewName);
-
-        return parent::display($cachable, $urlparams);
+        $this->input->set('view', $this->input->getCmd('view', $this->default_view));
+        parent::display($cachable, $urlparams);
+        return $this;
     }
 }

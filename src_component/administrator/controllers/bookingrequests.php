@@ -1,9 +1,7 @@
 <?php
 defined('_JEXEC') or die;
 
-use Joomla\CMS\MVC\Controller\AdminController;
-
-class BookingmanagerControllerBookingrequests extends AdminController
+class BookingmanagerControllerBookingrequests extends JControllerAdmin
 {
     public function getModel($name = 'Bookingrequests', $prefix = 'BookingmanagerModel', $config = array('ignore_request' => true))
     {
