@@ -6,9 +6,9 @@ use Joomla\CMS\Router\Route;
 use Joomla\CMS\Layout\LayoutHelper;
 use Joomla\CMS\Language\Text;
 
-HTMLHelper::_('behavior.core');
-HTMLHelper::_('behavior.keepalive');
-HTMLHelper::_('formbehavior.chosen', 'select');
+$wa = $this->document->getWebAssetManager();
+$wa->useScript('form.validate');
+$wa->useScript('chosen');
 
 $listOrder = $this->state->get('list.ordering');
 $listDirn  = $this->state->get('list.direction');
