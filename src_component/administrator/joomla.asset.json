@@ -17,10 +17,13 @@
     {
       "name": "com_bookingmanager.admin-scripts",
       "type": "script",
-      "uri": "com_bookingmanager/js/admin.js",
       "dependencies": [
         "core",
-        "chosen"
+        "joomla.chosen",
+        "joomla.form.validator"
+      ],
+      "uris": [
+        "com_bookingmanager/js/admin.js"
       ],
       "attributes": {
         "defer": true

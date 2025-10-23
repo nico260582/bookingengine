@@ -17,6 +17,9 @@
         <folder>views</folder>
         <folder>models</folder>
     </files>
+    <services>
+        <provider>provider.php</provider>
+    </services>
 
     <languages folder="site/language">
         <language tag="en-GB">en-GB/en-GB.com_bookingmanager.ini</language>
@@ -31,6 +34,9 @@
     </assets>
 
     <administration>
+        <services>
+            <provider>provider.php</provider>
+        </services>
         <scriptfile>script.php</scriptfile>
         <menu link="option=com_bookingmanager">Booking Manager</menu>
         <submenu>
@@ -40,7 +46,6 @@
         <files folder="administrator">
             <filename>access.xml</filename>
             <filename>bookingmanager.php</filename>
-            <filename>com_bookingmanager.xml</filename>
             <filename>config.xml</filename>
             <filename>joomla.asset.json</filename>
             <filename>controller.php</filename>
