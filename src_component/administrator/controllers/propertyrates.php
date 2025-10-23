@@ -8,15 +8,6 @@ use Joomla\CMS\Language\Text;
 
 class BookingmanagerControllerPropertyrates extends AdminController
 {
-	public function __construct($config = [])
-	{
-		parent::__construct($config);
-
-		$this->registerTask('apply', 'save');
-		$this->registerTask('save2new', 'save');
-		$this->registerTask('save2copy', 'save');
-	}
-
     public function getModel($name = 'Propertyrates', $prefix = 'BookingmanagerModel', $config = array('ignore_request' => true))
     {
         return parent::getModel($name, $prefix, $config);
