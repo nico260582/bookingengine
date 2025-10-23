@@ -8,7 +8,7 @@ use Joomla\CMS\Language\Text;
 
 $wa = $this->document->getWebAssetManager();
 $wa->useScript('form.validate');
-$wa->useScript('chosen');
+$wa->useBehavior('chosen');
 
 $listOrder = $this->state->get('list.ordering');
 $listDirn  = $this->state->get('list.direction');

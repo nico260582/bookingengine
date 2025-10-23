@@ -8,7 +8,7 @@ use Joomla\CMS\HTML\HTMLHelper;
 
 $wa = $this->document->getWebAssetManager();
 $wa->useScript('form.validate');
-$wa->useScript('chosen');
+$wa->useBehavior('chosen');
 
 $listOrder     = $this->escape($this->state->get('list.ordering'));
 $listDirn      = $this->escape($this->state->get('list.direction'));
