@@ -8,6 +8,7 @@ use Joomla\CMS\Language\Text;
 
 $wa = $this->document->getWebAssetManager();
 $wa->useScript('com_bookingmanager.admin-scripts');
+$wa->useStyle('com_bookingmanager.admin-styles');
 
 $listOrder = $this->state->get('list.ordering');
 $listDirn  = $this->state->get('list.direction');
