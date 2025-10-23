@@ -89,6 +89,75 @@ use Joomla\CMS\Uri\Uri;
             </div>
         <?php echo HTMLHelper::_('bootstrap.endTab'); ?>
 
+        <?php echo HTMLHelper::_('bootstrap.addTab', 'myTab', 'supplier_communication', Text::_('Supplier Communication')); ?>
+            <div class="row-fluid">
+                <div class="span7">
+                    <h4>Conversation History with Supplier</h4>
+                    <div class="conversation-history-admin">
+                        <div class="timeline-admin">
+                            <?php if (empty($this->supplierMessages)) : ?>
+                                <p>No messages sent to the supplier yet.</p>
+                            <?php else : ?>
+                                <?php foreach ($this->supplierMessages as $message) : ?>
+                                    <div class="timeline-item-admin admin">
+                                        <div class="timeline-content-admin">
+                                            <div class="message-header-admin">
+                                                <span class="message-author-admin"><?php echo $this->escape($message->author_name); ?> (Admin)</span>
+                                                <div class="header-right-group">
+                                                    <span class="message-date-admin"><?php echo HTMLHelper::_('date', $message->sent_at, 'Y-m-d H:i'); ?></span>
+                                                    <span class="message-method-icon">
+                                                        <?php if ($message->whatsapp_sent) : ?>
+                                                            <i class="icon-whatsapp" title="Sent via WhatsApp"></i>
+                                                        <?php else : ?>
+                                                            <i class="icon-envelope" title="Sent via Email"></i>
+                                                        <?php endif; ?>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div class="message-body-admin">
+                                                <?php echo JHtml::_('content.prepare', $message->message); ?>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+                <div class="span5">
+                    <h4>Send Availability Request</h4>
+                    <div class="control-group">
+                        <div class="controls">
+                            <button type="button" class="btn" id="load-supplier-template-btn">Load Template</button>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <div class="controls">
+                            <?php echo $this->form->getField('supplier_message')->renderField(); ?>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <div class="controls">
+                            <?php echo $this->form->getField('whatsapp_sent')->renderField(); ?>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <div class="control-label"><label for="supplier_attachments">Attachments</label></div>
+                        <div class="controls">
+                            <input type="file" name="supplier_attachments[]" id="supplier_attachments" multiple>
+                            <div id="supplier_attachment_list"></div>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <div class="controls">
+                            <button type="button" class="btn btn-primary" id="send-supplier-email-btn">Send Email</button>
+                            <button type="button" class="btn" id="send-whatsapp-supplier-btn">Log WhatsApp</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        <?php echo HTMLHelper::_('bootstrap.endTab'); ?>
+
         <?php echo HTMLHelper::_('bootstrap.addTab', 'myTab', 'terms', Text::_('Terms & Conditions'), empty($this->item->terms_log_id)); ?>
         <?php if (!empty($this->item->terms_log_id)) : ?>
             <div class="row-fluid">
@@ -166,8 +235,14 @@ use Joomla\CMS\Uri\Uri;
 $doc = Factory::getDocument();
 $ajaxUrls = [
     'upload' => Route::_('index.php?option=com_bookingmanager&task=bookingrequest.upload&' . Session::getFormToken() . '=1', false),
-    'deleteAttachment' => Route::_('index.php?option=com_bookingmanager&task=bookingrequest.deleteAttachment&' . Session::getFormToken() . '=1', false)
+    'deleteAttachment' => Route::_('index.php?option=com_bookingmanager&task=bookingrequest.deleteAttachment&' . Session::getFormToken() . '=1', false), // For client side
+    'deleteSupplierAttachment' => Route::_('index.php?option=com_bookingmanager&task=bookingrequest.deleteSupplierAttachment&' . Session::getFormToken() . '=1', false), // For supplier side
+    'getSupplierTemplate' => Route::_('index.php?option=com_bookingmanager&task=bookingrequest.getSupplierTemplate&' . Session::getFormToken() . '=1', false),
+    'sendSupplierMessage' => Route::_('index.php?option=com_bookingmanager&task=bookingrequest.sendSupplierMessage&' . Session::getFormToken() . '=1', false),
+    'logWhatsAppMessage' => Route::_('index.php?option=com_bookingmanager&task=bookingrequest.logWhatsAppMessage&' . Session::getFormToken() . '=1', false),
+    'supplier_phone' => $this->item->supplier_contact_phone ?? ''
 ];
 $doc->addScriptOptions('com_bookingmanager.admin', $ajaxUrls);
-$doc->addScript(Uri::root(true) . '/modules/mod_bookingform/media/js/communication-admin.js');
+$doc->addScript(Uri::root(true) . '/media/com_bookingmanager/js/communication-admin.js');
+$doc->addScript(Uri::root(true) . '/media/com_bookingmanager/js/supplier-communication.js');
 ?>

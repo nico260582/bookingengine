@@ -18,6 +18,7 @@ class BookingmanagerViewBookingrequest extends HtmlView
         $this->item = $this->get('Item');
         $model = $this->getModel();
         $this->messages = $model->getMessages($this->item->id);
+        $this->supplierMessages = $model->getSupplierMessages($this->item->id);
         $this->logs = $model->getChangeLog($this->item->id);
         $this->activityLogs = $model->getActivityLog($this->item->id);
         $this->attachments = $model->getAttachments($this->item->id);
