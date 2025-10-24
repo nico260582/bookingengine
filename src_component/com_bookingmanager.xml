@@ -47,6 +47,9 @@
             <menu view="diagnostic" link="option=com_bookingmanager&amp;view=diagnostic" img="class:icon-cogs">Diagnostic</menu>
         </submenu>
         <access aclinfile="access.xml"/>
+        <assets>
+            <asset name="joomla.asset.json"/>
+        </assets>
         <files folder="administrator">
             <filename>access.xml</filename>
             <filename>bookingmanager.php</filename>
@@ -76,7 +79,12 @@
             <folder>views</folder>
             <folder>assets</folder>
             <folder>layouts</folder>
+            <folder>src</folder>
+            <folder>services</folder>
         </files>
+        <services folder="administrator/services">
+            <provider>provider.php</provider>
+        </services>
         <languages folder="administrator/language">
             <language tag="en-GB">en-GB/en-GB.com_bookingmanager.sys.ini</language>
             <language tag="en-GB">en-GB/en-GB.com_bookingmanager.ini</language>

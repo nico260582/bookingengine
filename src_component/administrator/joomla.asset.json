@@ -16,6 +16,14 @@
         "defer": true
       },
       "version": "1.0.0"
+    },
+    {
+      "name": "com_bookingmanager.admin-bookingrequests-list",
+      "type": "script",
+      "dependencies": [
+        "core",
+        "joomla.chosen"
+      ]
     }
   ]
 }
