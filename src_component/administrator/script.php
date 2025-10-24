@@ -282,6 +282,11 @@ class Com_BookingmanagerInstallerScript
             $db->setQuery("ALTER TABLE `#__booking_supplier_communication` ADD COLUMN `supplier_phone` VARCHAR(100) NULL DEFAULT NULL AFTER `supplier_email`;");
             try { $db->execute(); } catch (Exception $e) {}
         }
+
+        if (!BookingmanagerHelper::columnExists('#__bookingmanager_properties', 'published')) {
+            $db->setQuery("ALTER TABLE `#__bookingmanager_properties` ADD COLUMN `published` TINYINT(1) NOT NULL DEFAULT 0;");
+            try { $db->execute(); } catch (Exception $e) {}
+        }
     }
 
     private function addSampleData($db) {
