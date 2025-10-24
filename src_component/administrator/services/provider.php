@@ -19,7 +19,7 @@ return new class implements ServiceProviderInterface {
             }
         );
 
-        $container->registerServiceProvider(new MVCFactory('\\Bhm\\Component\\Bookingmanager'));
+        $container->registerServiceProvider(new MVCFactory('\\Bhm\\Component\\Bookingmanager', ['legacy' => true]));
         $container->registerServiceProvider(new ComponentLocator('\\Bhm\\Component\\Bookingmanager'));
     }
 };
