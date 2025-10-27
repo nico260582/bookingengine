@@ -16,6 +16,38 @@
         "defer": true
       },
       "version": "1.0.0"
+    },
+    {
+      "name": "com_bookingmanager.admin-bookingrequests-list",
+      "type": "script",
+      "dependencies": [
+        "core",
+        "joomla.chosen"
+      ]
+    },
+    {
+      "name": "com_bookingmanager.admin-mainregions-list",
+      "type": "script",
+      "dependencies": [
+        "core",
+        "joomla.chosen"
+      ]
+    },
+    {
+      "name": "com_bookingmanager.admin-subregions-list",
+      "type": "script",
+      "dependencies": [
+        "core",
+        "joomla.chosen"
+      ]
+    },
+    {
+      "name": "com_bookingmanager.admin-propertyrates-list",
+      "type": "script",
+      "dependencies": [
+        "core",
+        "joomla.chosen"
+      ]
     }
   ]
 }
