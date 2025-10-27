@@ -1,6 +1,5 @@
 <?php
 use Joomla\CMS\Extension\ComponentInterface;
-use Joomla\CMS\Extension\Service\Provider\ComponentLocator;
 use Joomla\CMS\Extension\Service\Provider\MVCFactory;
 use Joomla\CMS\MVC\Factory\MVCFactoryInterface;
 use Bhm\Component\Bookingmanager\Administrator\Extension\BookingmanagerComponent;
@@ -20,6 +19,5 @@ return new class implements ServiceProviderInterface {
         );
 
         $container->registerServiceProvider(new MVCFactory('\\Bhm\\Component\\Bookingmanager', ['legacy' => true]));
-        $container->registerServiceProvider(new ComponentLocator('\\Bhm\\Component\\Bookingmanager'));
     }
 };

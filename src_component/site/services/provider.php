@@ -1,6 +1,5 @@
 <?php
 use Joomla\CMS\Extension\ComponentInterface;
-use Joomla\CMS\Extension\Service\Provider\ComponentLocator;
 use Joomla\CMS\Extension\Service\Provider\MVCFactory;
 use Joomla\CMS\Extension\Service\Provider\RouterFactory;
 use Joomla\CMS\MVC\Factory\MVCFactoryInterface;
@@ -22,6 +21,5 @@ return new class implements ServiceProviderInterface {
 
         $container->registerServiceProvider(new MVCFactory('\\Bhm\\Component\\Bookingmanager', ['legacy' => true]));
         $container->registerServiceProvider(new RouterFactory('\\Bhm\\Component\\Bookingmanager'));
-        $container->registerServiceProvider(new ComponentLocator('\\Bhm\\Component\\Bookingmanager'));
     }
 };
