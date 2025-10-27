@@ -5,7 +5,7 @@
 ?>
 
 <div id="j-sidebar-container" class="span2">
-    <?php echo $this->sidebar; ?>
+    <?php echo JHtmlSidebar::render(); ?>
 </div>
 <div id="j-main-container" class="span10">
     <form action="<?php echo JRoute::_('index.php?option=com_bookingmanager&view=propertyrates'); ?>" method="post" name="adminForm" id="adminForm" class="form-validate">

@@ -2,8 +2,6 @@
 defined('_JEXEC') or die;
 
 use Joomla\CMS\MVC\View\HtmlView;
-use Joomla\CMS\Toolbar\ToolbarHelper;
-use Joomla\CMS\Layout\LayoutHelper;
 
 class BookingmanagerViewDiagnostic extends HtmlView
 {
@@ -15,17 +13,7 @@ class BookingmanagerViewDiagnostic extends HtmlView
         $this->mailSettings = $this->getModel()->getMailSettings();
         $this->schemaChecks = $this->getModel()->getSchemaHealthChecks();
         BookingmanagerHelper::addSubmenu('diagnostic');
-        $this->addToolbar();
-
-        if (LayoutHelper::getLayoutFile('sidebar')) {
-            $this->sidebar = LayoutHelper::render('sidebar');
-        }
-
+        JToolbarHelper::title('Diagnostic Tools');
         parent::display($tpl);
-    }
-
-    protected function addToolbar()
-    {
-        ToolbarHelper::title('Diagnostic Tools');
     }
 }

@@ -3,7 +3,7 @@ defined('_JEXEC') or die;
 ?>
 
 <div id="j-sidebar-container" class="span2">
-    <?php echo $this->sidebar; ?>
+    <?php echo JHtmlSidebar::render(); ?>
 </div>
 <div id="j-main-container" class="span10">
     <fieldset class="well">
