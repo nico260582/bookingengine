@@ -3,7 +3,7 @@ defined('_JEXEC') or die;
 ?>
 
 <div id="j-sidebar-container" class="span2">
-    <?php // Sidebar is rendered by the layout ?>
+    <?php echo $this->sidebar; ?>
 </div>
 <div id="j-main-container" class="span10">
     <form action="index.php?option=com_bookingmanager&view=templates" method="post" name="adminForm" id="adminForm">

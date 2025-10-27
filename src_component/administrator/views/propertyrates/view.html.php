@@ -5,6 +5,7 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\MVC\View\HtmlView;
 use Joomla\CMS\Toolbar\ToolbarHelper;
 use Joomla\CMS\HTML\HTMLHelper;
+use Joomla\CMS\Layout\LayoutHelper;
 
 class BookingmanagerViewPropertyrates extends HtmlView
 {
@@ -14,7 +15,9 @@ class BookingmanagerViewPropertyrates extends HtmlView
     
     public function display($tpl = null)
     {
-        HTMLHelper::_('formbehavior.chosen', 'select');
+        $wa = $this->document->getWebAssetManager();
+        $wa->useScript('com_bookingmanager.admin-propertyrates-list');
+
         $model = $this->getModel();
         $app = Factory::getApplication();
 
@@ -27,6 +30,11 @@ class BookingmanagerViewPropertyrates extends HtmlView
 
         BookingmanagerHelper::addSubmenu('propertyrates');
         $this->addToolbar();
+
+        if (LayoutHelper::getLayoutFile('sidebar')) {
+            $this->sidebar = LayoutHelper::render('sidebar');
+        }
+
         parent::display($tpl);
     }
     

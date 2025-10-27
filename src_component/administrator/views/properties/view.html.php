@@ -5,6 +5,7 @@ use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
 use Joomla\CMS\Toolbar\ToolbarHelper;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Helper\ContentHelper; // <-- Added
+use Joomla\CMS\Layout\LayoutHelper;
 
 class BookingmanagerViewProperties extends BaseHtmlView
 {
@@ -28,6 +29,10 @@ class BookingmanagerViewProperties extends BaseHtmlView
         // Load the sidebar
         require_once JPATH_COMPONENT_ADMINISTRATOR . '/helpers/bookingmanager.php';
         BookingmanagerHelper::addSubmenu('properties');
+
+        if (LayoutHelper::getLayoutFile('sidebar')) {
+            $this->sidebar = LayoutHelper::render('sidebar');
+        }
 
         $this->addToolbar();
 

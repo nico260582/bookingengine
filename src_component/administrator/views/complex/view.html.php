@@ -4,6 +4,7 @@ defined('_JEXEC') or die;
 use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
 use Joomla\CMS\Toolbar\ToolbarHelper;
 use Joomla\CMS\Factory;
+use Joomla\CMS\Layout\LayoutHelper;
 
 class BookingmanagerViewComplex extends BaseHtmlView
 {
@@ -19,6 +20,10 @@ class BookingmanagerViewComplex extends BaseHtmlView
         // Load the sidebar
         require_once JPATH_COMPONENT_ADMINISTRATOR . '/helpers/bookingmanager.php';
         BookingmanagerHelper::addSubmenu('complexes');
+
+        if (LayoutHelper::getLayoutFile('sidebar')) {
+            $this->sidebar = LayoutHelper::render('sidebar');
+        }
 
         $this->addToolbar();
 
