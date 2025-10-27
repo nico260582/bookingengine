@@ -24,7 +24,6 @@ class BookingmanagerViewMainregions extends BaseHtmlView
         // Load the sidebar
         require_once JPATH_COMPONENT_ADMINISTRATOR . '/helpers/bookingmanager.php';
         BookingmanagerHelper::addSubmenu('mainregions');
-        $this->sidebar = JHtmlSidebar::render();
 
         $this->addToolbar();
 

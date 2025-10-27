@@ -19,7 +19,6 @@ class BookingmanagerViewProperty extends BaseHtmlView
         // Load the sidebar
         require_once JPATH_COMPONENT_ADMINISTRATOR . '/helpers/bookingmanager.php';
         BookingmanagerHelper::addSubmenu('properties');
-        $this->sidebar = JHtmlSidebar::render();
 
         $this->addToolbar();
 

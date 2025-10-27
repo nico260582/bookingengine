@@ -19,7 +19,6 @@ class BookingmanagerViewComplex extends BaseHtmlView
         // Load the sidebar
         require_once JPATH_COMPONENT_ADMINISTRATOR . '/helpers/bookingmanager.php';
         BookingmanagerHelper::addSubmenu('complexes');
-        $this->sidebar = JHtmlSidebar::render();
 
         $this->addToolbar();
 
