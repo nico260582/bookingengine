@@ -42,6 +42,9 @@
             <menu view="diagnostic" link="option=com_bookingmanager&amp;view=diagnostic" img="class:icon-cogs">Diagnostic</menu>
         </submenu>
         <access aclinfile="access.xml"/>
+        <assets>
+            <asset name="joomla.asset.json"/>
+        </assets>
         <files folder="administrator">
             <filename>access.xml</filename>
             <filename>bookingmanager.php</filename>
