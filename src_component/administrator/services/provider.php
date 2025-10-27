@@ -12,7 +12,7 @@ return new class implements ServiceProviderInterface {
         $container->set(
             ComponentInterface::class,
             function (Container $container) {
-                $component = new BookingmanagerComponent();
+                $component = new BookingmanagerComponent($container->get('ComponentDispatcherFactory'));
                 $component->setMVCFactory($container->get(MVCFactoryInterface::class));
                 return $component;
             }
