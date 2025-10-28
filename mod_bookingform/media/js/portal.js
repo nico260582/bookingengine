@@ -58,6 +58,7 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(data => {
                 if (data.success) {
                     pricingRules = data.pricingRules;
+                    console.log('PORTAL SCRIPT: Pricing Rules received from server:', pricingRules); // DEBUG LOG 1
                     initializeDatePicker();
                     calculateNightsAndSeasons();
                     updateChildAgeInputs(options.child_ages ? options.child_ages.split(',') : []);
@@ -185,6 +186,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!seasonRates) continue;
 
             const marketRateData = seasonRates['Global Rate']; // In portal, we only use Global Rate for simplicity
+            console.log('PORTAL SCRIPT: Market Rate Data for season ' + actualSeasonName, marketRateData); // DEBUG LOG 2
             if (!marketRateData || !marketRateData.rate) continue;
 
             let nightlyRate = parseFloat(marketRateData.rate);
