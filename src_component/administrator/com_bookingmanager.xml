@@ -28,8 +28,9 @@
     </media>
 
     <administration>
-        <menu link="option=com_bookingmanager">Booking Manager</menu>
+        <menu link="option=com_bookingmanager&amp;view=bookingrequests">Booking Manager</menu>
         <submenu>
+            <menu link="option=com_bookingmanager&amp;view=regions">Regions</menu>
             <menu link="option=com_bookingmanager&amp;view=mainregions">Main Regions</menu>
             <menu link="option=com_bookingmanager&amp;view=subregions">Sub Regions</menu>
         </submenu>
