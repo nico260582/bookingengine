@@ -209,18 +209,16 @@
             }
         }
 
-        public function getAllPropertiesWithAssignments($currentSupplierId = 0)
+        public function getAllPropertiesWithAssignments($currentSupplierId = 0, $propertyCategories = [])
         {
             $db = Factory::getDbo();
             $user = Factory::getUser();
             $now  = Factory::getDate()->toSql();
             $nullDate = $db->getNullDate();
-            $params = ComponentHelper::getParams('com_bookingmanager');
-            $selectedCategories = $params->get('property_categories', []);
             $allCategoryIds = [];
 
-            if (!empty($selectedCategories) && is_array($selectedCategories)) {
-                $categoryIds = array_map('intval', $selectedCategories);
+            if (!empty($propertyCategories) && is_array($propertyCategories)) {
+                $categoryIds = array_map('intval', $propertyCategories);
                 $rangesQuery = $db->getQuery(true)
                     ->select('c.lft, c.rgt')
                     ->from($db->quoteName('#__categories', 'c'))
