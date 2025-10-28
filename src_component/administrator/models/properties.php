@@ -3,6 +3,7 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
 use Joomla\CMS\MVC\Model\ListModel;
+use Joomla\CMS\Component\ComponentHelper;
 
 class BookingmanagerModelProperties extends ListModel
 {
@@ -69,6 +70,13 @@ class BookingmanagerModelProperties extends ListModel
         if (!empty($search)) {
             $like = $db->quote('%' . $db->escape($search, true) . '%');
             $query->where('(article.title LIKE ' . $like . ' OR supplier.name LIKE ' . $like . ')');
+        }
+
+        // Filter by category
+        $params = JComponentHelper::getParams('com_bookingmanager');
+        $categoryId = $params->get('category_id');
+        if (!empty($categoryId)) {
+            $query->where('article.catid = ' . (int) $categoryId);
         }
 
         // Add sorting
