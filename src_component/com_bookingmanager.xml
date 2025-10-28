@@ -7,9 +7,8 @@
     <license>GNU General Public License version 2 or later; see LICENSE.txt</license>
     <authorEmail>contact@rt-holidays.com</authorEmail>
     <authorUrl>https://www.book-holidays-mauritius.com</authorUrl>
-    <version>1.15.0</version>
+    <version>2.0.7</version>
     <description>A component to manage booking requests and suppliers.</description>
-    <scriptfile>script.php</scriptfile>
     
     <files folder="site">
         <filename>bookingmanager.php</filename>
@@ -17,67 +16,59 @@
         <filename>index.html</filename>
         <folder>views</folder>
         <folder>models</folder>
-        <folder>controllers</folder>
     </files>
-
-    <media destination="com_bookingmanager" folder="media">
-        <folder>js</folder>
-    </media>
 
     <languages folder="site/language">
         <language tag="en-GB">en-GB/en-GB.com_bookingmanager.ini</language>
     </languages>
 
+    <media destination="com_bookingmanager" folder="media">
+        <folder>js</folder>
+    </media>
+
     <administration>
-        <menu link="option=com_bookingmanager">Booking Manager</menu>
+        <menu link="option=com_bookingmanager&amp;view=bookingrequests">COM_BOOKINGMANAGER_MENU_BOOKING_MANAGER</menu>
         <submenu>
-            <menu view="bookingrequests" link="option=com_bookingmanager&amp;view=bookingrequests" img="class:icon-calendar">Booking Requests</menu>
-            <menu view="properties" link="option=com_bookingmanager&amp;view=properties" img="class:icon-home">Properties</menu>
-            <menu view="mainregions" link="option=com_bookingmanager&amp;view=mainregions" img="class:icon-map-marker">Main Regions</menu>
-            <menu view="subregions" link="option=com_bookingmanager&amp;view=subregions" img="class:icon-map-marker">Sub Regions</menu>
-            <menu view="complexes" link="option=com_bookingmanager&amp;view=complexes" img="class:icon-folder-open">Complexes</menu>
-            <menu view="suppliers" link="option=com_bookingmanager&amp;view=suppliers" img="class:icon-user">Suppliers</menu>
-            <menu view="propertyrates" link="option=com_bookingmanager&amp;view=propertyrates" img="class:icon-tags">Property Rates</menu>
-            <menu view="templates" link="option=com_bookingmanager&amp;view=templates" img="class:icon-envelope">Email Templates</menu>
-            <menu view="diagnostic" link="option=com_bookingmanager&amp;view=diagnostic" img="class:icon-cogs">Diagnostic</menu>
+            <menu link="option=com_bookingmanager&amp;view=bookingrequests" view="bookingrequests" img="class:calendar" alt="Booking Requests">Booking Requests</menu>
+            <menu link="option=com_bookingmanager&amp;view=properties" view="properties" img="class:home" alt="Properties">Properties</menu>
+            <menu link="option=com_bookingmanager&amp;view=complexes" view="complexes" img="class:folder-open" alt="Complexes">Complexes</menu>
+            <menu link="option=com_bookingmanager&amp;view=suppliers" view="suppliers" img="class:user" alt="Suppliers">Suppliers</menu>
+            <menu link="option=com_bookingmanager&amp;view=propertyrates" view="propertyrates" img="class:tags" alt="Property Rates">Property Rates</menu>
+            <menu link="option=com_bookingmanager&amp;view=regions" view="regions" img="class:globe" alt="Regions">Regions</menu>
+            <menu link="option=com_bookingmanager&amp;view=mainregions" view="mainregions" img="class:globe" alt="Main Regions">Main Regions (Legacy)</menu>
+            <menu link="option=com_bookingmanager&amp;view=subregions" view="subregions" img="class:globe" alt="Sub Regions">Sub Regions (Legacy)</menu>
+            <menu link="option=com_bookingmanager&amp;view=templates" view="templates" img="class:envelope" alt="Email Templates">Email Templates</menu>
+            <menu link="option=com_bookingmanager&amp;view=diagnostic" view="diagnostic" img="class:cogs" alt="Diagnostic">Diagnostic</menu>
         </submenu>
-        <access aclinfile="access.xml"/>
-        <assets>
-            <asset name="joomla.asset.json"/>
-        </assets>
         <files folder="administrator">
             <filename>access.xml</filename>
             <filename>bookingmanager.php</filename>
-            <filename>controller.php</filename>
+            <filename>com_bookingmanager.xml</filename>
             <filename>config.xml</filename>
-            <filename>controllers/bookingrequest.php</filename>
-            <filename>controllers/bookingrequests.php</filename>
-            <filename>controllers/complex.php</filename>
-            <filename>controllers/complexes.php</filename>
-            <filename>controllers/diagnostic.php</filename>
-            <filename>controllers/index.html</filename>
-            <filename>controllers/mainregion.php</filename>
-            <filename>controllers/mainregions.php</filename>
-            <filename>controllers/properties.php</filename>
-            <filename>controllers/property.php</filename>
-            <filename>controllers/propertyrates.php</filename>
-            <filename>controllers/subregion.php</filename>
-            <filename>controllers/supplier.php</filename>
-            <filename>controllers/suppliers.php</filename>
-            <filename>controllers/template.php</filename>
-            <filename>controllers/templates.php</filename>
+            <filename>joomla.asset.json</filename>
+            <filename>controller.php</filename>
+            <filename>index.html</filename>
+            <filename>script.php</filename>
+            <folder>assets</folder>
+            <folder>controllers</folder>
             <folder>forms</folder>
             <folder>helpers</folder>
+            <folder>language</folder>
+            <folder>layouts</folder>
             <folder>models</folder>
             <folder>sql</folder>
             <folder>tables</folder>
             <folder>views</folder>
-            <folder>assets</folder>
-            <folder>layouts</folder>
         </files>
         <languages folder="administrator/language">
-            <language tag="en-GB">en-GB/en-GB.com_bookingmanager.sys.ini</language>
             <language tag="en-GB">en-GB/en-GB.com_bookingmanager.ini</language>
+            <language tag="en-GB">en-GB/en-GB.com_bookingmanager.sys.ini</language>
         </languages>
     </administration>
+
+    <update>
+        <schemas>
+            <schemapath type="mysql">sql/updates/mysql</schemapath>
+        </schemas>
+    </update>
 </extension>

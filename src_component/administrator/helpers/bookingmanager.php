@@ -11,17 +11,6 @@ use Joomla\CMS\Uri\Uri;
 
 abstract class BookingmanagerHelper
 {
-    public static function addSubmenu($vName)
-    {
-        JHtmlSidebar::addEntry('<i class="icon-calendar"></i> Booking Requests', 'index.php?option=com_bookingmanager&view=bookingrequests', $vName == 'bookingrequests' || $vName == 'bookingrequest');
-        JHtmlSidebar::addEntry('<i class="icon-home"></i> Properties', 'index.php?option=com_bookingmanager&view=properties', $vName == 'properties' || $vName == 'property');
-        JHtmlSidebar::addEntry('<i class="icon-folder-open"></i> Complexes', 'index.php?option=com_bookingmanager&view=complexes', $vName == 'complexes' || $vName == 'complex');
-        JHtmlSidebar::addEntry('<i class="icon-user"></i> Suppliers', 'index.php?option=com_bookingmanager&view=suppliers', $vName == 'suppliers' || $vName == 'supplier');
-        JHtmlSidebar::addEntry('<i class="icon-tags"></i> Property Rates', 'index.php?option=com_bookingmanager&view=propertyrates', $vName == 'propertyrates');
-        JHtmlSidebar::addEntry('<i class="icon-envelope"></i> Email Templates', 'index.php?option=com_bookingmanager&view=templates', $vName == 'templates' || $vName == 'template');
-        JHtmlSidebar::addEntry('<i class="icon-cogs"></i> Diagnostic', 'index.php?option=com_bookingmanager&view=diagnostic', $vName == 'diagnostic');
-    }
-
     public static function getRateStatus($articleId)
     {
         if (!$articleId) {
