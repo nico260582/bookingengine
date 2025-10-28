@@ -6,9 +6,6 @@ use Joomla\CMS\Router\Route;
 use Joomla\CMS\Layout\LayoutHelper;
 use Joomla\CMS\Language\Text;
 
-$wa = $this->document->getWebAssetManager();
-$wa->useScript('com_bookingmanager.admin-chosen');
-
 $listOrder = $this->state->get('list.ordering');
 $listDirn  = $this->state->get('list.direction');
 ?>

@@ -15,9 +15,6 @@ class BookingmanagerViewPropertyrates extends HtmlView
     
     public function display($tpl = null)
     {
-        $wa = $this->document->getWebAssetManager();
-        $wa->useScript('com_bookingmanager.admin-chosen');
-
         $model = $this->getModel();
         $app = Factory::getApplication();
 
