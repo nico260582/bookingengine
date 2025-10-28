@@ -1,7 +1,8 @@
 <?php
 defined('_JEXEC') or die;
 use Joomla\CMS\Factory;
-class com_bookingmanagerInstallerScript
+
+class Com_BookingmanagerInstallerScript
 {
     public function install($parent) { $this->runInstallQueries($parent); return true; }
     public function uninstall($parent) { $this->runUninstallQueries($parent); return true; }
@@ -282,12 +283,6 @@ class com_bookingmanagerInstallerScript
             $db->setQuery("ALTER TABLE `#__booking_supplier_communication` ADD COLUMN `supplier_phone` VARCHAR(100) NULL DEFAULT NULL AFTER `supplier_email`;");
             try { $db->execute(); } catch (Exception $e) {}
         }
-
-        // From 1.2.0.sql - Add 'published' column to properties table if it doesn't exist
-        if (!BookingmanagerHelper::columnExists('#__bookingmanager_properties', 'published')) {
-            $db->setQuery("ALTER TABLE `#__bookingmanager_properties` ADD COLUMN `published` TINYINT(1) NOT NULL DEFAULT 0;");
-            try { $db->execute(); } catch (Exception $e) {}
-        }
     }
 
     private function addSampleData($db) {
@@ -367,7 +362,7 @@ class com_bookingmanagerInstallerScript
                 'title'   => 'Admin - Booking Modification',
                 'type'    => 'email_admin_booking_modified',
                 'subject' => 'Booking [booking_ref] has been modified by the client',
-                'body'    => "<h3>Booking Request [booking_ref] has been modified by the client.</h3>\n                            <p>Property: [property_name]</p>\n                            <h4>Changes:</h4>\n                            <table border=\"1\" cellpadding=\"5\" cellspacing=\"0\" style=\"width:100%; border-collapse: collapse;\">\n                                <thead>\n                                    <tr style=\"background-color:#f2f2f2;\">\n                                        <th style=\"padding: 8px; border: 1px solid #ddd; text-align: left;\">Field</th>\n                                        <th style=\"padding: 8px; border: 1px solid #ddd; text-align: left;\">Old Value</th>\n                                        <th style=\"padding: 8px; border: 1px solid #ddd; text-align: left;\">New Value</th>\n                                    </tr>\n                                </thead>\n                                <tbody>\n                                    [changes_table]\n                                </tbody>\n                            </table>\n                            <hr>\n                            <h4>Full Booking Details:</h4>\n                            [booking_details_html]\n                            <p>You can view the booking by visiting the administrator area.</p>"
+                'body'    => "<h3>Booking Request [booking_ref] has been modified by the client.</h3>\n                            <p>Property: [property_name]</p>\n                            <h4>Changes:</h4>\n                            <table border="1" cellpadding="5" cellspacing="0" style="width:100%; border-collapse: collapse;">\n                                <thead>\n                                    <tr style="background-color:#f2f2f2;">\n                                        <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Field</th>\n                                        <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">Old Value</th>\n                                        <th style="padding: 8px; border: 1px solid #ddd; text-align: left;">New Value</th>\n                                    </tr>\n                                </thead>\n                                <tbody>\n                                    [changes_table]\n                                </tbody>\n                            </table>\n                            <hr>\n                            <h4>Full Booking Details:</h4>\n                            [booking_details_html]\n                            <p>You can view the booking by visiting the administrator area.</p>"
             ]
         ];
 
