@@ -40,7 +40,6 @@
             <menu view="propertyrates" link="option=com_bookingmanager&amp;view=propertyrates" img="class:icon-tags">Property Rates</menu>
             <menu view="templates" link="option=com_bookingmanager&amp;view=templates" img="class:icon-envelope">Email Templates</menu>
             <menu view="diagnostic" link="option=com_bookingmanager&amp;view=diagnostic" img="class:icon-cogs">Diagnostic</menu>
-            <menu view="test" link="option=com_bookingmanager&amp;view=test" img="class:icon-beaker">Test View</menu>
         </submenu>
         <access aclinfile="access.xml"/>
         <assets>
@@ -73,7 +72,6 @@
             <folder>sql</folder>
             <folder>tables</folder>
             <folder>views</folder>
-            <folder>views/test</folder>
             <folder>assets</folder>
             <folder>layouts</folder>
         </files>
