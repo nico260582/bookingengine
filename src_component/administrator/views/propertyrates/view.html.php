@@ -5,6 +5,7 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\MVC\View\HtmlView;
 use Joomla\CMS\Toolbar\ToolbarHelper;
 use Joomla\CMS\HTML\HTMLHelper;
+use Joomla\CMS\Layout\FileLayout;
 
 class BookingmanagerViewPropertyrates extends HtmlView
 {
@@ -27,8 +28,11 @@ class BookingmanagerViewPropertyrates extends HtmlView
             $this->rateData = $model->getRateData($this->selectedPropertyId);
         }
 
-        BookingmanagerHelper::addSubmenu('propertyrates');
         $this->addToolbar();
+
+        $layout = new FileLayout('sidebar');
+        $this->sidebar = $layout->render();
+
         parent::display($tpl);
     }
     

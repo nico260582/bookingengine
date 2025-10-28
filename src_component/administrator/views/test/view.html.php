@@ -3,7 +3,7 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\MVC\View\HtmlView;
 use Joomla\CMS\Toolbar\ToolbarHelper;
-use Joomla\CMS\Layout\LayoutHelper;
+use Joomla\CMS\Layout\FileLayout;
 
 class BookingmanagerViewTest extends HtmlView
 {
@@ -11,9 +11,8 @@ class BookingmanagerViewTest extends HtmlView
     {
         ToolbarHelper::title('Test View');
 
-        if (LayoutHelper::getLayoutFile('sidebar')) {
-            $this->sidebar = LayoutHelper::render('sidebar');
-        }
+        $layout = new FileLayout('sidebar');
+        $this->sidebar = $layout->render();
 
         parent::display($tpl);
     }
