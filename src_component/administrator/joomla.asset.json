@@ -1,0 +1,16 @@
+{
+  "$schema": "https://developer.joomla.org/schemas/json-schema/web_assets.json",
+  "name": "com_bookingmanager",
+  "version": "1.0.0",
+  "description": "Joomla! 6.0 Vanilla component",
+  "license": "GPL-2.0-or-later",
+  "assets": [
+    {
+      "name": "com_bookingmanager.chosen",
+      "type": "script",
+      "dependencies": [
+        "joomla.chosen"
+      ]
+    }
+  ]
+}
