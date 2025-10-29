@@ -1,21 +1,21 @@
 {
-  "$schema": "https://developer.joomla.org/schemas/json-schema/joomla.asset.json",
+  "$schema": "https://developer.joomla.org/schemas/json-schema/web_assets.json",
   "name": "com_bookingmanager",
-  "version": "4.0.0",
-  "description": "Joomla! Component",
+  "version": "1.15.0",
+  "description": "Booking Manager component assets.",
   "license": "GPL-2.0-or-later",
   "assets": [
     {
-      "name": "com_bookingmanager.property-edit",
+      "name": "com_bookingmanager.admin-styles",
+      "type": "style",
+      "uri": "com_bookingmanager/admin-styles.css"
+    },
+    {
+      "name": "com_bookingmanager.chosen-fix",
       "type": "script",
-      "uri": "com_bookingmanager/js/property-edit.js",
       "dependencies": [
-        "core"
-      ],
-      "attributes": {
-        "defer": true
-      },
-      "version": "1.0.0"
+        "joomla.chosen"
+      ]
     }
   ]
 }
