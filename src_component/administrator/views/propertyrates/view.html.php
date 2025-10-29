@@ -15,7 +15,9 @@ class BookingmanagerViewPropertyrates extends HtmlView
     
     public function display($tpl = null)
     {
-        HTMLHelper::_('formbehavior.chosen', 'select');
+        $wa = $this->document->getWebAssetManager();
+        $wa->useScript('com_bookingmanager.chosen-fix');
+
         $model = $this->getModel();
         $app = Factory::getApplication();
 
