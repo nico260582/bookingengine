@@ -52,7 +52,7 @@ class BookingmanagerModelProperties extends ListModel
         $query->select(
             $this->getState(
                 'list.select',
-                'a.*, article.title AS article_title, complex.name AS complex_name, supplier.name AS supplier_name, supplier.rules, main_region.name AS main_region_name, sub_region.name AS sub_region_name'
+                'a.*, article.title AS name, complex.name AS complex_name, supplier.name AS supplier_name, supplier.rules, main_region.name AS main_region_name, sub_region.name AS sub_region_name'
             )
         )
             ->from($db->quoteName('#__bookingmanager_properties', 'a'))
