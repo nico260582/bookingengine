@@ -8,7 +8,6 @@ use Joomla\CMS\Language\Text;
 
 HTMLHelper::_('behavior.core');
 HTMLHelper::_('behavior.keepalive');
-HTMLHelper::_('formbehavior.chosen', 'select');
 
 $listOrder = $this->state->get('list.ordering');
 $listDirn  = $this->state->get('list.direction');

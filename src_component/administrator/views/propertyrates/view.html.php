@@ -3,16 +3,18 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
 use Joomla\CMS\MVC\View\HtmlView;
+use Joomla\CMS\Toolbar\ToolbarHelper;
+use Joomla\CMS\HTML\HTMLHelper;
 
 class BookingmanagerViewPropertyrates extends HtmlView
 {
     protected $properties;
     protected $rateData;
     protected $selectedPropertyId;
+    public $sidebar;
     
     public function display($tpl = null)
     {
-        JHtml::_('formbehavior.chosen', 'select');
         $model = $this->getModel();
         $app = Factory::getApplication();
 
@@ -25,15 +27,16 @@ class BookingmanagerViewPropertyrates extends HtmlView
 
         BookingmanagerHelper::addSubmenu('propertyrates');
         $this->addToolbar();
+        $this->sidebar = JHtmlSidebar::render();
         parent::display($tpl);
     }
     
     protected function addToolbar()
     {
-        JToolbarHelper::title('Property Rates');
+        ToolbarHelper::title('Property Rates');
         if ($this->selectedPropertyId && empty($this->rateData->error)) {
-            JToolbarHelper::save('propertyrates.save');
+            ToolbarHelper::save('propertyrates.save');
         }
-        JToolbarHelper::preferences('com_bookingmanager');
+        ToolbarHelper::preferences('com_bookingmanager');
     }
 }

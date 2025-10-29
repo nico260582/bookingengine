@@ -38,4 +38,22 @@
     <fieldset name="communication_message">
         <field name="admin_message" type="editor" label="Message" description="The message to send to the client." filter="safehtml" />
     </fieldset>
+    <fieldset name="supplier_communication">
+        <field
+            name="supplier_message"
+            type="editor"
+            label="Supplier Message"
+            description="Message to send to the supplier."
+            filter="JComponentHelper::filterText"
+            buttons="true"
+            hide="false"
+        />
+        <field
+            name="whatsapp_sent"
+            type="checkbox"
+            label="WhatsApp Sent"
+            description="Check this box if the availability was confirmed via WhatsApp."
+            value="1"
+        />
+    </fieldset>
 </form>
