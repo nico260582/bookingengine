@@ -4,6 +4,7 @@ defined('_JEXEC') or die;
 use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
 use Joomla\CMS\Toolbar\ToolbarHelper;
 use Joomla\CMS\Language\Text;
+use BookingmanagerHelper;
 
 class BookingmanagerViewComplexes extends BaseHtmlView
 {
@@ -11,6 +12,7 @@ class BookingmanagerViewComplexes extends BaseHtmlView
     protected $pagination;
     protected $state;
     protected $filterForm;
+    public $sidebar;
 
     public function display($tpl = null)
     {
@@ -20,6 +22,8 @@ class BookingmanagerViewComplexes extends BaseHtmlView
         $this->filterForm = $this->get('FilterForm');
 
         $this->addToolbar();
+        BookingmanagerHelper::addSubmenu('complexes');
+        $this->sidebar = JHtmlSidebar::render();
 
         parent::display($tpl);
     }

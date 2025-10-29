@@ -4,13 +4,15 @@ defined('_JEXEC') or die;
 use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
 use Joomla\CMS\Toolbar\ToolbarHelper;
 use Joomla\CMS\Language\Text;
+use BookingmanagerHelper;
 
 class BookingmanagerViewSubregions extends BaseHtmlView
 {
-    public $items;
-    public $pagination;
-    public $state;
-    public $filterForm;
+    protected $items;
+    protected $pagination;
+    protected $state;
+    protected $filterForm;
+    public $sidebar;
 
     public function display($tpl = null)
     {
@@ -20,18 +22,17 @@ class BookingmanagerViewSubregions extends BaseHtmlView
         $this->filterForm = $this->get('FilterForm');
 
         $this->addToolbar();
+        BookingmanagerHelper::addSubmenu('subregions');
+        $this->sidebar = JHtmlSidebar::render();
 
         parent::display($tpl);
     }
 
     protected function addToolbar()
     {
-        ToolbarHelper::title(Text::_('COM_BOOKINGMANAGER_SUB_REGIONS'));
-
+        ToolbarHelper::title('Sub Regions');
         ToolbarHelper::addNew('subregion.add');
         ToolbarHelper::editList('subregion.edit');
         ToolbarHelper::deleteList('', 'subregions.delete');
-        ToolbarHelper::publish('subregions.publish', 'JTOOLBAR_PUBLISH', true);
-        ToolbarHelper::unpublish('subregions.unpublish', 'JTOOLBAR_UNPUBLISH', true);
     }
 }
