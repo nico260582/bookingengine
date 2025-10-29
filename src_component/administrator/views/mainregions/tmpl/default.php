@@ -7,7 +7,8 @@ use Joomla\CMS\Layout\LayoutHelper;
 use Joomla\CMS\HTML\HTMLHelper;
 
 $wa = $this->document->getWebAssetManager();
-$wa->useScript('com_bookingmanager.chosen');
+$wa->useScript('joomla.chosen');
+$wa->addInlineScript("Joomla.chosen(document.querySelectorAll('.js-chosen'));");
 
 $listOrder     = $this->escape($this->state->get('list.ordering'));
 $listDirn      = $this->escape($this->state->get('list.direction'));
