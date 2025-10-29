@@ -5,12 +5,14 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\MVC\View\HtmlView;
 use Joomla\CMS\Toolbar\ToolbarHelper;
 use Joomla\CMS\HTML\HTMLHelper;
+use Joomla\CMS\Layout\FileLayout;
 
 class BookingmanagerViewPropertyrates extends HtmlView
 {
     protected $properties;
     protected $rateData;
     protected $selectedPropertyId;
+    public $sidebar;
     
     public function display($tpl = null)
     {
@@ -25,8 +27,11 @@ class BookingmanagerViewPropertyrates extends HtmlView
             $this->rateData = $model->getRateData($this->selectedPropertyId);
         }
 
-        BookingmanagerHelper::addSubmenu('propertyrates');
         $this->addToolbar();
+
+        $layout = new FileLayout('joomla.searchtools.default', ['view' => $this]);
+        $this->sidebar = $layout->render();
+
         parent::display($tpl);
     }
     
