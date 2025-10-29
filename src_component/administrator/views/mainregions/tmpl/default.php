@@ -6,6 +6,7 @@ use Joomla\CMS\Router\Route;
 use Joomla\CMS\Layout\LayoutHelper;
 use Joomla\CMS\HTML\HTMLHelper;
 
+HTMLHelper::_('behavior.core');
 $wa = $this->document->getWebAssetManager();
 $wa->useScript('com_bookingmanager.chosen-fix');
 
