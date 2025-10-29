@@ -6,12 +6,16 @@
   "license": "GPL-2.0-or-later",
   "assets": [
     {
-      "name": "com_bookingmanager.admin-chosen",
+      "name": "com_bookingmanager.property-edit",
       "type": "script",
+      "uri": "com_bookingmanager/js/property-edit.js",
       "dependencies": [
-        "core",
-        "joomla.chosen"
-      ]
+        "core"
+      ],
+      "attributes": {
+        "defer": true
+      },
+      "version": "1.0.0"
     }
   ]
 }

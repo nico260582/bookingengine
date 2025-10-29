@@ -5,7 +5,6 @@ use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
 use Joomla\CMS\Toolbar\ToolbarHelper;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\Factory;
-use Joomla\CMS\Layout\FileLayout;
 
 class BookingmanagerViewMainregions extends BaseHtmlView
 {
@@ -22,10 +21,12 @@ class BookingmanagerViewMainregions extends BaseHtmlView
         $this->state      = $this->get('State');
         $this->filterForm = $this->get('FilterForm');
 
-        $this->addToolbar();
+        // Load the sidebar
+        require_once JPATH_COMPONENT_ADMINISTRATOR . '/helpers/bookingmanager.php';
+        BookingmanagerHelper::addSubmenu('mainregions');
+        $this->sidebar = JHtmlSidebar::render();
 
-        $layout = new FileLayout('sidebar');
-        $this->sidebar = $layout->render();
+        $this->addToolbar();
 
         parent::display($tpl);
     }

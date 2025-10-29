@@ -4,7 +4,6 @@ defined('_JEXEC') or die;
 use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
 use Joomla\CMS\Toolbar\ToolbarHelper;
 use Joomla\CMS\Factory;
-use Joomla\CMS\Layout\FileLayout;
 
 class BookingmanagerViewProperty extends BaseHtmlView
 {
@@ -17,10 +16,12 @@ class BookingmanagerViewProperty extends BaseHtmlView
         $this->form = $this->get('Form');
         $this->item = $this->get('Item');
 
-        $this->addToolbar();
+        // Load the sidebar
+        require_once JPATH_COMPONENT_ADMINISTRATOR . '/helpers/bookingmanager.php';
+        BookingmanagerHelper::addSubmenu('properties');
+        $this->sidebar = JHtmlSidebar::render();
 
-        $layout = new FileLayout('sidebar');
-        $this->sidebar = $layout->render();
+        $this->addToolbar();
 
         // Load the custom javascript directly to bypass Web Asset Manager issues
         $this->document->addScript(Joomla\CMS\Uri\Uri::root() . 'media/com_bookingmanager/js/property-edit.js?v=2.0.1');

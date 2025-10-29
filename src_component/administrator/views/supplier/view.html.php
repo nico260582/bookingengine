@@ -1,7 +1,6 @@
 <?php
 defined('_JEXEC') or die;
 
-use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\MVC\View\HtmlView;
 
 class BookingmanagerViewSupplier extends HtmlView
@@ -16,12 +15,7 @@ class BookingmanagerViewSupplier extends HtmlView
         $this->item = $this->get('Item');
         $model = $this->getModel();
         $this->logs = $model->getChangeLog($this->item->id);
-
-        // Explicitly load params and pass them to the model
-        $params = ComponentHelper::getParams('com_bookingmanager');
-        $propertyCategories = $params->get('property_categories', []);
-        $this->allProperties = $model->getAllPropertiesWithAssignments($this->item->id, $propertyCategories);
-
+        $this->allProperties = $model->getAllPropertiesWithAssignments($this->item->id);
         $this->document->getWebAssetManager()->useScript('form.validate');
         $this->document->addStyleSheet(JUri::root(true) . '/administrator/components/com_bookingmanager/assets/css/bookingmanager.css');
         $this->document->addStyleSheet(JUri::root(true) . '/administrator/components/com_bookingmanager/assets/css/custom-booking-styles.css');
