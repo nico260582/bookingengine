@@ -1,40 +1,51 @@
 <?php
 defined('_JEXEC') or die;
 
-use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
+use Joomla\CMS\MVC\View\HtmlView;
 use Joomla\CMS\Toolbar\ToolbarHelper;
+use Joomla\CMS\Helper\ContentHelper;
 use Joomla\CMS\Language\Text;
-use Joomla\CMS\Layout\FileLayout;
-use BookingmanagerHelper;
 
-class BookingmanagerViewBookingrequests extends BaseHtmlView
+
+class BookingmanagerViewBookingrequests extends HtmlView
 {
     protected $items;
-    protected $pagination;
     protected $state;
+    protected $pagination;
     protected $filterForm;
-	public $sidebar;
+    protected $activeFilters;
+    public $properties;
+    public $sidebar;
 
     public function display($tpl = null)
     {
-        $this->items      = $this->get('Items');
-        $this->pagination = $this->get('Pagination');
-        $this->state      = $this->get('State');
-        $this->filterForm = $this->get('FilterForm');
+        $this->items         = $this->get('Items');
+        $this->state         = $this->get('State');
+        $this->pagination    = $this->get('Pagination');
+        $this->properties    = $this->get('PropertyNames');
 
+        BookingmanagerHelper::addSubmenu('bookingrequests');
         $this->addToolbar();
-
-		BookingmanagerHelper::addSubmenu('bookingrequests');
-		$this->sidebar = JHtmlSidebar::render();
-
+        $this->sidebar = JHtmlSidebar::render();
         parent::display($tpl);
     }
 
     protected function addToolbar()
     {
-        ToolbarHelper::title('Booking Requests');
-        ToolbarHelper::addNew('bookingrequest.add');
-        ToolbarHelper::editList('bookingrequest.edit');
-        ToolbarHelper::deleteList('Are you sure you want to delete these requests?', 'bookingrequests.delete');
+        $canDo = ContentHelper::getActions('com_bookingmanager');
+        ToolbarHelper::title(Text::_('Booking Requests'), 'address book');
+
+        if ($canDo->get('core.create')) {
+            ToolbarHelper::addNew('bookingrequest.add');
+        }
+        if ($canDo->get('core.edit')) {
+            ToolbarHelper::editList('bookingrequest.edit');
+        }
+        if ($canDo->get('core.delete')) {
+            ToolbarHelper::deleteList(Text::_('JGLOBAL_CONFIRM_DELETE'), 'bookingrequests.delete', 'JTOOLBAR_DELETE');
+        }
+        if ($canDo->get('core.admin')) {
+            ToolbarHelper::preferences('com_bookingmanager');
+        }
     }
 }

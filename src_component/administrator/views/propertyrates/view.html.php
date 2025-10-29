@@ -4,7 +4,7 @@ defined('_JEXEC') or die;
 use Joomla\CMS\Factory;
 use Joomla\CMS\MVC\View\HtmlView;
 use Joomla\CMS\Toolbar\ToolbarHelper;
-use BookingmanagerHelper;
+use Joomla\CMS\HTML\HTMLHelper;
 
 class BookingmanagerViewPropertyrates extends HtmlView
 {
@@ -15,6 +15,7 @@ class BookingmanagerViewPropertyrates extends HtmlView
     
     public function display($tpl = null)
     {
+        HTMLHelper::_('formbehavior.chosen', 'select');
         $model = $this->getModel();
         $app = Factory::getApplication();
 
@@ -25,10 +26,9 @@ class BookingmanagerViewPropertyrates extends HtmlView
             $this->rateData = $model->getRateData($this->selectedPropertyId);
         }
 
-        $this->addToolbar();
         BookingmanagerHelper::addSubmenu('propertyrates');
+        $this->addToolbar();
         $this->sidebar = JHtmlSidebar::render();
-
         parent::display($tpl);
     }
     

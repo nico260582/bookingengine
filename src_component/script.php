@@ -1,7 +1,7 @@
 <?php
 defined('_JEXEC') or die;
 use Joomla\CMS\Factory;
-class Com_BookingmanagerInstallerScript
+class com_bookingmanagerInstallerScript
 {
     public function install($parent) { $this->runInstallQueries($parent); return true; }
     public function uninstall($parent) { $this->runUninstallQueries($parent); return true; }

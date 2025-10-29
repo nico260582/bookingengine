@@ -1,67 +1,144 @@
 <?php
 defined('_JEXEC') or die;
 
-use Joomla\CMS\Language\Text;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\Layout\LayoutHelper;
-use Joomla\CMS\HTML\HTMLHelper;
 
-$listOrder     = $this->escape($this->state->get('list.ordering'));
-$listDirn      = $this->escape($this->state->get('list.direction'));
+// Ensure the helper is loaded
+require_once JPATH_ADMINISTRATOR . '/components/com_bookingmanager/helpers/bookingmanager.php';
 ?>
-<div id="j-sidebar-container" class="span2">
-	<?php echo $this->sidebar; ?>
-</div>
-<div id="j-main-container" class="span10">
-    <form action="<?php echo Route::_('index.php?option=com_bookingmanager&view=properties'); ?>" method="post" name="adminForm" id="adminForm">
-        <?php echo LayoutHelper::render('joomla.searchtools.default', array('view' => $this)); ?>
+
+<form action="<?php echo Route::_('index.php?option=com_bookingmanager&view=properties'); ?>" method="post" name="adminForm" id="adminForm">
+    <?php if (!empty($this->sidebar)) : ?>
+    <div id="j-sidebar-container" class="span2">
+        <?php echo $this->sidebar; ?>
+    </div>
+    <?php endif; ?>
+    <div id="j-main-container" class="j-main-container <?php if (!empty($this->sidebar)) : ?>span10<?php endif; ?>">
+        <?php echo LayoutHelper::render('joomla.searchtools.default', ['view' => $this]); ?>
         <table class="table table-striped table-hover">
             <thead>
                 <tr>
-                    <th width="1%"><?php echo HTMLHelper::_('grid.checkall'); ?></th>
-                    <th><?php echo HTMLHelper::_('searchtools.sort', 'Name', 'a.name', $listDirn, $listOrder); ?></th>
-                    <th><?php echo HTMLHelper::_('searchtools.sort', 'Complex', 'complex_name', $listDirn, $listOrder); ?></th>
-                    <th><?php echo HTMLHelper::_('searchtools.sort', 'Supplier', 'supplier_name', $listDirn, $listOrder); ?></th>
-                    <th><?php echo HTMLHelper::_('searchtools.sort', 'Main Region', 'main_region_name', $listDirn, $listOrder); ?></th>
-                    <th><?php echo HTMLHelper::_('searchtools.sort', 'Sub Region', 'sub_region_name', $listDirn, $listOrder); ?></th>
-                    <th>Rate Status</th>
-                    <th width="10%"><?php echo HTMLHelper::_('searchtools.sort', 'Published', 'a.published', $listDirn, $listOrder); ?></th>
-                    <th width="1%"><?php echo HTMLHelper::_('searchtools.sort', 'ID', 'a.id', $listDirn, $listOrder); ?></th>
+                    <th width="1%">
+                        <?php echo JHtml::_('grid.checkall'); ?>
+                    </th>
+                    <th>
+                        <?php echo JHtml::_('grid.sort', 'Article Title', 'article.title', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
+                    </th>
+                    <th width="15%">
+                        <?php echo JHtml::_('grid.sort', 'Complex', 'complex.name', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
+                    </th>
+                    <th width="15%">
+                        <?php echo JHtml::_('grid.sort', 'Supplier', 'supplier.name', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
+                    </th>
+                    <th width="10%">
+                        <?php echo JHtml::_('grid.sort', 'Main Region', 'main_region.name', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
+                    </th>
+                    <th width="10%">
+                        <?php echo JHtml::_('grid.sort', 'Sub Region', 'sub_region.name', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
+                    </th>
+                    <th width="5%" class="nowrap center">
+                        Rate Status
+                    </th>
+                    <th width="10%">
+                        <?php echo JHtml::_('grid.sort', 'Max Guests', 'a.max_guests', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
+                    </th>
+                    <th width="10%">
+                        Extra Mattress
+                    </th>
+                    <th width="5%">
+                        <?php echo JHtml::_('grid.sort', 'Units', 'a.number_of_units', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
+                    </th>
+                    <th width="5%">
+                        <?php echo JHtml::_('grid.sort', 'ID', 'a.id', $this->state->get('list.direction'), $this->state->get('list.ordering')); ?>
+                    </th>
                 </tr>
             </thead>
             <tbody>
-                <?php foreach ($this->items as $i => $item) : ?>
-                    <tr class="row<?php echo $i % 2; ?>">
-                        <td><?php echo HTMLHelper::_('grid.id', $i, $item->id); ?></td>
-                        <td><a href="<?php echo Route::_('index.php?option=com_bookingmanager&task=property.edit&id=' . (int) $item->id); ?>"><?php echo $this->escape($item->name); ?></a></td>
-                        <td><?php echo $this->escape($item->complex_name); ?></td>
-                        <td><?php echo $this->escape($item->supplier_name); ?></td>
-                        <td><?php echo $this->escape($item->main_region_name); ?></td>
-                        <td><?php echo $this->escape($item->sub_region_name); ?></td>
-                        <td>
-                            <?php
-                            $rateStatus = BookingmanagerHelper::getRateStatus($item->article_id);
-                            $statusClass = '';
-                            if ($rateStatus['status'] == 'complete') {
-                                $statusClass = 'badge badge-success';
-                            } elseif ($rateStatus['status'] == 'partial') {
-                                $statusClass = 'badge badge-warning';
-                            } else {
-                                $statusClass = 'badge badge-important';
-                            }
-                            ?>
-                            <span class="<?php echo $statusClass; ?>" title="<?php echo $this->escape($rateStatus['reason']); ?>">
-                                <?php echo ucfirst($rateStatus['status']); ?>
-                            </span>
+                <?php if (!empty($this->items)) : ?>
+                    <?php foreach ($this->items as $i => $item) :
+                        $rateStatus = BookingmanagerHelper::getRateStatus($item->article_id);
+                        ?>
+                        <tr class="row<?php echo $i % 2; ?>">
+                            <td>
+                                <?php echo JHtml::_('grid.id', $i, $item->id); ?>
+                            </td>
+                            <td>
+                                <a href="<?php echo Route::_('index.php?option=com_bookingmanager&task=property.edit&id=' . (int) $item->id); ?>">
+                                    <?php echo $this->escape($item->article_title); ?>
+                                </a>
+                            </td>
+                            <td>
+                                <?php echo $this->escape($item->complex_name) ?: 'N/A'; ?>
+                            </td>
+                            <td>
+                                <?php echo $this->escape($item->supplier_name) ?: 'N/A'; ?>
+                            </td>
+                            <td>
+                                <?php echo $this->escape($item->main_region_name) ?: 'N/A'; ?>
+                            </td>
+                            <td>
+                                <?php echo $this->escape($item->sub_region_name) ?: 'N/A'; ?>
+                            </td>
+                            <td class="center">
+                                <?php
+                                $status = $rateStatus['status'] ?? 'error';
+                                $reason = $rateStatus['reason'] ?? 'Error checking status.';
+                                switch ($status) {
+                                    case 'complete':
+                                        echo '<span class="icon-publish" style="color: green;" title="' . $this->escape($reason) . '"></span>';
+                                        break;
+                                    case 'partial':
+                                        echo '<span class="icon-warning" style="color: orange;" title="' . $this->escape($reason) . '"></span>';
+                                        break;
+                                    case 'empty':
+                                        echo '<span class="icon-unpublish" style="color: red;" title="' . $this->escape($reason) . '"></span>';
+                                        break;
+                                    default:
+                                        echo '<span class="icon-question" title="' . $this->escape($reason) . '"></span>';
+                                        break;
+                                }
+                                ?>
+                            </td>
+                            <td>
+                                <?php echo (int) $item->max_guests; ?>
+                            </td>
+                            <td>
+                                <?php
+                                $pricingModel = '';
+                                if (!empty($item->rules)) {
+                                    $rules = json_decode($item->rules);
+                                    $pricingModel = $rules->pricing_model ?? '';
+                                }
+
+                                if ($pricingModel !== 'CapacityBased') {
+                                    echo 'N/A';
+                                } elseif ($item->allow_extra_mattress == 1) {
+                                    echo 'On';
+                                } else {
+                                    echo 'Off';
+                                }
+                                ?>
+                            </td>
+                            <td>
+                                <?php echo (int) $item->number_of_units; ?>
+                            </td>
+                            <td>
+                                <?php echo (int) $item->id; ?>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php else : ?>
+                    <tr>
+                        <td colspan="10" class="text-center">
+                            No properties found.
                         </td>
-                        <td class="center"><?php echo HTMLHelper::_('jgrid.published', $item->published, $i, 'properties.', true, 'cb'); ?></td>
-                        <td class="center"><?php echo (int) $item->id; ?></td>
                     </tr>
-                <?php endforeach; ?>
+                <?php endif; ?>
             </tbody>
             <tfoot>
                 <tr>
-                    <td colspan="9">
+                    <td colspan="10">
                         <?php echo $this->pagination->getListFooter(); ?>
                     </td>
                 </tr>
@@ -69,6 +146,8 @@ $listDirn      = $this->escape($this->state->get('list.direction'));
         </table>
         <input type="hidden" name="task" value="" />
         <input type="hidden" name="boxchecked" value="0" />
-        <?php echo HTMLHelper::_('form.token'); ?>
-    </form>
-</div>
+        <input type="hidden" name="filter_order" value="<?php echo $this->state->get('list.ordering'); ?>" />
+        <input type="hidden" name="filter_order_Dir" value="<?php echo $this->state->get('list.direction'); ?>" />
+        <?php echo JHtml::_('form.token'); ?>
+    </div>
+</form>

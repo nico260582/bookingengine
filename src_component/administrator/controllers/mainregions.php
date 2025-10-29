@@ -1,12 +1,10 @@
 <?php
 defined('_JEXEC') or die;
 
-use Joomla\CMS\MVC\Controller\BaseController;
-
-class BookingmanagerControllerMainregions extends BaseController
+class BookingmanagerControllerMainregions extends JControllerAdmin
 {
-    public function __construct($config = [])
+    public function getModel($name = 'Mainregion', $prefix = 'BookingmanagerModel', $config = array('ignore_request' => true))
     {
-        parent::__construct($config);
+        return parent::getModel($name, $prefix, $config);
     }
 }
