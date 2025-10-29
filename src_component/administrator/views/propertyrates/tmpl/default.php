@@ -5,8 +5,6 @@ use Joomla\CMS\Language\Text;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\Layout\LayoutHelper;
 use Joomla\CMS\HTML\HTMLHelper;
-
-HTMLHelper::_('formbehavior.chosen', 'select');
 ?>
 <form action="<?php echo Route::_('index.php?option=com_bookingmanager&view=propertyrates'); ?>" method="post" name="adminForm" id="adminForm">
     <?php if (!empty($this->sidebar)) : ?>
@@ -23,7 +21,7 @@ HTMLHelper::_('formbehavior.chosen', 'select');
                             <label for="filter_property_id"><?php echo Text::_('COM_BOOKINGMANAGER_PROPERTYRATES_FILTER_PROPERTY'); ?></label>
                         </div>
                         <div class="controls">
-                            <select name="filter_property_id" id="filter_property_id" class="chzn-select" onchange="this.form.submit()">
+                            <select name="filter_property_id" id="filter_property_id" onchange="this.form.submit()">
                                 <option value="0"><?php echo Text::_('COM_BOOKINGMANAGER_PROPERTYRATES_SELECT_PROPERTY'); ?></option>
                                 <?php foreach ($this->properties as $property) : ?>
                                     <option value="<?php echo (int) $property->id; ?>" <?php echo ($this->selectedPropertyId == $property->id) ? 'selected="selected"' : ''; ?>>

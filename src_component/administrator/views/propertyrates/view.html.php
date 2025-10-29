@@ -5,7 +5,6 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\MVC\View\HtmlView;
 use Joomla\CMS\Toolbar\ToolbarHelper;
 use Joomla\CMS\HTML\HTMLHelper;
-use Joomla\CMS\Layout\FileLayout;
 
 class BookingmanagerViewPropertyrates extends HtmlView
 {
@@ -15,7 +14,6 @@ class BookingmanagerViewPropertyrates extends HtmlView
     
     public function display($tpl = null)
     {
-        HTMLHelper::_('formbehavior.chosen', 'select');
         $model = $this->getModel();
         $app = Factory::getApplication();
 

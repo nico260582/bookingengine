@@ -3,7 +3,7 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
 use Joomla\CMS\Toolbar\ToolbarHelper;
-use Joomla\CMS\Layout\FileLayout;
+use Joomla\CMS\Language\Text;
 
 class BookingmanagerViewBookingrequests extends BaseHtmlView
 {
