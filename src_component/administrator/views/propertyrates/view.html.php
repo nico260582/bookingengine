@@ -12,7 +12,6 @@ class BookingmanagerViewPropertyrates extends HtmlView
     protected $properties;
     protected $rateData;
     protected $selectedPropertyId;
-    public $sidebar;
     
     public function display($tpl = null)
     {
@@ -28,9 +27,6 @@ class BookingmanagerViewPropertyrates extends HtmlView
         }
 
         $this->addToolbar();
-
-        $layout = new FileLayout('joomla.searchtools.default', ['view' => $this]);
-        $this->sidebar = $layout->render();
 
         parent::display($tpl);
     }

@@ -13,7 +13,6 @@ class BookingmanagerViewMainregions extends BaseHtmlView
     public $pagination;
     public $state;
     public $filterForm;
-    public $sidebar;
 
     public function display($tpl = null)
     {
@@ -23,9 +22,6 @@ class BookingmanagerViewMainregions extends BaseHtmlView
         $this->filterForm = $this->get('FilterForm');
 
         $this->addToolbar();
-
-        $layout = new FileLayout('joomla.searchtools.default', ['view' => $this]);
-        $this->sidebar = $layout->render();
 
         parent::display($tpl);
     }

@@ -12,9 +12,11 @@ $listOrder     = $this->escape($this->state->get('list.ordering'));
 $listDirn      = $this->escape($this->state->get('list.direction'));
 ?>
 <form action="<?php echo Route::_('index.php?option=com_bookingmanager&view=mainregions'); ?>" method="post" name="adminForm" id="adminForm">
-    <div id="j-sidebar-container" class="span2">
-        <?php echo $this->sidebar; ?>
-    </div>
+    <?php if (!empty($this->sidebar)) : ?>
+        <div id="j-sidebar-container" class="span2">
+            <?php echo JLayoutHelper::render('joomla.searchtools.sidebar', ['view' => $this]); ?>
+        </div>
+    <?php endif; ?>
     <div id="j-main-container" class="span10">
         <table class="table table-striped table-hover">
             <thead>
