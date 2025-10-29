@@ -22,7 +22,6 @@
 
     <media destination="com_bookingmanager" folder="media">
         <folder>js</folder>
-        <filename>joomla.asset.json</filename>
     </media>
 
     <languages folder="site/language">

@@ -7,8 +7,7 @@ use Joomla\CMS\Layout\LayoutHelper;
 use Joomla\CMS\HTML\HTMLHelper;
 
 HTMLHelper::_('behavior.core');
-$wa = $this->document->getWebAssetManager();
-$wa->useScript('com_bookingmanager.chosen-fix');
+HTMLHelper::_('formbehavior.chosen', 'select');
 
 $listOrder     = $this->escape($this->state->get('list.ordering'));
 $listDirn      = $this->escape($this->state->get('list.direction'));
