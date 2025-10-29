@@ -1,9 +1,7 @@
 <?php
 defined('_JEXEC') or die;
 
-use Joomla\CMS\MVC\Controller\AdminController;
-
-class BookingmanagerControllerSubregions extends AdminController
+class BookingmanagerControllerSubregions extends JControllerAdmin
 {
     /**
      * The prefix to use with controller messages.

@@ -15,6 +15,7 @@ class BookingmanagerViewBookingrequests extends HtmlView
     protected $filterForm;
     protected $activeFilters;
     public $properties;
+    public $sidebar;
 
     public function display($tpl = null)
     {
