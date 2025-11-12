@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', function() {
             var selectedModel = pricingModelSelect.val();
             $('.bm-showon-supplement').closest('.control-group').toggle(selectedModel === 'SupplementPerGuest' || selectedModel === 'CustomCapacity');
             $('.bm-showon-capacity').closest('.control-group').toggle(selectedModel === 'CapacityBased');
+            $('.bm-showon-custom-capacity').closest('.control-group').toggle(selectedModel === 'CustomCapacity');
         }
         pricingModelSelect.on('change', toggleFields).trigger('change');
     })(jQuery);
