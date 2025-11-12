@@ -153,7 +153,7 @@
         private function prepareRules(array &$data)
         {
             $rules = new stdClass();
-            $rule_fields = ['pricing_model', 'adult_supplement', 'child_supplement', 'extra_mattress_fee', 'seasons', 'infant_max_age', 'child_max_age', 'teen_max_age', 'free_with_parents_age', 'country_discounts', 'coupon_codes'];
+            $rule_fields = ['pricing_model', 'adult_supplement', 'child_supplement', 'extra_mattress_fee', 'seasons', 'infant_max_age', 'child_max_age', 'teen_max_age', 'free_with_parents_age', 'country_discounts', 'coupon_codes', 'persons'];
             foreach ($rule_fields as $field) {
                 if (isset($data[$field])) {
                     $rules->$field = $data[$field];

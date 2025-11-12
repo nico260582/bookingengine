@@ -39,6 +39,7 @@
         <field name="adult_supplement" type="number" label="Default Adult Supplement" step="0.01" class="bm-showon-supplement" size="10"/>
         <field name="child_supplement" type="number" label="Default Child Supplement" step="0.01" class="bm-showon-supplement" size="10"/>
         <field name="extra_mattress_fee" type="number" label="Default Extra Mattress Fee" step="0.01" class="bm-showon-capacity"/>
+        <field name="persons" type="number" label="Number of Persons" description="The number of persons for this custom capacity rate." class="bm-showon-custom-capacity" size="5" filter="integer" />
     </fieldset>
     <fieldset name="guest_age_rules" label="Guest Age Rules">
         <field name="infant_max_age" type="number" label="Infant Max Age" description="Guests this age or younger are Infants for this supplier." default="5" filter="integer" size="5" />
